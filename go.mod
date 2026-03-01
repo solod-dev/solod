@@ -1,4 +1,4 @@
-module github.com/nalgeon/soan
+module github.com/nalgeon/solod
 
 go 1.25.0
 

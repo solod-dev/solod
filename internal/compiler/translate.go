@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/nalgeon/soan/internal/clang"
+	"github.com/nalgeon/solod/internal/clang"
 )
 
-// Translate loads all Go packages from srcDir (including Soan stdlib dependencies),
+// Translate loads all Go packages from srcDir (including So stdlib dependencies),
 // translates them to C, and writes the output to outDir.
 func Translate(srcDir string, outDir string) error {
 	pkgs, err := loadPackages(srcDir)
@@ -72,7 +72,7 @@ func loadPackages(dir string) ([]*packages.Package, error) {
 }
 
 // topoSort walks the import graph from entry and returns transpilable packages
-// (module-internal + Soan stdlib) in topological order (dependencies before dependents).
+// (module-internal + So stdlib) in topological order (dependencies before dependents).
 func topoSort(entry *packages.Package, entryModulePath, soanModulePath string) []*packages.Package {
 	var ordered []*packages.Package
 	visited := make(map[string]bool)
@@ -98,7 +98,7 @@ func topoSort(entry *packages.Package, entryModulePath, soanModulePath string) [
 
 // packageOutDir returns the output directory for a package.
 // Entry package goes to outDir directly.
-// Other packages strip their module prefix (e.g. github.com/nalgeon/soan/math -> math).
+// Other packages strip their module prefix (e.g. github.com/nalgeon/solod/math -> math).
 func packageOutDir(pkg, entry *packages.Package, outDir string) string {
 	if pkg.PkgPath == entry.PkgPath {
 		return outDir
@@ -108,7 +108,7 @@ func packageOutDir(pkg, entry *packages.Package, outDir string) string {
 }
 
 // shouldTranspile returns true if a package should be transpiled to C.
-// This includes packages from the entry module and Soan stdlib packages.
+// This includes packages from the entry module and So stdlib packages.
 func shouldTranspile(pkg *packages.Package, entryModulePath, soanModulePath string) bool {
 	if pkg.Module == nil {
 		return false

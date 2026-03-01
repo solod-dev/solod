@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/soan/math"
+import "github.com/nalgeon/solod/math"
 
 func main() {
 	x := math.Sqrt(4.0)

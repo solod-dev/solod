@@ -19,7 +19,7 @@ test:
 
 dist:
 	@rm -rf dist
-	@mkdir -p dist/soan/bin
-	@go build -o dist/soan/bin/so ./cmd/so
-	@tar -czf dist/soan.tar.gz -C dist soan
-	@echo "Created dist/soan.tar.gz"
+	@mkdir -p dist/solod/bin
+	@go build -o dist/solod/bin/so ./cmd/so
+	@tar -czf dist/solod.tar.gz -C dist solod
+	@echo "Created dist/solod.tar.gz"
