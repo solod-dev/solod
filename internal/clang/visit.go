@@ -256,6 +256,9 @@ func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
 			fmt.Fprintf(w, "%s%s%s %s = ", g.indent(), specifier, cType, cName)
 			if iface, ok := typ.Underlying().(*types.Interface); ok && iface.Empty() {
 				g.emitAnyValue(spec, spec.Values[i])
+			} else if isInterfaceType(typ) && !isInterfaceType(g.types.TypeOf(spec.Values[i])) {
+				// Value needs to be wrapped as an interface.
+				g.emitInterfaceLit(typ, spec.Values[i])
 			} else {
 				g.emitExpr(spec.Values[i])
 			}

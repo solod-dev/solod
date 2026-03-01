@@ -1,7 +1,8 @@
 #include "main.h"
-static so_int calc(main_Shape s);
+static so_int calcShape(main_Shape s);
+static so_int calcLine(main_Line l);
 static bool shapeIsRect(main_Shape s);
-static so_int shapeAsRect(main_Shape s);
+static main_Rect shapeAsRect(main_Shape s);
 static bool lineIsRect(main_Line l);
 static main_Rect* lineAsRect(main_Line l);
 
@@ -20,8 +21,12 @@ so_int main_Rect_Length(void* self) {
     return 2 * r->width + 2 * r->height;
 }
 
-static so_int calc(main_Shape s) {
+static so_int calcShape(main_Shape s) {
     return s.Perim(s.self, 2) + s.Area(s.self);
+}
+
+static so_int calcLine(main_Line l) {
+    return l.Length(l.self);
 }
 
 static bool shapeIsRect(main_Shape s) {
@@ -29,13 +34,13 @@ static bool shapeIsRect(main_Shape s) {
     return ok;
 }
 
-static so_int shapeAsRect(main_Shape s) {
+static main_Rect shapeAsRect(main_Shape s) {
     bool ok = (s.Area == main_Rect_Area);
     if (!ok) {
-        return 0;
+        return (main_Rect){};
     }
     main_Rect r = *((main_Rect*)s.self);
-    return main_Rect_Area(&r);
+    return r;
 }
 
 static bool lineIsRect(main_Line l) {
@@ -56,15 +61,20 @@ int main(void) {
     main_Rect r = (main_Rect){.width = 10, .height = 5};
     {
         main_Shape s = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
-        calc(s);
-        calc((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
-        calc((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
+        main_Shape s2 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
+        main_Shape s3 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
+        calcShape(s);
+        calcShape((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
+        calcShape((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
         (void)shapeIsRect(s);
-        so_int a = shapeAsRect(s);
-        (void)a;
+        main_Rect rval = shapeAsRect(s);
+        (void)rval;
     }
     {
         main_Line l = (main_Line){.self = &r, .Length = main_Rect_Length};
+        main_Line l2 = (main_Line){.self = &r, .Length = main_Rect_Length};
+        (void)l2;
+        calcLine(l);
         (void)lineIsRect(l);
         main_Rect* rptr = lineAsRect(l);
         (void)rptr;

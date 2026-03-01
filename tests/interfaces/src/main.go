@@ -25,8 +25,12 @@ func (r *Rect) Length() int {
 	return 2*r.width + 2*r.height
 }
 
-func calc(s Shape) int {
+func calcShape(s Shape) int {
 	return s.Perim(2) + s.Area()
+}
+
+func calcLine(l Line) int {
+	return l.Length()
 }
 
 func shapeIsRect(s Shape) bool {
@@ -34,13 +38,13 @@ func shapeIsRect(s Shape) bool {
 	return ok
 }
 
-func shapeAsRect(s Shape) int {
+func shapeAsRect(s Shape) Rect {
 	_, ok := s.(Rect)
 	if !ok {
-		return 0
+		return Rect{}
 	}
 	r := s.(Rect)
-	return r.Area()
+	return r
 }
 
 func lineIsRect(l Line) bool {
@@ -62,17 +66,27 @@ func main() {
 	{
 		// Shape interface is implemented by Rect value.
 		s := Shape(r)
-		calc(s)
-		calc(Shape(r)) // also works
-		calc(r)        // also works
+		var s2 Shape = r
+		var _ Shape = s2
+		var s3 Shape = &r
+		var _ Shape = s3
+
+		calcShape(s)
+		calcShape(Shape(r)) // also works
+		calcShape(r)        // also works
 
 		_ = shapeIsRect(s)
-		a := shapeAsRect(s)
-		_ = a
+		rval := shapeAsRect(s)
+		_ = rval
 	}
 	{
 		// Line interface is implemented by *Rect pointer.
 		l := Line(&r)
+		var l2 Line = &r
+		_ = l2
+
+		calcLine(l)
+
 		_ = lineIsRect(l)
 		rptr := lineAsRect(l)
 		_ = rptr
