@@ -1,25 +1,31 @@
 #include "main.h"
-static so_ResInt work(so_int n);
+static so_Result work(so_int n);
 so_Error main_Err42 = errors_New(so_strlit("42"));
 
-static so_ResInt work(so_int n) {
+static so_Result work(so_int n) {
     if (n == 42) {
-        return (so_ResInt){.Err = main_Err42};
+        return (so_Result){.val.as_int = 0, .err = main_Err42};
     }
-    return (so_ResInt){.Val = 42};
+    return (so_Result){.val.as_int = 42, .err = NULL};
 }
 
 int main(void) {
     double x = math_Sqrt(4.0);
     (void)x;
-    so_ResInt r1 = work(11);
-    if (r1.Err != NULL) {
+    so_Result _res1 = work(11);
+    so_int r1 = _res1.val.as_int;
+    so_Error err = _res1.err;
+    if (err != NULL) {
         so_panic("unexpected error");
     }
-    so_ResInt r2 = work(42);
-    if (r2.Err != main_Err42) {
+    (void)r1;
+    so_Result _res2 = work(42);
+    so_int r2 = _res2.val.as_int;
+    err = _res2.err;
+    if (err != main_Err42) {
         so_panic("expected Err42");
     }
+    (void)r2;
     io_Reader rdr = {0};
     (void)rdr;
 }
