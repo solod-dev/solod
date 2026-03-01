@@ -24,19 +24,29 @@ func (g *Generator) emitMakeCall(call *ast.CallExpr) {
 	fmt.Fprintf(w, ")")
 }
 
-// emitAppendCall emits an append() builtin call as so_append(slice, T, vals...).
+// emitAppendCall emits an append() builtin call.
 func (g *Generator) emitAppendCall(call *ast.CallExpr) {
 	w := g.state.writer
 	sliceType := g.types.TypeOf(call.Args[0]).Underlying().(*types.Slice)
 	elemType := g.mapType(call, sliceType.Elem())
-	fmt.Fprintf(w, "so_append(")
-	g.emitExpr(call.Args[0])
-	fmt.Fprintf(w, ", %s", elemType)
-	for _, arg := range call.Args[1:] {
+	if call.Ellipsis.IsValid() {
+		// Appending a slice (e.g. append(dst, src...)).
+		fmt.Fprintf(w, "so_extend(")
+		g.emitExpr(call.Args[0])
 		fmt.Fprintf(w, ", ")
-		g.emitExpr(arg)
+		g.emitExpr(call.Args[1])
+		fmt.Fprintf(w, ", %s)", elemType)
+	} else {
+		// Appending individual values (e.g. append(dst, v1, v2, v3)).
+		fmt.Fprintf(w, "so_append(")
+		g.emitExpr(call.Args[0])
+		fmt.Fprintf(w, ", %s", elemType)
+		for _, arg := range call.Args[1:] {
+			fmt.Fprintf(w, ", ")
+			g.emitExpr(arg)
+		}
+		fmt.Fprintf(w, ")")
 	}
-	fmt.Fprintf(w, ")")
 }
 
 // emitCopyCall emits a copy() builtin call as so_copy(dst, src, T).

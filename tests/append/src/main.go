@@ -1,24 +1,44 @@
 package main
 
 func main() {
-	nums := make([]int, 3)
-	n := nums[1] // 0
-	nums[1] = 42
-	l1 := len(nums) // 3
-	c1 := cap(nums)
+	{
+		// make, len, cap.
+		nums := make([]int, 3)
+		n := nums[1] // 0
+		nums[1] = 42
+		l := len(nums) // 3
+		c := cap(nums)
+		_ = n
+		_ = l
+		_ = c
+	}
 
-	nums = make([]int, 0, 3)
-	nums = append(nums, 1)
-	nums = append(nums, 2, 3)
-	l2 := len(nums) // 3
-	c2 := cap(nums) // 3
+	{
+		// Append values.
+		nums := make([]int, 0, 3)
+		nums = append(nums, 1)
+		nums = append(nums, 2, 3)
+		l := len(nums) // 3
+		c := cap(nums) // 3
+		_ = l
+		_ = c
 
-	// Resizing slices beyond their initial capacity with append() panics.
-	// nums = append(nums, 4)
+		// Resizing slices beyond their initial capacity with append() panics.
+		// nums = append(nums, 4)
+	}
 
-	_ = n
-	_ = l1
-	_ = c1
-	_ = l2
-	_ = c2
+	{
+		// Append slices.
+		nums := make([]int, 0, 8)
+		numsa := []int{1, 2}
+		nums = append(nums, numsa...)
+		nums = append(nums, []int{3, 4}...)
+		l := len(nums) // 4
+		if l != 4 {
+			panic("want l = 4")
+		}
+		if nums[3] != 4 {
+			panic("want nums[3] = 4")
+		}
+	}
 }

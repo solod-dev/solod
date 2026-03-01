@@ -60,14 +60,9 @@ typedef struct {
     size_t cap;
 } so_Slice;
 
-// so_make_slice creates a slice of the given type, length, and capacity.
-// Uses separate declaration and initialization to avoid
-// variable-length array initialization, which is not allowed in C.
-#define so_make_slice(type, len, cap) ({ \
-    type _arr[(cap)];                    \
-    memset(_arr, 0, sizeof(_arr));       \
-    (so_Slice){_arr, (len), (cap)};      \
-})
+// so_make_slice creates a zeroed slice of the given type, length, and capacity.
+// cap must be a compile-time constant.
+#define so_make_slice(type, len, cap) ((so_Slice){(type[cap]){0}, (len), (cap)})
 
 // so_slice creates a slice from an array or another slice
 // from index 'from' (inclusive) to index 'to' (exclusive).
@@ -77,9 +72,11 @@ typedef struct {
 #define so_string_bytes(s) ((so_Slice){(void*)(s).ptr, (s).len, (s).len})
 
 // so_string_runes decodes a string's UTF-8 bytes into a rune slice.
-#define so_string_runes(s, maxlen) ({ \
-    int32_t _buf[(maxlen)];           \
-    so_string_runes_impl((s), _buf);  \
+// Allocates memory on the stack until the calling function returns.
+// FIXME: This can exhaust the stack if called in a loop or with a large string.
+#define so_string_runes(s, maxlen) ({                   \
+    int32_t* _buf = alloca((maxlen) * sizeof(int32_t)); \
+    so_string_runes_impl((s), _buf);                    \
 })
 so_Slice so_string_runes_impl(so_String s, int32_t* buf);
 
@@ -94,6 +91,18 @@ so_Slice so_string_runes_impl(so_String s, int32_t* buf);
     memcpy((T*)_s.ptr + _s.len, _vals, sizeof(_vals));             \
     _s.len += _n;                                                  \
     _s;                                                            \
+})
+
+// so_extend appends all elements from a source slice to a destination slice.
+// Returns the new slice with updated length.
+// Panics if the new length exceeds the capacity.
+#define so_extend(dst, src, T) ({                                            \
+    so_Slice _dst = (dst);                                                   \
+    so_Slice _src = (src);                                                   \
+    if (_dst.len + _src.len > _dst.cap) so_panic("append: out of capacity"); \
+    memcpy((T*)_dst.ptr + _dst.len, _src.ptr, _src.len * sizeof(T));         \
+    _dst.len += _src.len;                                                    \
+    _dst;                                                                    \
 })
 
 // so_index returns a reference to the element at index i in a slice or string.
