@@ -97,7 +97,7 @@ func NewSlice[T any](len int) []T { return nil }
 //so:extern
 func FreeSlice[T any](slice []T) {}
 
-//go:embed mem.h
+//so:embed mem.h
 var Header string
 
 //so:extern

@@ -2,7 +2,7 @@ package main
 
 import _ "embed"
 
-//go:embed main.h
+//so:embed main.h
 var header string
 
 //so:extern

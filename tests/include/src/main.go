@@ -4,10 +4,10 @@ import (
 	_ "embed"
 )
 
-//go:embed main.h
+//so:embed main.h
 var main_h string
 
-//go:embed main.c
+//so:embed main.c
 var main_c string
 
 var GoSecret int64 = 42

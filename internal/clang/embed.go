@@ -24,7 +24,7 @@ type Embeds struct {
 	vars   map[string]bool // var names to skip during emission
 }
 
-// collectEmbeds scans package files for //go:embed directives, reads the
+// collectEmbeds scans package files for //so:embed directives, reads the
 // referenced files, and categorizes them by extension (.h -> header, .c -> impl).
 func collectEmbeds(pkg *packages.Package) (Embeds, error) {
 	embeds := Embeds{vars: make(map[string]bool)}
@@ -40,7 +40,7 @@ func collectEmbeds(pkg *packages.Package) (Embeds, error) {
 				continue
 			}
 
-			// Read the file specified in the //go:embed directive.
+			// Read the file specified in the //so:embed directive.
 			filename, ok := embedDirective(gd.Doc)
 			if !ok {
 				continue
@@ -69,13 +69,13 @@ func collectEmbeds(pkg *packages.Package) (Embeds, error) {
 	return embeds, nil
 }
 
-// embedDirective extracts the filename from a //go:embed comment directive.
+// embedDirective extracts the filename from a //so:embed comment directive.
 func embedDirective(doc *ast.CommentGroup) (string, bool) {
 	if doc == nil {
 		return "", false
 	}
 	for _, c := range doc.List {
-		if filename, ok := strings.CutPrefix(strings.TrimSpace(c.Text), "//go:embed "); ok {
+		if filename, ok := strings.CutPrefix(strings.TrimSpace(c.Text), "//so:embed "); ok {
 			return strings.TrimSpace(filename), true
 		}
 	}

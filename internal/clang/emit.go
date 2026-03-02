@@ -60,7 +60,7 @@ type Generator struct {
 	externs  map[string]bool // symbols provided by C headers
 	includes []string        // #include directives from comments
 	symbols  []symbol        // pre-collected top-level declarations
-	embeds   Embeds          // embedded C files from //go:embed
+	embeds   Embeds          // embedded C files from //so:embed
 	panicked bool            // true after first panic caught in Visit
 }
 
