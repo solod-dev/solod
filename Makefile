@@ -4,13 +4,14 @@ example:
 	@rm -rf generated/$(name)
 	@mkdir -p generated/$(name)
 	@go run ./cmd/so translate -o generated/$(name) tests/$(name)/src
+	@make runc path=generated/$(name)
 
 inspect:
 	go run ./cmd/inspect -- $(path)
 
 runc:
 	@mkdir -p build
-	gcc $(CFLAGS) -I$(path) -o build/main $(shell find $(path) -name "*.c")
+	@gcc $(CFLAGS) -I$(path) -o build/main $(shell find $(path) -name "*.c")
 	@./build/main
 	@rm -f build/main
 
