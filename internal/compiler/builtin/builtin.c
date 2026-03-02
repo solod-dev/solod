@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include "builtin.h"
 
-// so_panic aborts the program with the given message.
+// panic aborts the program with the given message.
 void so_panic(const char* msg) {
     fprintf(stderr, "panic: %s\n", msg);
     exit(1);
 }
 
-// so_utf8_decode decodes one UTF-8 rune from string s at byte offset i.
+// utf8_decode decodes one UTF-8 rune from string s at byte offset i.
 // Stores the byte width in *w.
 // Returns the decoded rune, or 0xFFFD for invalid UTF-8.
 so_rune so_utf8_decode(so_String s, so_int i, int* w) {
@@ -52,7 +52,7 @@ so_rune so_utf8_decode(so_String s, so_int i, int* w) {
     return 0xFFFD;
 }
 
-// so_string_runes_impl decodes UTF-8 string bytes into a rune buffer.
+// string_runes_impl decodes UTF-8 string bytes into a rune buffer.
 so_Slice so_string_runes_impl(so_String s, int32_t* buf) {
     size_t n = 0;
     for (so_int i = 0; i < (so_int)s.len;) {
