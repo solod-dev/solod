@@ -113,9 +113,16 @@ func (g *Generator) emitImpl(dir string) error {
 	g.emitEmbeds(cFile, g.embeds.impl)
 	g.emitForwardDecls(cFile)
 
-	fmt.Fprintln(cFile)
-	fmt.Fprintln(cFile, "// -- Implementation --")
+	multiFile := len(g.pkg.Syntax) > 1
+	if !multiFile {
+		fmt.Fprintln(cFile)
+		fmt.Fprintln(cFile, "// -- Implementation --")
+	}
 	for _, file := range g.pkg.Syntax {
+		if multiFile {
+			pos := g.pkg.Fset.Position(file.Pos())
+			fmt.Fprintf(cFile, "\n// -- %s --\n", filepath.Base(pos.Filename))
+		}
 		ast.Walk(g, file)
 	}
 	return nil
