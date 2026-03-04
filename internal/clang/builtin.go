@@ -8,57 +8,6 @@ import (
 	"strings"
 )
 
-// emitNewCall emits a new() builtin call as a compound literal address.
-func (g *Generator) emitNewCall(call *ast.CallExpr) {
-	w := g.state.writer
-	tv := g.types.Types[call.Args[0]]
-	if tv.IsType() {
-		// new(T) - zero-initialized compound literal.
-		cType := g.mapType(call, tv.Type)
-		fmt.Fprintf(w, "&(%s){0}", cType)
-		return
-	}
-	if _, ok := call.Args[0].(*ast.CompositeLit); ok {
-		// new(T{...}) - addressed composite literal.
-		fmt.Fprintf(w, "&")
-		g.emitExpr(call.Args[0])
-		return
-	}
-	if _, ok := call.Args[0].(*ast.CallExpr); ok {
-		g.fail(call, "new() with function call argument is not supported")
-		return
-	}
-	// new(expr) - take address of the expression.
-	elemType := g.types.TypeOf(call).(*types.Pointer).Elem()
-	if _, ok := elemType.Underlying().(*types.Struct); ok {
-		// Struct: take address directly.
-		fmt.Fprintf(w, "&")
-		g.emitExpr(call.Args[0])
-		return
-	}
-	// Scalar: wrap in compound literal.
-	cType := g.mapType(call, elemType)
-	fmt.Fprintf(w, "&(%s){", cType)
-	g.emitExpr(call.Args[0])
-	fmt.Fprintf(w, "}")
-}
-
-// emitMakeCall emits a make() builtin call as so_make_slice(T, len, cap).
-func (g *Generator) emitMakeCall(call *ast.CallExpr) {
-	w := g.state.writer
-	sliceType := g.types.Types[call.Args[0]].Type.Underlying().(*types.Slice)
-	elemType := g.mapType(call, sliceType.Elem())
-	fmt.Fprintf(w, "so_make_slice(%s, ", elemType)
-	g.emitExpr(call.Args[1])
-	fmt.Fprintf(w, ", ")
-	if len(call.Args) >= 3 {
-		g.emitExpr(call.Args[2])
-	} else {
-		g.emitExpr(call.Args[1])
-	}
-	fmt.Fprintf(w, ")")
-}
-
 // emitAppendCall emits an append() builtin call.
 func (g *Generator) emitAppendCall(call *ast.CallExpr) {
 	w := g.state.writer
@@ -93,6 +42,57 @@ func (g *Generator) emitCopyCall(call *ast.CallExpr) {
 	fmt.Fprintf(w, ", ")
 	g.emitExpr(call.Args[1])
 	fmt.Fprintf(w, ")")
+}
+
+// emitMakeCall emits a make() builtin call as so_make_slice(T, len, cap).
+func (g *Generator) emitMakeCall(call *ast.CallExpr) {
+	w := g.state.writer
+	sliceType := g.types.Types[call.Args[0]].Type.Underlying().(*types.Slice)
+	elemType := g.mapType(call, sliceType.Elem())
+	fmt.Fprintf(w, "so_make_slice(%s, ", elemType)
+	g.emitExpr(call.Args[1])
+	fmt.Fprintf(w, ", ")
+	if len(call.Args) >= 3 {
+		g.emitExpr(call.Args[2])
+	} else {
+		g.emitExpr(call.Args[1])
+	}
+	fmt.Fprintf(w, ")")
+}
+
+// emitNewCall emits a new() builtin call as a compound literal address.
+func (g *Generator) emitNewCall(call *ast.CallExpr) {
+	w := g.state.writer
+	tv := g.types.Types[call.Args[0]]
+	if tv.IsType() {
+		// new(T) - zero-initialized compound literal.
+		cType := g.mapType(call, tv.Type)
+		fmt.Fprintf(w, "&(%s){0}", cType)
+		return
+	}
+	if _, ok := call.Args[0].(*ast.CompositeLit); ok {
+		// new(T{...}) - addressed composite literal.
+		fmt.Fprintf(w, "&")
+		g.emitExpr(call.Args[0])
+		return
+	}
+	if _, ok := call.Args[0].(*ast.CallExpr); ok {
+		g.fail(call, "new() with function call argument is not supported")
+		return
+	}
+	// new(expr) - take address of the expression.
+	elemType := g.types.TypeOf(call).(*types.Pointer).Elem()
+	if _, ok := elemType.Underlying().(*types.Struct); ok {
+		// Struct: take address directly.
+		fmt.Fprintf(w, "&")
+		g.emitExpr(call.Args[0])
+		return
+	}
+	// Scalar: wrap in compound literal.
+	cType := g.mapType(call, elemType)
+	fmt.Fprintf(w, "&(%s){", cType)
+	g.emitExpr(call.Args[0])
+	fmt.Fprintf(w, "}")
 }
 
 // emitPrintCall emits a print/println call with an auto-generated format string.
