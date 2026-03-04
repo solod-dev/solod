@@ -35,9 +35,19 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 	case *ast.AssignStmt:
 		g.emitAssignStmt(n)
 		return nil
+	case *ast.BlockStmt:
+		// Bare block (scoping block inside a function body).
+		fmt.Fprintf(g.state.writer, "%s{\n", g.indent())
+		g.emitBlock(n)
+		fmt.Fprintf(g.state.writer, "%s}\n", g.indent())
+		return nil
 	case *ast.BranchStmt:
 		g.emitBranchStmt(n)
 		return nil
+	case *ast.DeclStmt:
+		// Declaration inside a function body -
+		// walk into the inner Decl.
+		return g
 	case *ast.DeferStmt:
 		g.emitDeferStmt(n)
 		return nil
@@ -50,6 +60,10 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		g.emitFuncDecl(n)
 		return nil
+	case *ast.Ident:
+		// Package name or other identifiers
+		// visited during file walk.
+		return g
 	case *ast.IfStmt:
 		g.emitIfStmt(n)
 		return nil
@@ -65,12 +79,16 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 	case *ast.ReturnStmt:
 		g.emitReturnStmt(n)
 		return nil
-	case *ast.BlockStmt:
-		// Bare block (scoping block inside a function body).
-		fmt.Fprintf(g.state.writer, "%s{\n", g.indent())
-		g.emitBlock(n)
-		fmt.Fprintf(g.state.writer, "%s}\n", g.indent())
-		return nil
+	}
+
+	// Fail on unsupported expressions, statements, and declarations.
+	switch node.(type) {
+	case ast.Stmt:
+		g.fail(node, "unsupported statement: %T", node)
+	case ast.Decl:
+		g.fail(node, "unsupported declaration: %T", node)
+	case ast.Expr:
+		g.fail(node, "unsupported expression: %T", node)
 	}
 
 	return g
