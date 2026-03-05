@@ -1,3 +1,5 @@
+// Package assert wraps the C <assert.h> header.
+// It offers functions for checking conditions that should always be true.
 package assert
 
 import _ "embed"

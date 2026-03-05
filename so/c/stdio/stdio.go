@@ -1,3 +1,6 @@
+// Package stdio wraps the C <stdio.h> header.
+// It offers generic file operation support and supplies
+// I/O functions that work with single-byte characters.
 package stdio
 
 import (

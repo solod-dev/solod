@@ -1,3 +1,5 @@
+// Package ctype wraps the C <ctype.h> header.
+// It offers functions for testing and mapping single-byte characters.
 package ctype
 
 import _ "embed"
