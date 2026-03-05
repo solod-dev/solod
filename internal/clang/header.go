@@ -111,8 +111,8 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 		fmt.Fprintln(w, "// -- Functions and methods --")
 		for _, sym := range funcSyms {
 			g.emitComments(w, sym.funcDecl)
-			fn := newFuncDecl(g, sym.funcDecl)
-			fmt.Fprintf(w, "%s %s(%s);\n", fn.returnType(), fn.name(), fn.params())
+			g.emitFuncProto(w, sym.funcDecl)
+			fmt.Fprintln(w, ";")
 		}
 	}
 }

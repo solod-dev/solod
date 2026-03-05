@@ -161,8 +161,8 @@ func (g *Generator) emitForwardDecls(w io.Writer) {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "// -- Forward declarations (functions and methods) --")
 		for _, decl := range funcDecls {
-			fn := newFuncDecl(g, decl)
-			fmt.Fprintf(w, "%s%s %s(%s);\n", fn.spec, fn.returnType(), fn.name(), fn.params())
+			g.emitFuncProto(w, decl)
+			fmt.Fprintln(w, ";")
 		}
 	}
 }

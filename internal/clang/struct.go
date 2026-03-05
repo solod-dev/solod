@@ -48,7 +48,7 @@ func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName strin
 // emitMethodDecl emits a method as a C function with void* self parameter.
 func (g *Generator) emitMethodDecl(decl *ast.FuncDecl) {
 	w := g.state.writer
-	fn := newFuncDecl(g, decl)
+	sig := g.funcSig(decl)
 
 	recv := decl.Recv.List[0]
 	cStructType := g.symbolName(recvTypeName(recv))
@@ -63,13 +63,14 @@ func (g *Generator) emitMethodDecl(decl *ast.FuncDecl) {
 		}
 	}
 
-	g.rejectNamedReturns(decl, fn.sig)
-	g.state.funcSig = fn.sig
+	g.rejectNamedReturns(decl, sig)
+	g.state.funcSig = sig
 	g.state.tempCount = 0
 	if !g.emitComments(w, decl) {
 		fmt.Fprintln(w)
 	}
-	fmt.Fprintf(w, "%s%s %s(%s) {\n", fn.spec, fn.returnType(), fn.name(), fn.params())
+	g.emitFuncProto(w, decl)
+	fmt.Fprintln(w, " {")
 	g.state.indent++
 
 	if named {

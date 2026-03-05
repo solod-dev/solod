@@ -9,21 +9,13 @@ import (
 	"strings"
 )
 
-// FuncDecl represents a function declaration.
-type FuncDecl struct {
-	gen *Generator
-
-	decl *ast.FuncDecl
-	spec string // specifier (e.g. "static")
-	typ  *ast.FuncType
-	sig  *types.Signature
-}
-
-func newFuncDecl(gen *Generator, decl *ast.FuncDecl) FuncDecl {
+// emitFuncProto writes a full C function prototype (e.g. "static void main_foo(int x)")
+// without a terminator. Returns the function's type signature for callers that need it.
+func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signature {
+	// Specifier: static for unexported, empty for exported and main.
 	spec := ""
 	if decl.Name.Name != "main" {
 		exported := ast.IsExported(decl.Name.Name)
-		// Methods are only public if both the type and method are exported.
 		if exported && decl.Recv != nil {
 			exported = ast.IsExported(recvTypeName(decl.Recv.List[0]))
 		}
@@ -32,69 +24,43 @@ func newFuncDecl(gen *Generator, decl *ast.FuncDecl) FuncDecl {
 		}
 	}
 
-	var sig *types.Signature
+	sig := g.funcSig(decl)
+
+	// Return type.
+	retType := "void"
+	if decl.Name.Name == "main" {
+		retType = "int"
+	} else if decl.Type.Results != nil && len(decl.Type.Results.List) > 0 {
+		retType = g.returnType(decl, sig)
+	}
+
+	// Name: methods use RecvType_Method, functions use symbolName.
+	name := g.symbolName(decl.Name.Name)
 	if decl.Recv != nil {
-		sig = gen.types.ObjectOf(decl.Name).Type().(*types.Signature)
-	} else {
-		sig = gen.types.Defs[decl.Name].Type().(*types.Signature)
+		name = g.symbolName(recvTypeName(decl.Recv.List[0])) + "_" + decl.Name.Name
 	}
 
-	return FuncDecl{
-		gen:  gen,
-		decl: decl,
-		spec: spec,
-		typ:  decl.Type,
-		sig:  sig,
-	}
-}
-
-// name returns the C function name.
-// For methods, this is structType_methodName (e.g. main_Rect_Area).
-// For regular functions, this is the symbolName (e.g. main_RectArea).
-func (f *FuncDecl) name() string {
-	if f.decl.Recv != nil {
-		recv := f.decl.Recv.List[0]
-		return f.gen.symbolName(recvTypeName(recv)) + "_" + f.decl.Name.Name
-	}
-	return f.gen.symbolName(f.decl.Name.Name)
-}
-
-// params returns the C parameter list.
-// For methods, prepends void* self.
-func (f *FuncDecl) params() string {
+	// Parameters: methods prepend void* self.
 	var parts []string
-
-	// Prepend self parameter for methods.
-	if f.decl.Recv != nil {
+	if decl.Recv != nil {
 		parts = append(parts, "void* self")
 	}
-
-	// Append regular parameters.
-	if f.typ.Params != nil {
-		for _, field := range f.typ.Params.List {
-			typ := f.gen.types.TypeOf(field.Type)
-			cType := f.gen.mapType(f.decl, typ)
-			for _, name := range field.Names {
-				parts = append(parts, cType+" "+name.Name)
+	if decl.Type.Params != nil {
+		for _, field := range decl.Type.Params.List {
+			typ := g.types.TypeOf(field.Type)
+			cType := g.mapType(decl, typ)
+			for _, n := range field.Names {
+				parts = append(parts, cType+" "+n.Name)
 			}
 		}
 	}
+	params := "void"
+	if len(parts) > 0 {
+		params = strings.Join(parts, ", ")
+	}
 
-	if len(parts) == 0 {
-		return "void"
-	}
-	return strings.Join(parts, ", ")
-}
-
-// returnType returns the C return type.
-func (f *FuncDecl) returnType() string {
-	if f.decl.Name.Name == "main" {
-		return "int"
-	}
-	if f.typ.Results == nil || len(f.typ.Results.List) == 0 {
-		return "void"
-	}
-	return f.gen.returnType(f.decl, f.sig)
+	fmt.Fprintf(w, "%s%s %s(%s)", spec, retType, name, params)
+	return sig
 }
 
 // emitFuncTypeSpec emits a C function pointer typedef.
@@ -123,14 +89,15 @@ func (g *Generator) emitFuncDecl(decl *ast.FuncDecl) {
 		return
 	}
 	w := g.state.writer
-	fn := newFuncDecl(g, decl)
-	g.rejectNamedReturns(decl, fn.sig)
-	g.state.funcSig = fn.sig
+	sig := g.funcSig(decl)
+	g.rejectNamedReturns(decl, sig)
+	g.state.funcSig = sig
 	g.state.tempCount = 0
 	if !g.emitComments(w, decl) {
 		fmt.Fprintln(w)
 	}
-	fmt.Fprintf(w, "%s%s %s(%s) {\n", fn.spec, fn.returnType(), fn.name(), fn.params())
+	g.emitFuncProto(w, decl)
+	fmt.Fprintln(w, " {")
 	g.state.indent++
 	g.walkStmts(decl.Body.List)
 	g.state.indent--
@@ -294,6 +261,14 @@ func (g *Generator) emitCArg(arg ast.Expr) {
 	} else {
 		g.emitExpr(arg)
 	}
+}
+
+// funcSig returns the types.Signature for a function or method declaration.
+func (g *Generator) funcSig(decl *ast.FuncDecl) *types.Signature {
+	if decl.Recv != nil {
+		return g.types.ObjectOf(decl.Name).Type().(*types.Signature)
+	}
+	return g.types.Defs[decl.Name].Type().(*types.Signature)
 }
 
 // isExternCall reports whether a call expression targets an extern C function.
