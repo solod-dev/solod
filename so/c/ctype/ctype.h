@@ -1,0 +1,16 @@
+#include <ctype.h>
+
+#define ctype_IsAlnum(ch) isalnum(ch)
+#define ctype_IsAlpha(ch) isalpha(ch)
+#define ctype_IsBlank(ch) isblank(ch)
+#define ctype_IsCntrl(ch) iscntrl(ch)
+#define ctype_IsDigit(ch) isdigit(ch)
+#define ctype_IsGraph(ch) isgraph(ch)
+#define ctype_IsLower(ch) islower(ch)
+#define ctype_IsPrint(ch) isprint(ch)
+#define ctype_IsPunct(ch) ispunct(ch)
+#define ctype_IsSpace(ch) isspace(ch)
+#define ctype_IsUpper(ch) isupper(ch)
+#define ctype_IsXDigit(ch) isxdigit(ch)
+#define ctype_ToLower(ch) tolower(ch)
+#define ctype_ToUpper(ch) toupper(ch)
