@@ -627,7 +627,7 @@ const main_Day main_Tuesday = 2;
 
 ## Errors
 
-Errors use the `so_Error` type (a pointer). Error values can only be defined at package level using `errors.New`:
+Errors use the `so_Error` type (a pointer). So only supports sentinel errors, which are defined at the package level using `errors.New`:
 
 ```go
 import "github.com/nalgeon/solod/so/errors"
@@ -656,7 +656,7 @@ if err == ErrOutOfTea {
 
 Errors are compared using `==`. This is an O(1) operation (compares pointers, not strings).
 
-Dynamic errors (`fmt.Errorf`) and local error variables (`errors.New` inside functions) are not supported, to avoid heap allocations.
+Dynamic errors (`fmt.Errorf`), local error variables (`errors.New` inside functions), and error wrapping are not supported.
 
 The zero value of `error` is `nil` (`NULL` in C).
 

@@ -225,6 +225,9 @@ func (g *Generator) emitCArg(arg ast.Expr) {
 	} else if _, ok := g.types.TypeOf(arg).Underlying().(*types.Slice); ok {
 		g.emitExpr(arg)
 		fmt.Fprintf(w, ".ptr")
+	} else if isErrorType(g.types.TypeOf(arg)) {
+		g.emitExpr(arg)
+		fmt.Fprintf(w, "->msg")
 	} else {
 		g.emitExpr(arg)
 	}

@@ -237,7 +237,7 @@ func (g *Generator) formatSpec(node ast.Node, typ types.Type) (spec, macro strin
 		return "%p", ""
 	}
 	if isErrorType(typ) {
-		return "%p", ""
+		return "%s", ""
 	}
 	basic, ok := typ.Underlying().(*types.Basic)
 	if !ok {

@@ -13,6 +13,13 @@ func makeTea(arg int) error {
 	return nil
 }
 
+func work(n int) (int, error) {
+	if n == 42 {
+		return 0, ErrOutOfTea
+	}
+	return n, nil
+}
+
 func main() {
 	{
 		// Nil and non-nil errors.
@@ -39,6 +46,31 @@ func main() {
 		if err == nil {
 			panic("err == nil")
 		}
+	}
+	{
+		// Multiple returns with error.
+		r1, err := work(11)
+		if r1 != 11 {
+			panic("unexpected result")
+		}
+		if err != nil {
+			panic("unexpected error")
+		}
+		_ = r1
+
+		r2, err := work(42)
+		if r2 != 0 {
+			panic("unexpected result")
+		}
+		if err != ErrOutOfTea {
+			panic("expected ErrOutOfTea")
+		}
+		_ = r2
+	}
+	{
+		// Printing errors.
+		err := makeTea(42)
+		println("err =", err)
 	}
 
 	// Not supported: errors can only be defined at package level.
