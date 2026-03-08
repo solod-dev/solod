@@ -98,10 +98,12 @@ typedef struct {
 
 // slice creates a slice from another slice
 // from index 'from' (inclusive) to index 'to' (exclusive).
-#define so_slice(T, s, from, to) ({                                    \
-    if ((size_t)(to) > (s).len || (size_t)(from) > (size_t)(to))       \
-        so_panic("slice bounds out of range");                         \
-    (so_Slice){(T*)(s).ptr + (from), (to) - (from), (s).cap - (from)}; \
+#define so_slice(T, s, from, to) ({                                \
+    size_t _from = (size_t)(from);                                 \
+    size_t _to = (size_t)(to);                                     \
+    if (_to > (s).len || _from > _to)                              \
+        so_panic("slice bounds out of range");                     \
+    (so_Slice){(T*)(s).ptr + _from, _to - _from, (s).cap - _from}; \
 })
 
 // string_bytes wraps a string's raw bytes as a byte slice.
@@ -176,9 +178,10 @@ static inline so_int so_copy_impl(so_Slice dst, so_Slice src, size_t elem_size) 
 // at returns a reference to the element at index i in a slice or string.
 #define so_at(T, s, i) (*so_at_ptr(T, s, i))
 #define so_at_ptr(T, s, i) ({            \
-    if ((size_t)(i) >= (s).len)          \
+    size_t _i = (size_t)(i);             \
+    if (_i >= (s).len)                   \
         so_panic("index out of bounds"); \
-    (T*)(s).ptr + (i);                   \
+    (T*)(s).ptr + _i;                    \
 })
 
 // len returns the length of a slice or string.
