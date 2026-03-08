@@ -348,11 +348,9 @@ var fn2 SumFn = sumABC  // explicit type
 s := fn2(7, 8, 9)
 ```
 
-Use named types instead, like `SumFn` in the example above.
+Function literals (anonymous functions / closures) are not supported. Use named types instead, like `SumFn` in the example above.
 
 Exported functions (capitalized) become public C symbols prefixed with the package name (`package_Func`). Unexported functions are `static`.
-
-Function literals (anonymous functions / closures) are not supported.
 
 ## Multiple return values
 

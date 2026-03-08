@@ -1,6 +1,6 @@
 # Solod: Go can be a better C
 
-Solod (So) is a strict subset of Go that transpiles to regular C. Write programs in Go — with its type safety, tooling, and clean syntax — and get plain C11 code you can read, debug, and ship without a runtime.
+Solod (**So**) is a strict subset of Go that transpiles to regular C. Write programs in Go — with its type safety, tooling, and clean syntax — and get plain C11 code you can read, debug, and ship without a runtime.
 
 Highlights:
 
