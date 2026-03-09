@@ -419,12 +419,14 @@ func copyBuffer(dst Writer, src Reader, buf []byte) (int64, error) {
 	if len(buf) == 0 {
 		size := 8 * 1024 // 8 KiB
 		_, ok := src.(*LimitedReader)
-		l := src.(*LimitedReader)
-		if ok && int64(size) > l.N {
-			if l.N < 1 {
-				size = 1
-			} else {
-				size = int(l.N)
+		if ok {
+			l := src.(*LimitedReader)
+			if int64(size) > l.N {
+				if l.N < 1 {
+					size = 1
+				} else {
+					size = int(l.N)
+				}
 			}
 		}
 		buf = mem.Alloca(size)
@@ -564,9 +566,9 @@ func (s *SectionReader) Size() int64 { return s.limit - s.base }
 
 // ReaderAtOffset represents the underlying [ReaderAt] and offsets for a section.
 type ReaderAtOffset struct {
-	r   ReaderAt
-	off int64
-	n   int64
+	R   ReaderAt
+	Off int64
+	N   int64
 }
 
 // Outer returns the underlying [ReaderAt] and offsets for the section.
