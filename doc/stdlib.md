@@ -10,7 +10,8 @@ So provides low-level packages that wrap the libc API (`so/c/*`) and a growing s
 [so/c/cstring](#soccstring) •
 [so/c/math](#socmath) •
 [so/c/stdio](#socstdio) •
-[so/c/stdlib](#socstdlib)
+[so/c/stdlib](#socstdlib) •
+[so/c/time](#soctime)
 
 ## so/errors
 
@@ -106,3 +107,20 @@ Process control, memory, and string conversion (wraps C `<stdlib.h>`).
 - `Atoi` / `Atof` - string-to-number conversion.
 - `Getenv` - read an environment variable.
 - `ExitSuccess`, `ExitFailure` - standard exit codes.
+
+## so/c/time
+
+Calendar time, broken-down time, and formatting (wraps C `<time.h>`).
+
+Constants: `ClocksPerSec` - number of CPU clock ticks per second.
+
+Types: `TimeT` (calendar time), `Tm` (broken-down time with individual fields).
+
+Functions:
+
+- `Time` - current calendar time.
+- `Clock` - processor clock ticks.
+- `Difftime` - time difference in seconds.
+- `Gmtime` - convert calendar to broken-down time.
+- `Mktime` - convert broken-down time to calendar time.
+- `Strftime` - format time string.
