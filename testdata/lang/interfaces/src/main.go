@@ -71,6 +71,10 @@ func shapeCheckAssign(s Shape) bool {
 	return ok
 }
 
+func nilShape() Shape {
+	return nil
+}
+
 func main() {
 	r := Rect{width: 10, height: 5}
 	{
@@ -112,5 +116,31 @@ func main() {
 		// s := Shape(r)
 		// _, ok := s.(Line)
 		// l := s.(Line)
+		var s Shape
+		_ = s
+	}
+	{
+		// Nil interface.
+		var s1 Shape
+		if s1 != nil {
+			panic("want nil interface")
+		}
+		var s2 Shape = nil
+		if s2 != nil {
+			panic("want nil interface")
+		}
+		s3 := nilShape()
+		if s3 != nil {
+			panic("want nil interface")
+		}
+		isRect := shapeIsRect(nil)
+		if isRect {
+			panic("want isRect == false")
+		}
+		var r Rect
+		var s4 Shape = r
+		if s4 == nil {
+			panic("want non-nil interface")
+		}
 	}
 }

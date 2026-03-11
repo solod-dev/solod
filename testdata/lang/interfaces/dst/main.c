@@ -9,6 +9,7 @@ static main_Shape rectAsShape(main_Rect* r);
 static bool lineIsRect(main_Line l);
 static main_Rect* lineAsRect(main_Line l);
 static bool shapeCheckAssign(main_Shape s);
+static main_Shape nilShape(void);
 
 // -- Implementation --
 
@@ -73,6 +74,10 @@ static bool shapeCheckAssign(main_Shape s) {
     return ok;
 }
 
+static main_Shape nilShape(void) {
+    return (main_Shape){0};
+}
+
 int main(void) {
     main_Rect r = (main_Rect){.width = 10, .height = 5};
     {
@@ -107,10 +112,36 @@ int main(void) {
         main_Shape s = rectAsShape(&r);
         (void)s;
     }
-    // Converting between interfaces (Shape to Line) is not supported.
-    // s := Shape(r)
-    // _, ok := s.(Line)
-    // l := s.(Line)
     {
+        // Converting between interfaces (Shape to Line) is not supported.
+        // s := Shape(r)
+        // _, ok := s.(Line)
+        // l := s.(Line)
+        main_Shape s = {0};
+        (void)s;
+    }
+    {
+        // Nil interface.
+        main_Shape s1 = {0};
+        if (s1.self != NULL) {
+            so_panic("want nil interface");
+        }
+        main_Shape s2 = (main_Shape){0};
+        if (s2.self != NULL) {
+            so_panic("want nil interface");
+        }
+        main_Shape s3 = nilShape();
+        if (s3.self != NULL) {
+            so_panic("want nil interface");
+        }
+        bool isRect = shapeIsRect((main_Shape){0});
+        if (isRect) {
+            so_panic("want isRect == false");
+        }
+        main_Rect r = {0};
+        main_Shape s4 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
+        if (s4.self == NULL) {
+            so_panic("want non-nil interface");
+        }
     }
 }

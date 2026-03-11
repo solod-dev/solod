@@ -88,6 +88,15 @@ func (g *Generator) emitBinaryExpr(n *ast.BinaryExpr) {
 		}
 	}
 
+	// Interface nil comparisons: emit iface.self == NULL / != NULL.
+	if n.Op == token.EQL || n.Op == token.NEQ {
+		if isNamedNonEmptyInterface(g.types.TypeOf(n.X)) && isNilType(g.types.TypeOf(n.Y)) {
+			g.emitExpr(n.X)
+			fmt.Fprintf(w, ".self %s NULL", n.Op.String())
+			return
+		}
+	}
+
 	// Array comparisons: emit so_array_eq/ne calls.
 	if n.Op == token.EQL || n.Op == token.NEQ {
 		if arr, ok := g.types.TypeOf(n.X).Underlying().(*types.Array); ok {

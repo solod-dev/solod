@@ -160,11 +160,35 @@ func (g *Generator) emitAnyValue(node ast.Node, expr ast.Expr) {
 func (g *Generator) emitExprAsType(node ast.Node, expr ast.Expr, targetType types.Type) {
 	if iface, ok := targetType.Underlying().(*types.Interface); ok && iface.Empty() {
 		g.emitAnyValue(node, expr)
-	} else if isInterfaceType(targetType) && isConcreteNamedType(g.types.TypeOf(expr)) {
-		g.emitInterfaceLit(targetType, expr)
-	} else {
-		g.emitExpr(expr)
+		return
 	}
+	if isNamedNonEmptyInterface(targetType) {
+		valType := g.types.TypeOf(expr)
+		if isNilType(valType) {
+			cType := g.mapType(node, targetType)
+			fmt.Fprintf(g.state.writer, "(%s){0}", cType)
+			return
+		}
+		if isConcreteNamedType(valType) {
+			g.emitInterfaceLit(targetType, expr)
+			return
+		}
+	}
+	g.emitExpr(expr)
+}
+
+// isNamedNonEmptyInterface reports whether t is a named non-empty interface
+// (excluding error, which is implemented as a pointer in C).
+func isNamedNonEmptyInterface(t types.Type) bool {
+	if isErrorType(t) {
+		return false
+	}
+	iface, ok := t.Underlying().(*types.Interface)
+	if !ok || iface.Empty() {
+		return false
+	}
+	_, isNamed := t.(*types.Named)
+	return isNamed
 }
 
 // isConcreteNamedType reports whether t is a named type (or pointer to named type)
@@ -185,4 +209,9 @@ func isConcreteNamedType(t types.Type) bool {
 func isInterfaceType(t types.Type) bool {
 	_, ok := t.Underlying().(*types.Interface)
 	return ok
+}
+
+func isNilType(t types.Type) bool {
+	basic, ok := t.(*types.Basic)
+	return ok && basic.Kind() == types.UntypedNil
 }
