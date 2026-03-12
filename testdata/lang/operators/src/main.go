@@ -28,12 +28,11 @@ func main() {
 		_ = f
 	}
 
-	// {
-	// 	// String concatenation is not supported.
-	// 	var s1, s2, s3 string = "hello", " ", "world"
-	// 	s4 := s1 + s2 + s3
-	// 	_ = s4
-	// }
+	{
+		// String addition is supported for string literals (but not for variables).
+		s := "hello" + " " + "world"
+		_ = s
+	}
 
 	{
 		// Bitwise operations.

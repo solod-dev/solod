@@ -28,12 +28,11 @@ int main(void) {
         f--;
         (void)f;
     }
-    // {
-    // 	// String concatenation is not supported.
-    // 	var s1, s2, s3 string = "hello", " ", "world"
-    // 	s4 := s1 + s2 + s3
-    // 	_ = s4
-    // }
+    {
+        // String addition is supported for string literals (but not for variables).
+        so_String s = so_str("hello" " " "world");
+        (void)s;
+    }
     {
         // Bitwise operations.
         so_int b1 = 0b1010, b2 = 0b1100;

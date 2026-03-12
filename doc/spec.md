@@ -163,7 +163,7 @@ bs := []byte(s)  // byte slice
 rs := []rune(s)  // rune slice
 ```
 
-String concatenation with `+` is not supported. Use the standard library for joining strings.
+String concatenation with `+` is supported for string literals (but not for variables).
 
 ## Arrays
 

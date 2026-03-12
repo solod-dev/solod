@@ -81,9 +81,15 @@ func (g *Generator) emitBinaryExpr(n *ast.BinaryExpr) {
 		}
 	}
 
-	// String addition is not supported.
+	// String addition: only literal concatenation is supported.
 	if n.Op == token.ADD || n.Op == token.ADD_ASSIGN {
 		if g.hasStringType(n.X) {
+			if n.Op == token.ADD && isStringLit(n.X) && isStringLit(n.Y) {
+				fmt.Fprintf(w, "so_str(")
+				g.emitStringLitConcat(n)
+				fmt.Fprintf(w, ")")
+				return
+			}
 			g.fail(n, "string addition is not supported")
 		}
 	}

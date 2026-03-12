@@ -13,11 +13,35 @@ func (g *Generator) emitStringLit(n *ast.BasicLit) {
 	fmt.Fprintf(g.state.writer, "so_str(%s)", rawStringValue(n))
 }
 
+// emitStringLitConcat emits a chain of string literal additions as adjacent C string literals.
+func (g *Generator) emitStringLitConcat(expr ast.Expr) {
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		fmt.Fprintf(g.state.writer, "%s", rawStringValue(e))
+	case *ast.BinaryExpr:
+		g.emitStringLitConcat(e.X)
+		fmt.Fprintf(g.state.writer, " ")
+		g.emitStringLitConcat(e.Y)
+	}
+}
+
 // hasStringType reports whether the given expression has string type.
 func (g *Generator) hasStringType(expr ast.Expr) bool {
 	typ := g.types.TypeOf(expr)
 	basic, ok := typ.Underlying().(*types.Basic)
 	return ok && (basic.Kind() == types.String || basic.Kind() == types.UntypedString)
+}
+
+// isStringLit reports whether an expression is a string literal
+// or a chain of string literal additions.
+func isStringLit(expr ast.Expr) bool {
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		return e.Kind == token.STRING
+	case *ast.BinaryExpr:
+		return e.Op == token.ADD && isStringLit(e.X) && isStringLit(e.Y)
+	}
+	return false
 }
 
 // rawStringValue returns the C string literal for a Go string literal,
