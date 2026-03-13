@@ -32,4 +32,14 @@ int main(void) {
         }
         mem_FreeSlice(so_int, (mem_Allocator){0}, s);
     }
+    {
+        // Clone a slice.
+        so_Slice s1 = (so_Slice){(so_int[3]){11, 22, 33}, 3, 3};
+        so_Slice s2 = slices_Clone(so_int, (mem_Allocator){0}, s1);
+        so_at(so_int, s2, 0) = 99;
+        if (so_at(so_int, s1, 0) != 11 || so_at(so_int, s2, 0) != 99) {
+            so_panic("Clone: unexpected value");
+        }
+        mem_FreeSlice(so_int, (mem_Allocator){0}, s2);
+    }
 }

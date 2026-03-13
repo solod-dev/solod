@@ -27,3 +27,11 @@ func Append[T any](a mem.Allocator, s []T, elems ...T) []T {
 func Extend[T any](a mem.Allocator, s []T, other []T) []T {
 	return append(s, other...)
 }
+
+// Clone returns a shallow copy of the slice.
+// The returned slice is heap-allocated; the caller owns it.
+//
+//so:extern
+func Clone[T any](a mem.Allocator, s []T) []T {
+	return append([]T{}, s...)
+}

@@ -35,4 +35,14 @@ func main() {
 		}
 		mem.FreeSlice(nil, s)
 	}
+	{
+		// Clone a slice.
+		s1 := []int{11, 22, 33}
+		s2 := slices.Clone(nil, s1)
+		s2[0] = 99
+		if s1[0] != 11 || s2[0] != 99 {
+			panic("Clone: unexpected value")
+		}
+		mem.FreeSlice(nil, s2)
+	}
 }

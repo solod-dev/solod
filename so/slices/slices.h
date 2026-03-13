@@ -95,3 +95,12 @@ static inline so_Result slices_grow(mem_Allocator a, so_Slice s, size_t newLen,
         so_panic(_res.err->msg);                             \
     _res.val.as_slice;                                       \
 })
+
+// Clone returns a shallow copy of the slice.
+// The returned slice is heap-allocated; the caller owns it.
+#define slices_Clone(T, a, s) ({                                 \
+    so_Slice _s = (s);                                           \
+    so_Slice _newSlice = mem_AllocSlice(T, (a), _s.len, _s.len); \
+    memcpy(_newSlice.ptr, _s.ptr, _s.len * sizeof(T));           \
+    _newSlice;                                                   \
+})
