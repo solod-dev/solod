@@ -1,3 +1,4 @@
+// Package so provides common utilities for other stdlib packages.
 package so
 
 import _ "embed"

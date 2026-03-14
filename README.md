@@ -196,7 +196,9 @@ Everything is stack-allocated by default. There's no garbage collector or refere
 
 _Is it safe?_
 
-Currently, So has few safeguards other than the default Go type checking. It will panic on out-of-bounds array access, but it won't stop you from returning a dangling pointer or forgetting to free allocated memory.
+So itself has few safeguards other than the default Go type checking. It will panic on out-of-bounds array access, but it won't stop you from returning a dangling pointer or forgetting to free allocated memory.
+
+Most memory-related problems can be caught with AddressSanitizer in modern compilers, so I recommend enabling it during development by adding `-fsanitize=address` to your `CFLAGS`.
 
 _Can I use So code from C (and vice versa)?_
 
@@ -212,9 +214,7 @@ Not for production at the moment.
 
 _Where's the standard library?_
 
-There are low-level packages that wrap the libc API (`so/c/stdlib`, `so/c/stdio`, `so/c/cstring`), and a growing set of high-level packages (`bytes`, `mem`, `slices`). Check out the [stdlib](doc/stdlib.md) document for a quick overview, or see the full [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so) for more details.
-
-A high-level standard library similar to Go's stdlib is also planned.
+There are low-level packages that wrap the libc API (`so/c/stdlib`, `so/c/stdio`, `so/c/cstring`, ...), and a growing set of high-level packages (`so/bytes`, `so/mem`, `so/slices`, ...). Check out the [stdlib](doc/stdlib.md) document for a quick overview, or see the full [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so) for more details.
 
 ## Roadmap
 
