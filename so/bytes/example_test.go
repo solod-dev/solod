@@ -410,13 +410,15 @@ func ExampleMap() {
 	// 'Gjnf oevyyvt naq gur fyvgul tbcure...
 }
 
-// func ExampleReader_Len() {
-// 	fmt.Println(bytes.NewReader([]byte("Hi!")).Len())
-// 	fmt.Println(bytes.NewReader([]byte("こんにちは!")).Len())
-// 	// Output:
-// 	// 3
-// 	// 16
-// }
+func ExampleReader_Len() {
+	r1 := bytes.NewReader([]byte("Hi!"))
+	fmt.Println(r1.Len())
+	r2 := bytes.NewReader([]byte("こんにちは!"))
+	fmt.Println(r2.Len())
+	// Output:
+	// 3
+	// 16
+}
 
 func ExampleRepeat() {
 	fmt.Printf("ba%s", bytes.Repeat(nil, []byte("na"), 2))

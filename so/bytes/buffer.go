@@ -8,7 +8,6 @@ package bytes
 
 import (
 	"github.com/nalgeon/solod/so"
-	"github.com/nalgeon/solod/so/errors"
 	"github.com/nalgeon/solod/so/io"
 	"github.com/nalgeon/solod/so/mem"
 	"github.com/nalgeon/solod/so/slices"
@@ -52,11 +51,6 @@ type Buffer struct {
 	off      int           // read at &buf[off], write at &buf[len(buf)]
 	lastRead ReadOp        // last read operation, so that Unread* can work correctly.
 }
-
-// ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
-var ErrTooLarge = errors.New("bytes.Buffer: too large")
-var ErrNegativeRead = errors.New("bytes.Buffer: reader returned negative count from Read")
-var ErrUnread = errors.New("bytes.Buffer: previous operation was not a successful read")
 
 // Bytes returns a slice of length b.Len() holding the unread portion of the buffer.
 // The slice is valid for use only until the next buffer modification (that is,

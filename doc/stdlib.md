@@ -23,9 +23,8 @@ So provides low-level packages that wrap the libc API (`so/c/*`) and a growing s
 
 Byte slice operations. Offers an API similar to Go's `bytes` package, but with fewer features.
 
-Notable mentions:
+Functions:
 
-- `Buffer` is a variable-sized buffer of bytes with `Read` and `Write` methods.
 - `Clone` returns a copy of a slice.
 - `Compare` and `Equal` compare two slices lexicographically.
 - `Contains` reports whether a subslice is within a slice.
@@ -37,6 +36,11 @@ Notable mentions:
 - `Replace` and `ReplaceAll` replace subslices within a slice.
 - `Runes` converts a byte slice to a rune slice.
 - `String` creates a string from a byte slice.
+
+Types:
+
+- `Buffer` is a variable-sized buffer of bytes with `Read` and `Write` methods.
+- `Reader` reads data from a byte slice.
 
 ## [so/errors](https://pkg.go.dev/github.com/nalgeon/solod/so/errors)
 
@@ -50,11 +54,14 @@ So only supports sentinel errors, which are defined at the package level using `
 
 Basic interfaces to I/O primitives. Offers an API similar to Go's `io` package, but with fewer features.
 
-Notable mentions:
+Functions:
 
-- `Reader` and `Writer` are basic concepts for anything that reads or writes bytes.
 - `Copy`, `CopyBuffer` and `CopyN` copy data from a reader to a writer.
 - `ReadAll`, `ReadFull` and `ReadAtLeast` read data from a reader.
+
+Types:
+
+- `Reader` and `Writer` are basic concepts for anything that reads or writes bytes.
 - `LimitReader` and `TeeReader` implement specialized readers.
 
 ## [so/math/bits](https://pkg.go.dev/github.com/nalgeon/solod/so/math/bits)
@@ -65,8 +72,13 @@ Bit counting and manipulation functions. Offers the same API as Go's `math/bits`
 
 Memory allocation with a pluggable allocator interface.
 
+Functions:
+
 - `Alloc` / `Free` - allocate/free a single value.
 - `AllocSlice` / `FreeSlice` - allocate/free a slice.
+
+Types:
+
 - `Allocator` interface - custom allocator support (`Alloc`, `Realloc`, `Free`).
 - `SystemAllocator` - default allocator backed by C `calloc`/`realloc`/`free`.
 
@@ -81,8 +93,6 @@ Operations on slices.
 
 Data and functions to test certain properties of Unicode code points. Offers an API similar to Go's `unicode` package, but with fewer Unicode features (no support for graphic characters, punctuation, symbols, etc.).
 
-Notable mentions:
-
 - `IsDigit`, `IsLetter` and `IsSpace` check for different character classes.
 - `IsLower`, `IsUpper` and `IsTitle` check for character case.
 - `ToLower`, `ToUpper` and `ToTitle` change the character case.
@@ -90,8 +100,6 @@ Notable mentions:
 ## [so/unicode/utf8](https://pkg.go.dev/github.com/nalgeon/solod/so/unicode/utf8)
 
 Functions to convert between runes and UTF-8 byte sequences. Offers the same API as Go's `unicode/utf8` package.
-
-Notable mentions:
 
 - `DecodeRune` and `DecodeRuneInString` unpacks a UTF-8-encoded rune from a byte slice or a string.
 - `EncodeRune` writes a UTF-8-encoded rune into a byte slice.

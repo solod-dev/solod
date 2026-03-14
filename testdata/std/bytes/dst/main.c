@@ -351,4 +351,25 @@ int main(void) {
         }
         bytes_Buffer_Free(&buf);
     }
+    {
+        // Reader.
+        so_String s = so_str("hello world");
+        bytes_Reader r = bytes_NewReader(so_string_bytes(s));
+        if (bytes_Reader_Len(&r) != so_len(s)) {
+            so_panic("Reader Len failed");
+        }
+        so_Result _res4 = io_ReadAll((mem_Allocator){0}, (io_Reader){.self = &r, .Read = bytes_Reader_Read});
+        so_Slice b = _res4.val.as_slice;
+        so_Error err = _res4.err;
+        if (err != NULL) {
+            so_panic(err->msg);
+        }
+        if (so_string_ne(so_bytes_string(b), s)) {
+            so_panic("Reader Read failed");
+        }
+        if (bytes_Reader_Len(&r) != 0) {
+            so_panic("Reader Len failed");
+        }
+        mem_FreeSlice(so_byte, (mem_Allocator){0}, b);
+    }
 }

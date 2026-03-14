@@ -301,7 +301,7 @@ func TestReadFromNegativeReader(t *testing.T) {
 			t.Fatal("bytes.Buffer.ReadFrom didn't panic")
 		case error:
 			// this is the error string of errNegativeRead
-			wantError := "bytes.Buffer: reader returned negative count from Read"
+			wantError := ErrNegativeRead.Error()
 			if err.Error() != wantError {
 				t.Fatalf("recovered panic: got %v, want %v", err.Error(), wantError)
 			}

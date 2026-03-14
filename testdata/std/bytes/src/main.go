@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/nalgeon/solod/so/bytes"
+	"github.com/nalgeon/solod/so/io"
 	"github.com/nalgeon/solod/so/mem"
 )
 
@@ -342,5 +343,24 @@ func main() {
 			panic("Buffer Read did not advance the buffer")
 		}
 		buf.Free()
+	}
+	{
+		// Reader.
+		s := "hello world"
+		r := bytes.NewReader([]byte(s))
+		if r.Len() != len(s) {
+			panic("Reader Len failed")
+		}
+		b, err := io.ReadAll(nil, &r)
+		if err != nil {
+			panic(err)
+		}
+		if string(b) != s {
+			panic("Reader Read failed")
+		}
+		if r.Len() != 0 {
+			panic("Reader Len failed")
+		}
+		mem.FreeSlice(nil, b)
 	}
 }

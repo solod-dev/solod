@@ -9,7 +9,6 @@
 //   - Cut returns CutResult instead of multiple return values.
 //   - EqualFold is not implemented.
 //   - Iterators are not implemented.
-//   - Reader is not implemented (planned).
 //   - Title is not implemented.
 //   - ToUpperSpecial, ToLowerSpecial, and ToTitleSpecial are not implemented.
 //
@@ -18,12 +17,19 @@ package bytes
 
 import (
 	"github.com/nalgeon/solod/so/bytealg"
+	"github.com/nalgeon/solod/so/errors"
 	"github.com/nalgeon/solod/so/math/bits"
 	"github.com/nalgeon/solod/so/mem"
 	"github.com/nalgeon/solod/so/slices"
 	"github.com/nalgeon/solod/so/unicode"
 	"github.com/nalgeon/solod/so/unicode/utf8"
 )
+
+var ErrInvalidWhence = errors.New("bytes: invalid whence")
+var ErrNegativeOffset = errors.New("bytes: negative offset")
+var ErrNegativeRead = errors.New("bytes: Read returned negative count")
+var ErrTooLarge = errors.New("bytes: data too large")
+var ErrUnread = errors.New("bytes: cannot unread previous read operation")
 
 // RunePredicate reports whether the rune satisfies a condition.
 type RunePredicate func(rune) bool
