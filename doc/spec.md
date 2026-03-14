@@ -160,9 +160,18 @@ Converting a string to a byte or rune slice:
 
 ```go
 s := "1世3"
-bs := []byte(s)  // byte slice
-rs := []rune(s)  // rune slice
+bs := []byte(s)  // zero-copy view of s
+rs := []rune(s)  // allocates
 ```
+
+Converting a byte or a rune slice to a string:
+
+```go
+s1 := string(bs)  // zero-copy view of bs
+s2 := string(rs)  // allocates
+```
+
+`string([]byte)` and `[]byte(string)` are zero-copy views that alias the original data. Modifying the byte slice will affect the string and vice versa. Clone the data if you need an independent copy.
 
 Converting a byte or rune to a string:
 

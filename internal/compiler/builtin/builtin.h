@@ -167,13 +167,10 @@ typedef struct {
     (so_Slice){(T*)_s.ptr + _from, _to - _from, _max - _from}; \
 })
 
-// string_bytes copies a string's bytes into a byte slice.
-// Allocates memory on the stack until the calling function returns.
-#define so_string_bytes(s) ({               \
-    so_String _s = (s);                     \
-    void* _buf = so_alloca(_s.len);         \
-    if (_buf) memcpy(_buf, _s.ptr, _s.len); \
-    (so_Slice){_buf, _s.len, _s.len};       \
+// string_bytes reinterprets a string as a byte slice (zero-copy).
+#define so_string_bytes(s) ({                  \
+    so_String _s = (s);                        \
+    (so_Slice){(void*)_s.ptr, _s.len, _s.len}; \
 })
 
 // string_runes decodes a string's UTF-8 bytes into a rune slice.
@@ -184,13 +181,10 @@ typedef struct {
 })
 so_Slice so_string_runes_impl(so_String s, so_rune* buf);
 
-// bytes_string copies a byte slice into a string.
-// Allocates memory on the stack until the calling function returns.
-#define so_bytes_string(bs) ({                \
-    so_Slice _bs = (bs);                      \
-    char* _buf = so_alloca(_bs.len);          \
-    if (_buf) memcpy(_buf, _bs.ptr, _bs.len); \
-    (so_String){_buf, _bs.len};               \
+// bytes_string reinterprets a byte slice as a string (zero-copy).
+#define so_bytes_string(bs) ({                  \
+    so_Slice _bs = (bs);                        \
+    (so_String){(const char*)_bs.ptr, _bs.len}; \
 })
 
 // runes_string encodes a rune slice into a UTF-8 string.
