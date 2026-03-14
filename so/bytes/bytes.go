@@ -6,7 +6,6 @@
 // It is analogous to the facilities of the [strings] package.
 //
 // Based on the [bytes] package, with the following modifications:
-//   - Buffer is not implemented (planned).
 //   - Cut returns CutResult instead of multiple return values.
 //   - EqualFold is not implemented.
 //   - Iterators are not implemented.
@@ -18,7 +17,6 @@
 package bytes
 
 import (
-	"github.com/nalgeon/solod/so"
 	"github.com/nalgeon/solod/so/bytealg"
 	"github.com/nalgeon/solod/so/math/bits"
 	"github.com/nalgeon/solod/so/mem"
@@ -26,8 +24,6 @@ import (
 	"github.com/nalgeon/solod/so/unicode"
 	"github.com/nalgeon/solod/so/unicode/utf8"
 )
-
-const maxInt = int(so.MaxInt64)
 
 // RunePredicate reports whether the rune satisfies a condition.
 type RunePredicate func(rune) bool
@@ -1089,6 +1085,13 @@ func Runes(a mem.Allocator, s []byte) []rune {
 		s = s[l:]
 	}
 	return t
+}
+
+// String creates a string from a byte slice.
+// The returned string is allocated; the caller owns it.
+func String(a mem.Allocator, s []byte) string {
+	clone := slices.Clone(a, s)
+	return string(clone)
 }
 
 // Replace returns a copy of the slice s with the first n

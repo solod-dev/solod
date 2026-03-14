@@ -328,4 +328,27 @@ int main(void) {
         }
         mem_FreeSlice(so_byte, (mem_Allocator){0}, uppered);
     }
+    {
+        // Buffer.
+        bytes_Buffer buf = bytes_NewBuffer((mem_Allocator){0}, so_string_bytes(so_str("hello")));
+        bytes_Buffer_Write(&buf, so_string_bytes(so_str(" world")));
+        if (so_string_ne(bytes_Buffer_String(&buf), so_str("hello world"))) {
+            so_panic("Buffer Write failed");
+        }
+        bytes_Buffer_Grow(&buf, 64);
+        if (bytes_Buffer_Cap(&buf) < 64) {
+            so_panic("Buffer Grow failed");
+        }
+        so_Slice rdbuf = so_make_slice(so_byte, 5, 5);
+        so_Result _res3 = bytes_Buffer_Read(&buf, rdbuf);
+        so_int n = _res3.val.as_int;
+        so_Error err = _res3.err;
+        if (n != 5 || so_string_ne(so_bytes_string(rdbuf), so_str("hello")) || err != NULL) {
+            so_panic("Buffer Read failed");
+        }
+        if (so_string_ne(bytes_Buffer_String(&buf), so_str(" world"))) {
+            so_panic("Buffer Read did not advance the buffer");
+        }
+        bytes_Buffer_Free(&buf);
+    }
 }

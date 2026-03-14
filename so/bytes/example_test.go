@@ -1,121 +1,124 @@
 package bytes_test
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"slices"
+	"strconv"
 
 	"github.com/nalgeon/solod/so/bytes"
 	"github.com/nalgeon/solod/so/unicode"
 )
 
-// func ExampleBuffer() {
-// 	var b bytes.Buffer // A Buffer needs no initialization.
-// 	b.Write([]byte("Hello "))
-// 	fmt.Fprintf(&b, "world!")
-// 	b.WriteTo(os.Stdout)
-// 	// Output: Hello world!
-// }
+func ExampleBuffer() {
+	var b bytes.Buffer // A Buffer needs no initialization.
+	b.Write([]byte("Hello "))
+	fmt.Fprintf(&b, "world!")
+	b.WriteTo(os.Stdout)
+	// Output: Hello world!
+}
 
-// func ExampleBuffer_reader() {
-// 	// A Buffer can turn a string or a []byte into an io.Reader.
-// 	buf := bytes.NewBufferString("R29waGVycyBydWxlIQ==")
-// 	dec := base64.NewDecoder(base64.StdEncoding, buf)
-// 	io.Copy(os.Stdout, dec)
-// 	// Output: Gophers rule!
-// }
+func ExampleBuffer_reader() {
+	// A Buffer can turn a string or a []byte into an io.Reader.
+	buf := bytes.NewBufferString(nil, "R29waGVycyBydWxlIQ==")
+	dec := base64.NewDecoder(base64.StdEncoding, &buf)
+	io.Copy(os.Stdout, dec)
+	// Output: Gophers rule!
+}
 
-// func ExampleBuffer_Bytes() {
-// 	buf := bytes.Buffer{}
-// 	buf.Write([]byte{'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'})
-// 	os.Stdout.Write(buf.Bytes())
-// 	// Output: hello world
-// }
+func ExampleBuffer_Bytes() {
+	buf := bytes.Buffer{}
+	buf.Write([]byte{'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'})
+	os.Stdout.Write(buf.Bytes())
+	// Output: hello world
+}
 
-// func ExampleBuffer_AvailableBuffer() {
-// 	var buf bytes.Buffer
-// 	for i := 0; i < 4; i++ {
-// 		b := buf.AvailableBuffer()
-// 		b = strconv.AppendInt(b, int64(i), 10)
-// 		b = append(b, ' ')
-// 		buf.Write(b)
-// 	}
-// 	os.Stdout.Write(buf.Bytes())
-// 	// Output: 0 1 2 3
-// }
+func ExampleBuffer_AvailableBuffer() {
+	var buf bytes.Buffer
+	for i := 0; i < 4; i++ {
+		b := buf.AvailableBuffer()
+		b = strconv.AppendInt(b, int64(i), 10)
+		b = append(b, ' ')
+		buf.Write(b)
+	}
+	os.Stdout.Write(buf.Bytes())
+	// Output: 0 1 2 3
+}
 
-// func ExampleBuffer_Cap() {
-// 	buf1 := bytes.NewBuffer(make([]byte, 10))
-// 	buf2 := bytes.NewBuffer(make([]byte, 0, 10))
-// 	fmt.Println(buf1.Cap())
-// 	fmt.Println(buf2.Cap())
-// 	// Output:
-// 	// 10
-// 	// 10
-// }
+func ExampleBuffer_Cap() {
+	buf1 := bytes.NewBuffer(nil, make([]byte, 10))
+	buf2 := bytes.NewBuffer(nil, make([]byte, 0, 10))
+	fmt.Println(buf1.Cap())
+	fmt.Println(buf2.Cap())
+	// Output:
+	// 10
+	// 10
+}
 
-// func ExampleBuffer_Grow() {
-// 	var b bytes.Buffer
-// 	b.Grow(64)
-// 	bb := b.Bytes()
-// 	b.Write([]byte("64 bytes or fewer"))
-// 	fmt.Printf("%q", bb[:b.Len()])
-// 	// Output: "64 bytes or fewer"
-// }
+func ExampleBuffer_Grow() {
+	var b bytes.Buffer
+	b.Grow(64)
+	bb := b.Bytes()
+	b.Write([]byte("64 bytes or fewer"))
+	fmt.Printf("%q", bb[:b.Len()])
+	// Output: "64 bytes or fewer"
+}
 
-// func ExampleBuffer_Len() {
-// 	var b bytes.Buffer
-// 	b.Grow(64)
-// 	b.Write([]byte("abcde"))
-// 	fmt.Printf("%d", b.Len())
-// 	// Output: 5
-// }
+func ExampleBuffer_Len() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte("abcde"))
+	fmt.Printf("%d", b.Len())
+	// Output: 5
+}
 
-// func ExampleBuffer_Next() {
-// 	var b bytes.Buffer
-// 	b.Grow(64)
-// 	b.Write([]byte("abcde"))
-// 	fmt.Printf("%s\n", b.Next(2))
-// 	fmt.Printf("%s\n", b.Next(2))
-// 	fmt.Printf("%s", b.Next(2))
-// 	// Output:
-// 	// ab
-// 	// cd
-// 	// e
-// }
+func ExampleBuffer_Next() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte("abcde"))
+	fmt.Printf("%s\n", b.Next(2))
+	fmt.Printf("%s\n", b.Next(2))
+	fmt.Printf("%s", b.Next(2))
+	// Output:
+	// ab
+	// cd
+	// e
+}
 
-// func ExampleBuffer_Read() {
-// 	var b bytes.Buffer
-// 	b.Grow(64)
-// 	b.Write([]byte("abcde"))
-// 	rdbuf := make([]byte, 1)
-// 	n, err := b.Read(rdbuf)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Println(n)
-// 	fmt.Println(b.String())
-// 	fmt.Println(string(rdbuf))
-// 	// Output:
-// 	// 1
-// 	// bcde
-// 	// a
-// }
+func ExampleBuffer_Read() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte("abcde"))
+	rdbuf := make([]byte, 1)
+	n, err := b.Read(rdbuf)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(n)
+	fmt.Println(b.String())
+	fmt.Println(string(rdbuf))
+	// Output:
+	// 1
+	// bcde
+	// a
+}
 
-// func ExampleBuffer_ReadByte() {
-// 	var b bytes.Buffer
-// 	b.Grow(64)
-// 	b.Write([]byte("abcde"))
-// 	c, err := b.ReadByte()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Println(c)
-// 	fmt.Println(b.String())
-// 	// Output:
-// 	// 97
-// 	// bcde
-// }
+func ExampleBuffer_ReadByte() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte("abcde"))
+	c, err := b.ReadByte()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(c)
+	fmt.Println(b.String())
+	// Output:
+	// 97
+	// bcde
+}
 
 func ExampleClone() {
 	b := []byte("abc")

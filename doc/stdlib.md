@@ -2,6 +2,7 @@
 
 So provides low-level packages that wrap the libc API (`so/c/*`) and a growing set of high-level packages. For full API details, see the [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so).
 
+[so/bytes](#sobytes) •
 [so/errors](#soerrors) •
 [so/io](#soio) •
 [so/math/bits](#somathbits) •
@@ -24,6 +25,7 @@ Byte slice operations. Offers an API similar to Go's `bytes` package, but with f
 
 Notable mentions:
 
+- `Buffer` is a variable-sized buffer of bytes with `Read` and `Write` methods.
 - `Clone` returns a copy of a slice.
 - `Compare` and `Equal` compare two slices lexicographically.
 - `Contains` reports whether a subslice is within a slice.
@@ -34,6 +36,7 @@ Notable mentions:
 - `Join` concatenates two slices.
 - `Replace` and `ReplaceAll` replace subslices within a slice.
 - `Runes` converts a byte slice to a rune slice.
+- `String` creates a string from a byte slice.
 
 ## [so/errors](https://pkg.go.dev/github.com/nalgeon/solod/so/errors)
 
@@ -41,7 +44,7 @@ Error creation from text messages.
 
 - `New(text string) error` - create a new error with the given message.
 
-To avoid heap allocations, `New` can only be used at the package level.
+So only supports sentinel errors, which are defined at the package level using `New`.
 
 ## [so/io](https://pkg.go.dev/github.com/nalgeon/solod/so/io)
 

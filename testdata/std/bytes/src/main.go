@@ -322,4 +322,25 @@ func main() {
 		}
 		mem.FreeSlice(nil, uppered)
 	}
+	{
+		// Buffer.
+		buf := bytes.NewBuffer(nil, []byte("hello"))
+		buf.Write([]byte(" world"))
+		if buf.String() != "hello world" {
+			panic("Buffer Write failed")
+		}
+		buf.Grow(64)
+		if buf.Cap() < 64 {
+			panic("Buffer Grow failed")
+		}
+		rdbuf := make([]byte, 5)
+		n, err := buf.Read(rdbuf)
+		if n != 5 || string(rdbuf) != "hello" || err != nil {
+			panic("Buffer Read failed")
+		}
+		if buf.String() != " world" {
+			panic("Buffer Read did not advance the buffer")
+		}
+		buf.Free()
+	}
 }

@@ -1424,37 +1424,6 @@ func TestCutSuffix(t *testing.T) {
 	}
 }
 
-// func TestBufferGrowNegative(t *testing.T) {
-// 	defer func() {
-// 		if err := recover(); err == nil {
-// 			t.Fatal("Grow(-1) should have panicked")
-// 		}
-// 	}()
-// 	var b Buffer
-// 	b.Grow(-1)
-// }
-
-// func TestBufferTruncateNegative(t *testing.T) {
-// 	defer func() {
-// 		if err := recover(); err == nil {
-// 			t.Fatal("Truncate(-1) should have panicked")
-// 		}
-// 	}()
-// 	var b Buffer
-// 	b.Truncate(-1)
-// }
-
-// func TestBufferTruncateOutOfRange(t *testing.T) {
-// 	defer func() {
-// 		if err := recover(); err == nil {
-// 			t.Fatal("Truncate(20) should have panicked")
-// 		}
-// 	}()
-// 	var b Buffer
-// 	b.Write(make([]byte, 10))
-// 	b.Truncate(20)
-// }
-
 var containsTests = []struct {
 	b, subslice []byte
 	want        bool
