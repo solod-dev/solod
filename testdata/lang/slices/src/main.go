@@ -94,8 +94,18 @@ func main() {
 
 	{
 		// Slice literals.
+		var nils []int = nil
+		if nils != nil {
+			panic("want nils == nil")
+		}
+		if len(nils) != 0 {
+			panic("want len(nils) == 0")
+		}
+
 		empty := []int{}
-		_ = empty
+		if len(empty) != 0 {
+			panic("want len(empty) == 0")
+		}
 
 		strSlice := []string{"a", "b", "c"}
 		sLen := len(strSlice) // sLen == 3

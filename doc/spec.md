@@ -229,6 +229,14 @@ strs := []string{"a", "b", "c"}
 twoD := [][]int{{1, 2, 3}, {4, 5, 6}}
 ```
 
+Unlike in Go, a nil slice and an empty slice are the same thing:
+
+```go
+// Both emit `(so_Slice){0}`.
+var nils []int = nil
+var empty [] = []int{}
+```
+
 Slicing:
 
 ```go

@@ -86,8 +86,17 @@ int main(void) {
     }
     {
         // Slice literals.
+        so_Slice nils = (so_Slice){0};
+        if (nils.ptr != NULL) {
+            so_panic("want nils == nil");
+        }
+        if (so_len(nils) != 0) {
+            so_panic("want len(nils) == 0");
+        }
         so_Slice empty = (so_Slice){0};
-        (void)empty;
+        if (so_len(empty) != 0) {
+            so_panic("want len(empty) == 0");
+        }
         so_Slice strSlice = (so_Slice){(so_String[3]){so_str("a"), so_str("b"), so_str("c")}, 3, 3};
         // sLen == 3
         so_int sLen = so_len(strSlice);

@@ -103,6 +103,15 @@ func (g *Generator) emitBinaryExpr(n *ast.BinaryExpr) {
 		}
 	}
 
+	// Slice nil comparisons: emit s.ptr == NULL / != NULL.
+	if n.Op == token.EQL || n.Op == token.NEQ {
+		if _, ok := g.types.TypeOf(n.X).Underlying().(*types.Slice); ok && isNilType(g.types.TypeOf(n.Y)) {
+			g.emitExpr(n.X)
+			fmt.Fprintf(w, ".ptr %s NULL", n.Op.String())
+			return
+		}
+	}
+
 	// Array comparisons: emit so_array_eq/ne calls.
 	if n.Op == token.EQL || n.Op == token.NEQ {
 		if arr, ok := g.types.TypeOf(n.X).Underlying().(*types.Array); ok {
@@ -410,6 +419,35 @@ func (g *Generator) emitUnaryExpr(n *ast.UnaryExpr) {
 	}
 	fmt.Fprintf(w, "%s", n.Op.String())
 	g.emitExpr(n.X)
+}
+
+// emitExprAsType emits an expression as a specific type, handling special cases
+// like interface conversions and nil assignments.
+func (g *Generator) emitExprAsType(node ast.Node, expr ast.Expr, targetType types.Type) {
+	// Empty interface: emit as void*.
+	if iface, ok := targetType.Underlying().(*types.Interface); ok && iface.Empty() {
+		g.emitAnyValue(node, expr)
+		return
+	}
+	// Named interface conversion: wrap concrete types as interface literals.
+	if isNamedNonEmptyInterface(targetType) {
+		valType := g.types.TypeOf(expr)
+		if isNilType(valType) {
+			cType := g.mapType(node, targetType)
+			fmt.Fprintf(g.state.writer, "(%s){0}", cType)
+			return
+		}
+		if isConcreteNamedType(valType) {
+			g.emitInterfaceLit(targetType, expr)
+			return
+		}
+	}
+	// Slice nil assignment: emit zero-initialized struct instead of NULL.
+	if _, ok := targetType.Underlying().(*types.Slice); ok && isNilType(g.types.TypeOf(expr)) {
+		fmt.Fprintf(g.state.writer, "(so_Slice){0}")
+		return
+	}
+	g.emitExpr(expr)
 }
 
 // needsVoidParens reports whether expr needs parentheses in a (void) cast.

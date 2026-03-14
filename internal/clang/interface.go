@@ -155,28 +155,6 @@ func (g *Generator) emitAnyValue(node ast.Node, expr ast.Expr) {
 	fmt.Fprintf(g.state.writer, "}")
 }
 
-// emitExprAsType emits an expression, wrapping it as an interface literal if the
-// target type is an interface and the expression is a concrete type.
-func (g *Generator) emitExprAsType(node ast.Node, expr ast.Expr, targetType types.Type) {
-	if iface, ok := targetType.Underlying().(*types.Interface); ok && iface.Empty() {
-		g.emitAnyValue(node, expr)
-		return
-	}
-	if isNamedNonEmptyInterface(targetType) {
-		valType := g.types.TypeOf(expr)
-		if isNilType(valType) {
-			cType := g.mapType(node, targetType)
-			fmt.Fprintf(g.state.writer, "(%s){0}", cType)
-			return
-		}
-		if isConcreteNamedType(valType) {
-			g.emitInterfaceLit(targetType, expr)
-			return
-		}
-	}
-	g.emitExpr(expr)
-}
-
 // isNamedNonEmptyInterface reports whether t is a named non-empty interface
 // (excluding error, which is implemented as a pointer in C).
 func isNamedNonEmptyInterface(t types.Type) bool {
