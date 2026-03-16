@@ -71,7 +71,7 @@ func main() {
 	}
 	{
 		// Fscanf.
-		r := strings.NewReader(nil, "100 200")
+		r := strings.NewReader("100 200")
 		var a int32
 		var b int32
 		n, err := fmt.Fscanf(&r, "%d %d", &a, &b)

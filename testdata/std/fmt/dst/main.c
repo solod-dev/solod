@@ -78,7 +78,7 @@ int main(void) {
     }
     {
         // Fscanf.
-        strings_Reader r = strings_NewReader((mem_Allocator){0}, so_str("100 200"));
+        strings_Reader r = strings_NewReader(so_str("100 200"));
         int32_t a = 0;
         int32_t b = 0;
         so_Result _res6 = fmt_Fscanf((io_Reader){.self = &r, .Read = strings_Reader_Read}, "%d %d", &a, &b);

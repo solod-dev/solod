@@ -152,7 +152,7 @@ int main(void) {
     }
     {
         // Reader.
-        strings_Reader r = strings_NewReader((mem_Allocator){0}, so_str("hello world"));
+        strings_Reader r = strings_NewReader(so_str("hello world"));
         so_Slice buf = so_make_slice(so_byte, 5, 5);
         so_Result _res4 = strings_Reader_Read(&r, buf);
         so_int n = _res4.val.as_int;

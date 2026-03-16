@@ -7,7 +7,6 @@ package strings
 import (
 	"github.com/nalgeon/solod/so/errors"
 	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/mem"
 	"github.com/nalgeon/solod/so/unicode/utf8"
 )
 
@@ -28,7 +27,6 @@ type RuneSizeResult struct {
 // from a string.
 // The zero value for Reader operates like a Reader of an empty string.
 type Reader struct {
-	a        mem.Allocator
 	s        string
 	i        int64 // current reading index
 	prevRune int   // index of previous rune; or < 0
@@ -167,8 +165,8 @@ func (r *Reader) WriteTo(w io.Writer) (int64, error) {
 }
 
 // Reset resets the [Reader] to be reading from s.
-func (r *Reader) Reset(s string) { *r = Reader{a: r.a, s: s, prevRune: -1} }
+func (r *Reader) Reset(s string) { *r = Reader{s: s, prevRune: -1} }
 
 // NewReader returns a new [Reader] reading from s.
 // It is similar to [bytes.NewBufferString] but more efficient and non-writable.
-func NewReader(a mem.Allocator, s string) Reader { return Reader{a: a, s: s, prevRune: -1} }
+func NewReader(s string) Reader { return Reader{s: s, prevRune: -1} }

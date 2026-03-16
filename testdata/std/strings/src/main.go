@@ -143,7 +143,7 @@ func main() {
 	}
 	{
 		// Reader.
-		r := strings.NewReader(nil, "hello world")
+		r := strings.NewReader("hello world")
 		buf := make([]byte, 5)
 		n, err := r.Read(buf)
 		if err != nil || n != 5 || string(buf) != "hello" {

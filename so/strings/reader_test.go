@@ -15,7 +15,7 @@ import (
 )
 
 func TestReader(t *testing.T) {
-	r := strings.NewReader(nil, "0123456789")
+	r := strings.NewReader("0123456789")
 	tests := []struct {
 		off     int64
 		seek    int
@@ -63,7 +63,7 @@ func TestReader(t *testing.T) {
 }
 
 func TestReadAfterBigSeek(t *testing.T) {
-	r := strings.NewReader(nil, "0123456789")
+	r := strings.NewReader("0123456789")
 	if _, err := r.Seek(1<<31+5, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestReadAfterBigSeek(t *testing.T) {
 }
 
 func TestReaderAt(t *testing.T) {
-	r := strings.NewReader(nil, "0123456789")
+	r := strings.NewReader("0123456789")
 	tests := []struct {
 		off     int64
 		n       int
@@ -103,7 +103,7 @@ func TestReaderAt(t *testing.T) {
 func TestReaderAtConcurrent(t *testing.T) {
 	// Test for the race detector, to verify ReadAt doesn't mutate
 	// any state.
-	r := strings.NewReader(nil, "0123456789")
+	r := strings.NewReader("0123456789")
 	var wg sync.WaitGroup
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
@@ -120,7 +120,7 @@ func TestEmptyReaderConcurrent(t *testing.T) {
 	// Test for the race detector, to verify a Read that doesn't yield any bytes
 	// is okay to use from multiple goroutines. This was our historic behavior.
 	// See golang.org/issue/7856
-	r := strings.NewReader(nil, "")
+	r := strings.NewReader("")
 	var wg sync.WaitGroup
 	for i := 0; i < 5; i++ {
 		wg.Add(2)
@@ -141,7 +141,7 @@ func TestWriteTo(t *testing.T) {
 	const str = "0123456789"
 	for i := 0; i <= len(str); i++ {
 		s := str[i:]
-		r := strings.NewReader(nil, s)
+		r := strings.NewReader(s)
 		var b bytes.Buffer
 		n, err := r.WriteTo(&b)
 		if expect := int64(len(s)); n != expect {
@@ -161,7 +161,7 @@ func TestWriteTo(t *testing.T) {
 
 // tests that Len is affected by reads, but Size is not.
 func TestReaderLenSize(t *testing.T) {
-	r := strings.NewReader(nil, "abc")
+	r := strings.NewReader("abc")
 	io.CopyN(io.Discard, &r, 1)
 	if r.Len() != 2 {
 		t.Errorf("Len = %d; want 2", r.Len())
@@ -172,7 +172,7 @@ func TestReaderLenSize(t *testing.T) {
 }
 
 func TestReaderReset(t *testing.T) {
-	r := strings.NewReader(nil, "世界")
+	r := strings.NewReader("世界")
 	if res := r.ReadRune(); res.Err != nil {
 		t.Errorf("ReadRune: unexpected error: %v", res.Err)
 	}
@@ -236,7 +236,7 @@ func TestReaderZero(t *testing.T) {
 func TestReadByte(t *testing.T) {
 	testStrings := []string{"", abcd, faces, commas}
 	for _, s := range testStrings {
-		reader := strings.NewReader(nil, s)
+		reader := strings.NewReader(s)
 		if e := reader.UnreadByte(); e == nil {
 			t.Errorf("Unreading %q at beginning: expected error", s)
 		}
@@ -276,7 +276,7 @@ func TestReadByte(t *testing.T) {
 func TestReadRune(t *testing.T) {
 	testStrings := []string{"", abcd, faces, commas}
 	for _, s := range testStrings {
-		reader := strings.NewReader(nil, s)
+		reader := strings.NewReader(s)
 		if e := reader.UnreadRune(); e == nil {
 			t.Errorf("Unreading %q at beginning: expected error", s)
 		}
@@ -330,7 +330,7 @@ func TestUnreadRuneError(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		reader := strings.NewReader(nil, "0123456789")
+		reader := strings.NewReader("0123456789")
 		if res := reader.ReadRune(); res.Err != nil {
 			// should not happen
 			t.Fatal(res.Err)
