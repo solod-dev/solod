@@ -2,22 +2,27 @@
 
 So provides low-level packages that wrap the libc API (`so/c/*`) and a growing set of high-level packages. For full API details, see the [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so).
 
-[so/bytes](#sobytes) •
-[so/errors](#soerrors) •
-[so/io](#soio) •
-[so/math/bits](#somathbits) •
-[so/mem](#somem) •
-[so/slices](#soslices) •
-[so/unicode](#sounicode) •
-[so/unicode/utf8](#sounicodeutf8) •
-[so/c](#soc) •
-[so/c/assert](#socassert) •
-[so/c/ctype](#socctype) •
-[so/c/cstring](#soccstring) •
-[so/c/math](#socmath) •
-[so/c/stdio](#socstdio) •
-[so/c/stdlib](#socstdlib) •
-[so/c/time](#soctime)
+High-level:
+[bytes](#sobytes) •
+[errors](#soerrors) •
+[fmt](#sofmt) •
+[io](#soio) •
+[math/bits](#somathbits) •
+[mem](#somem) •
+[slices](#soslices) •
+[strings](#sostrings) •
+[unicode](#sounicode) •
+[unicode/utf8](#sounicodeutf8)
+
+Low-level:
+[c](#soc) •
+[c/assert](#socassert) •
+[c/ctype](#socctype) •
+[c/cstring](#soccstring) •
+[c/math](#socmath) •
+[c/stdio](#socstdio) •
+[c/stdlib](#socstdlib) •
+[c/time](#soctime)
 
 ## [so/bytes](https://pkg.go.dev/github.com/nalgeon/solod/so/bytes)
 
@@ -53,6 +58,17 @@ Error creation from text messages.
 - `New(text string) error` - create a new error with the given message.
 
 So only supports sentinel errors, which are defined at the package level using `New`.
+
+## [so/fmt](https://pkg.go.dev/github.com/nalgeon/solod/so/fmt)
+
+Formatted I/O with functions analogous to C's printf and scanf. Uses C format verbs (not Go verbs).
+
+- `Print` and `Println` write strings to standard output.
+- `Printf` formats and writes to standard output.
+- `Fprintf` formats and writes to an `io.Writer`.
+- `Scanf` scans formatted text from standard input.
+- `Sscanf` scans formatted text from a string.
+- `Fscanf` scans formatted text from an `io.Reader`.
 
 ## [so/io](https://pkg.go.dev/github.com/nalgeon/solod/so/io)
 
