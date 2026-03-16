@@ -3,21 +3,77 @@
 // -- Forward declarations (functions and methods) --
 static void xopen(so_int* x);
 static void xclose(void* a);
+static void funcScope(void);
+static so_int funcWithReturn(void);
+static void blockScope(void);
 
 // -- Implementation --
+static so_int state = 0;
 
 static void xopen(so_int* x) {
-    so_println("%s %" PRId64, "open", *x);
+    (*x)++;
 }
 
 static void xclose(void* a) {
     so_int* x = (so_int*)a;
-    so_println("%s %" PRId64, "close", *x);
+    (*x)--;
+}
+
+static void funcScope(void) {
+    xopen(&state);
+    if (state != 1) {
+        xclose(&state);
+        so_panic("unexpected state");
+    }
+    xclose(&state);
+}
+
+static so_int funcWithReturn(void) {
+    xopen(&state);
+    if (state != 1) {
+        xclose(&state);
+        so_panic("unexpected state");
+    }
+    xclose(&state);
+    return 42;
+}
+
+static void blockScope(void) {
+    {
+        xopen(&state);
+        if (state != 1) {
+            xclose(&state);
+            so_panic("unexpected state");
+        }
+        xclose(&state);
+    }
+    if (state != 0) {
+        so_panic("unexpected state");
+    }
+    {
+        xopen(&state);
+        if (state != 1) {
+            xclose(&state);
+            so_panic("unexpected state");
+        }
+        xclose(&state);
+    }
+    if (state != 0) {
+        so_panic("unexpected state");
+    }
 }
 
 int main(void) {
-    so_int x = 42;
-    xopen(&x);
-    so_defer(xclose, &x);
-    so_println("%s", "working...");
+    funcScope();
+    if (state != 0) {
+        so_panic("unexpected state");
+    }
+    funcWithReturn();
+    if (state != 0) {
+        so_panic("unexpected state");
+    }
+    blockScope();
+    if (state != 0) {
+        so_panic("unexpected state");
+    }
 }

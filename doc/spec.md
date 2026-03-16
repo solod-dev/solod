@@ -756,18 +756,35 @@ In C, this is emitted as a macro call `so_panic(...)`.
 
 ## Defer
 
-`defer` calls a function with a single argument at the end of the enclosing function:
+`defer` schedules a function or method call to run at the end of the enclosing scope.
+
+This scope can be either a function:
 
 ```go
 func main() {
-    x := 42
-    xopen(&x)
-    defer xclose(&x)
+    xopen(&state)
+    defer xclose(&state)
     println("working...")
+    // xclose(&state) runs here
 }
 ```
 
-The deferred function must accept exactly one argument. Multi-argument defer calls are not supported. As C2Y `defer` becomes more widely used, So might switch to it to support more complex `defer` statements.
+Or a bare block:
+
+```go
+func example() {
+    {
+        xopen(&state)
+        defer xclose(&state)
+        // xclose(&state) runs here, at block end
+    }
+    // state is already closed here
+}
+```
+
+Deferred calls are emitted inline (before returns, panics, and scope end) in LIFO order.
+
+Defer is not supported inside other scopes like `for` or `if`.
 
 ## C interop
 

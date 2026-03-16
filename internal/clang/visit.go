@@ -37,10 +37,7 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 		g.emitAssignStmt(n)
 		return nil
 	case *ast.BlockStmt:
-		// Bare block (scoping block inside a function body).
-		fmt.Fprintf(g.state.writer, "%s{\n", g.indent())
-		g.emitBlock(n)
-		fmt.Fprintf(g.state.writer, "%s}\n", g.indent())
+		g.emitBlockStmt(n)
 		return nil
 	case *ast.BranchStmt:
 		g.emitBranchStmt(n)
@@ -98,6 +95,19 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 	return g
 }
 
+// emitBlockStmt emits a bare block statement (scoping block inside a function body).
+func (g *Generator) emitBlockStmt(stmt *ast.BlockStmt) {
+	defers := g.state.defers // stash outer defers
+	g.state.defers = nil
+	fmt.Fprintf(g.state.writer, "%s{\n", g.indent())
+	g.emitBlock(stmt)
+	g.state.indent++
+	g.emitDeferredCalls()
+	g.state.indent--
+	g.state.defers = defers // restore outer defers
+	fmt.Fprintf(g.state.writer, "%s}\n", g.indent())
+}
+
 // emitBranchStmt emits a break, continue, or goto statement.
 func (g *Generator) emitBranchStmt(stmt *ast.BranchStmt) {
 	w := g.state.writer
@@ -108,36 +118,15 @@ func (g *Generator) emitBranchStmt(stmt *ast.BranchStmt) {
 	}
 }
 
-// emitDeferStmt emits a defer statement. Generic calls (with type args) are
-// captured and emitted inline before returns, panics, and function end.
-// Non-generic calls use so_defer(fn, arg).
+// emitDeferStmt emits a defer statement. Deferred calls are captured
+// and emitted inline before returns, panics, and function end.
 func (g *Generator) emitDeferStmt(stmt *ast.DeferStmt) {
-	call := stmt.Call
-
-	// Check if the deferred call is generic (has type args).
-	if ident := exprIdent(call.Fun); ident != nil {
-		if inst, ok := g.types.Instances[ident]; ok && inst.TypeArgs.Len() > 0 {
-			// Render the generic call to a string and save for later emission.
-			var buf strings.Builder
-			saved := g.state.writer
-			g.state.writer = &buf
-			g.emitGenericCall(call, call.Fun, inst)
-			g.state.writer = saved
-			g.state.defers = append(g.state.defers, buf.String())
-			return
-		}
-	}
-
-	// Non-generic defer: emit so_defer(fn, arg).
-	w := g.state.writer
-	if len(call.Args) != 1 {
-		g.fail(stmt, "defer call must have exactly 1 argument")
-	}
-	fmt.Fprintf(w, "%sso_defer(", g.indent())
-	g.emitExpr(call.Fun)
-	fmt.Fprintf(w, ", ")
-	g.emitExpr(call.Args[0])
-	fmt.Fprintf(w, ");\n")
+	var buf strings.Builder
+	saved := g.state.writer
+	g.state.writer = &buf
+	g.emitCallExpr(stmt.Call)
+	g.state.writer = saved
+	g.state.defers = append(g.state.defers, buf.String())
 }
 
 // emitExprStmt emits an expression statement.

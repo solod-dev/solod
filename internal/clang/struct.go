@@ -86,7 +86,7 @@ func (g *Generator) emitMethodDecl(decl *ast.FuncDecl) {
 
 	// Emit method body, handling deferred calls if needed.
 	g.walkStmts(decl.Body.List)
-	if len(g.state.defers) > 0 && !endsWithReturn(decl.Body.List) {
+	if !endsWithReturn(decl.Body.List) {
 		g.emitDeferredCalls()
 	}
 	g.state.indent--

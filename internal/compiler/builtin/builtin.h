@@ -348,25 +348,6 @@ typedef struct {
     so_Error err;
 } so_Result;
 
-// --- Defer ---
-
-// Deferred is a deferred function and its argument.
-struct so_Deferred {
-    void (*fn)(void*);
-    void* arg;
-};
-
-// defer_cleanup calls the deferred function with its argument.
-static inline void so_defer_cleanup(struct so_Deferred* ctx) {
-    if (ctx->fn) ctx->fn(ctx->arg);
-}
-
-// defer creates a deferred function call for the current scope.
-#define so_defer(fn, ptr)                                \
-    struct so_Deferred SO_NAME(_defer_var_, __COUNTER__) \
-        __attribute__((cleanup(so_defer_cleanup))) =     \
-            {(void (*)(void*))(fn), (void*)(ptr)}
-
 // --- Printing ---
 
 // print writes the formatted string to stdout.
