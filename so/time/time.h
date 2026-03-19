@@ -1,6 +1,12 @@
 #include "so/builtin/builtin.h"
 #include <time.h>
 
+#define time_tm struct tm
+
+// strptime may not be declared without _XOPEN_SOURCE before system headers.
+// Provide an explicit declaration for portability (e.g. glibc with gcc).
+char* strptime(const char*, const char*, struct tm*);
+
 // Monotonic times are reported as offsets from monoStart.
 extern int64_t time_monoStart;
 

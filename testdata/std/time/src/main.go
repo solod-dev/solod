@@ -31,4 +31,50 @@ func main() {
 		}
 		println(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
 	}
+	{
+		// time.Time.Format and time.Time.String.
+		t := time.Date(2024, time.March, 15, 14, 30, 45, 0, time.UTC)
+		var buf [64]byte
+		s := t.Format("%Y-%m-%d", time.UTC, buf[:])
+		if s != "2024-03-15" {
+			panic("unexpected Format")
+		}
+		s = t.String(buf[:])
+		if s != "2024-03-15T14:30:45Z" {
+			panic("unexpected String")
+		}
+	}
+	{
+		// time.Parse.
+		t, err := time.Parse("%Y-%m-%d %H:%M:%S", "2024-03-15 14:30:45", time.UTC)
+		if err != nil {
+			panic("unexpected Parse error")
+		}
+		date := t.Date(time.UTC)
+		clock := t.Clock(time.UTC)
+		if date.Year != 2024 || date.Month != time.March || date.Day != 15 {
+			panic("unexpected Parse date")
+		}
+		if clock.Hour != 14 || clock.Minute != 30 || clock.Second != 45 {
+			panic("unexpected Parse clock")
+		}
+	}
+	{
+		// time.Parse error.
+		_, err := time.Parse("%Y-%m-%d", "not-a-date", time.UTC)
+		if err == nil {
+			panic("expected Parse error")
+		}
+	}
+	{
+		// Time.Now.
+		t := time.Now()
+		if t.IsZero() {
+			panic("unexpected Time.IsZero")
+		}
+		println("UTC:", t.String(make([]byte, 64)))
+		utc5 := time.Offset(5 * 3600)
+		layout := "%Y-%m-%dT%H:%M:%S%z"
+		println("UTC+5:", t.Format(layout, utc5, make([]byte, 64)))
+	}
 }

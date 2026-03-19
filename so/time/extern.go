@@ -8,6 +8,31 @@ var time_h string
 //so:embed time.c
 var time_c string
 
+//so:extern
+type time_tm struct {
+	tm_sec   int
+	tm_min   int
+	tm_hour  int
+	tm_mday  int
+	tm_mon   int
+	tm_year  int
+	tm_wday  int
+	tm_yday  int
+	tm_isdst int
+}
+
+//so:extern
+func strftime(buf *byte, count uintptr, format string, tm *time_tm) uintptr {
+	_, _, _, _ = buf, count, format, tm
+	return 0
+}
+
+//so:extern
+func strptime(value string, format string, tm *time_tm) any {
+	_, _, _ = value, format, tm
+	return nil
+}
+
 // wall returns the current wall clock time.
 //
 //so:extern

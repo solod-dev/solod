@@ -162,7 +162,9 @@ Types:
 
 ## [so/time](https://pkg.go.dev/github.com/nalgeon/solod/so/time)
 
-Measuring and displaying time. Time is always stored as UTC internally. Parsing and formatting are not yet supported.
+Measuring and displaying time. Offers an API similar to Go's `time` package, but handles locations, formatting, and parsing differently.
+
+Time is always stored as UTC internally. Formatting and parsing use C strftime/strptime verbs (e.g. `%Y-%m-%d %H:%M:%S`).
 
 Constants:
 
@@ -175,10 +177,11 @@ Functions:
 - `Date` returns the Time for a given year, month, day, hour, min, sec, nsec, and offset (seconds east of UTC).
 - `Unix`, `UnixMilli`, `UnixMicro` create a Time from a Unix timestamp.
 - `Since` and `Until` return the duration elapsed since or until a given time.
+- `Parse` parses a time string per layout (strptime verbs) with a given offset, returning a Time.
 
 Types:
 
-- `Time` represents an instant in time with nanosecond precision. Always UTC. Use `Time.Date(offset)` and `Time.Clock(offset)` to extract date/time components for a given UTC offset.
+- `Time` represents an instant in time with nanosecond precision. Always UTC.
 - `Duration` represents elapsed time as an int64 nanosecond count.
 - `CalDate` is a date specified by year, month, and day.
 - `CalClock` is a time of day specified by hour, minute, and second.
