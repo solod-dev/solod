@@ -37,15 +37,15 @@ const (
 	Saturday
 )
 
-// AbsDate is a date specified by year, month, and day.
-type AbsDate struct {
+// CalDate is a date specified by year, month, and day.
+type CalDate struct {
 	Year  int
 	Month Month
 	Day   int
 }
 
-// AbsClock is a time of day specified by hour, minute, and second.
-type AbsClock struct {
+// CalClock is a time of day specified by hour, minute, and second.
+type CalClock struct {
 	Hour   int
 	Minute int
 	Second int
@@ -93,13 +93,13 @@ func absSeconds_days(abs absSeconds) absDays {
 }
 
 // absSeconds_clock returns the hour, minute, and second within the day specified by abs.
-func absSeconds_clock(abs absSeconds) AbsClock {
+func absSeconds_clock(abs absSeconds) CalClock {
 	sec := int(abs % secondsPerDay)
 	hour := sec / secondsPerHour
 	sec -= hour * secondsPerHour
 	min := sec / secondsPerMinute
 	sec -= min * secondsPerMinute
-	return AbsClock{hour, min, sec}
+	return CalClock{hour, min, sec}
 }
 
 // dateToAbsDays takes a standard year/month/day and returns the
@@ -182,13 +182,13 @@ func absDays_split(days absDays) absSplit {
 }
 
 // absDays_date converts days into standard year, month, day.
-func absDays_date(days absDays) AbsDate {
+func absDays_date(days absDays) CalDate {
 	split := absDays_split(days)
 	amonth, day := absYday_split(split.ayday)
 	janFeb := absYday_janFeb(split.ayday)
 	year := absCentury_Year(split.century, split.cyear, janFeb)
 	month := absMonth_month(amonth, janFeb)
-	return AbsDate{year, month, day}
+	return CalDate{year, month, day}
 }
 
 // absDays_yearYday converts days into the standard year and 1-based yday.

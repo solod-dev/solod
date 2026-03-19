@@ -73,11 +73,11 @@
 // that difference will be visible when printing t.String() and u.String().
 package time
 
-// Date returns the Time corresponding to
+// Date returns the Time in UTC corresponding to
 //
 //	yyyy-mm-dd hh:mm:ss + nsec nanoseconds
 //
-// in the appropriate zone for that time in the given location.
+// with respect to the given offset (seconds east of UTC).
 //
 // The month, day, hour, min, sec, and nsec values may be outside
 // their usual ranges and will be normalized during the conversion.

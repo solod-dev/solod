@@ -178,8 +178,10 @@ Functions:
 
 Types:
 
-- `Time` represents an instant in time with nanosecond precision. Always UTC.
+- `Time` represents an instant in time with nanosecond precision. Always UTC. Use `Time.Date(offset)` and `Time.Clock(offset)` to extract date/time components for a given UTC offset.
 - `Duration` represents elapsed time as an int64 nanosecond count.
+- `CalDate` is a date specified by year, month, and day.
+- `CalClock` is a time of day specified by hour, minute, and second.
 - `Offset` represents a fixed offset from UTC in seconds.
 
 ## [so/unicode](https://pkg.go.dev/github.com/nalgeon/solod/so/unicode)

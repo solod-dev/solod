@@ -194,9 +194,10 @@ const (
 	wallToInternal int64 = (1884*365 + 1884/4 - 1884/100 + 1884/400) * secondsPerDay
 )
 
-// Date returns the year, month, and day in which t occurs.
-func (t Time) Date() AbsDate {
-	sec := t.absSec()
+// Date returns the year, month, and day in which t occurs,
+// adjusted by the given offset (seconds east of UTC).
+func (t Time) Date(offset Offset) CalDate {
+	sec := t.absSec() + absSeconds(offset)
 	days := absSeconds_days(sec)
 	return absDays_date(days)
 }
@@ -260,9 +261,10 @@ func (t Time) ISOWeek() (int, int) {
 	return year, week
 }
 
-// Clock returns the hour, minute, and second within the day specified by t.
-func (t Time) Clock() AbsClock {
-	sec := t.absSec()
+// Clock returns the hour, minute, and second within the day specified by t,
+// adjusted by the given offset (seconds east of UTC).
+func (t Time) Clock(offset Offset) CalClock {
+	sec := t.absSec() + absSeconds(offset)
 	return absSeconds_clock(sec)
 }
 
@@ -380,8 +382,8 @@ func Until(t Time) Duration {
 // so, for example, adding one month to October 31 yields
 // December 1, the normalized form for November 31.
 func (t Time) AddDate(years int, months int, days int) Time {
-	date := t.Date()
-	clock := t.Clock()
+	date := t.Date(UTC)
+	clock := t.Clock(UTC)
 	return Date(
 		date.Year+years, date.Month+Month(months), date.Day+days,
 		clock.Hour, clock.Minute, clock.Second, int(t.nsec()),

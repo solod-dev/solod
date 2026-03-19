@@ -12,8 +12,8 @@ import (
 
 func TestZeroTime(t *testing.T) {
 	var zero Time
-	date := zero.Date()
-	clock := zero.Clock()
+	date := zero.Date(UTC)
+	clock := zero.Clock(UTC)
 	nsec := zero.Nanosecond()
 	yday := zero.YearDay()
 	wday := zero.Weekday()
@@ -111,8 +111,8 @@ var defaultLocTests = []struct {
 
 	{"IsZero", func(t1, t2 Time) bool { return t1.IsZero() == t2.IsZero() }},
 	{"Date", func(t1, t2 Time) bool {
-		d1 := t1.Date()
-		d2 := t2.Date()
+		d1 := t1.Date(UTC)
+		d2 := t2.Date(UTC)
 		return d1 == d2
 	}},
 	{"Year", func(t1, t2 Time) bool { return t1.Year() == t2.Year() }},
@@ -125,8 +125,8 @@ var defaultLocTests = []struct {
 		return a1 == a2 && b1 == b2
 	}},
 	{"Clock", func(t1, t2 Time) bool {
-		c1 := t1.Clock()
-		c2 := t2.Clock()
+		c1 := t1.Clock(UTC)
+		c2 := t2.Clock(UTC)
 		return c1 == c2
 	}},
 	{"Hour", func(t1, t2 Time) bool { return t1.Hour() == t2.Hour() }},

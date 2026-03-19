@@ -13,6 +13,38 @@ import (
 	. "github.com/nalgeon/solod/so/time"
 )
 
+func TestDateOffset(t *testing.T) {
+	// Create a time using a non-UTC offset and verify that
+	// extracting with the same offset returns the original components.
+	tests := []struct {
+		year, month, day, hour, min, sec int
+		offset                           Offset
+	}{
+		{2011, 11, 18, 15, 56, 35, Offset(1 * 3600)},    // UTC+1
+		{2011, 11, 18, 10, 56, 35, Offset(-5 * 3600)},   // UTC-5
+		{2011, 11, 19, 3, 56, 35, Offset(12 * 3600)},    // UTC+12
+		{2011, 11, 18, 3, 56, 35, Offset(-12 * 3600)},   // UTC-12
+		{2024, 6, 15, 23, 30, 0, Offset(5*3600 + 1800)}, // UTC+5:30
+	}
+	for _, tt := range tests {
+		tm := Date(tt.year, Month(tt.month), tt.day, tt.hour, tt.min, tt.sec, 0, tt.offset)
+		date := tm.Date(tt.offset)
+		clock := tm.Clock(tt.offset)
+		if date.Year != tt.year || int(date.Month) != tt.month || date.Day != tt.day {
+			t.Errorf("Date(%d, %d, %d, ..., offset=%d).Date(offset) = %d-%d-%d, want %d-%d-%d",
+				tt.year, tt.month, tt.day, tt.offset,
+				date.Year, date.Month, date.Day,
+				tt.year, tt.month, tt.day)
+		}
+		if clock.Hour != tt.hour || clock.Minute != tt.min || clock.Second != tt.sec {
+			t.Errorf("Date(..., %d, %d, %d, offset=%d).Clock(offset) = %02d:%02d:%02d, want %02d:%02d:%02d",
+				tt.hour, tt.min, tt.sec, tt.offset,
+				clock.Hour, clock.Minute, clock.Second,
+				tt.hour, tt.min, tt.sec)
+		}
+	}
+}
+
 // Several ways of getting from
 // Fri Nov 18 7:56:35 PST 2011
 // to

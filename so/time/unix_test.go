@@ -102,8 +102,8 @@ func TestUnixMicro(t *testing.T) {
 
 func same(t Time, u *parsedTime) bool {
 	// Check aggregates.
-	date := t.Date()
-	clock := t.Clock()
+	date := t.Date(UTC)
+	clock := t.Clock(UTC)
 	if date.Year != u.Year || date.Month != u.Month || date.Day != u.Day ||
 		clock.Hour != u.Hour || clock.Minute != u.Minute || clock.Second != u.Second {
 		return false
