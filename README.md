@@ -164,7 +164,7 @@ So generates C11 code that relies on several GCC/Clang extensions:
 
 You can use GCC, Clang, or `zig cc` to compile the transpiled C code. MSVC is not supported.
 
-Supported operating systems: Linux, macOS, Windows.
+Supported operating systems: Linux, macOS, and Windows (partial support).
 
 ## Design decisions
 
@@ -234,6 +234,8 @@ There is a growing set of high-level packages (`so/bytes`, `so/mem`, `so/slices`
 ⬜ Real-world examples.
 
 ⬜ More stdlib packages: crypto, http, json, ...
+
+⬜ Full Windows support.
 
 ## Contributing
 
