@@ -152,7 +152,7 @@ func (g *Generator) emitFuncCall(call *ast.CallExpr) {
 	}
 	fmt.Fprintf(w, "(")
 
-	if g.isExternCall(call) {
+	if ext, ok := g.callExtern(call); ok && !ext.nodecay {
 		// Extern C call: decay all args to C-compatible types.
 		// So wrapper types (so_String, so_Slice) must be unwrapped to their
 		// underlying C representations for C function macros.

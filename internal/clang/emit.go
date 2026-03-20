@@ -77,12 +77,12 @@ type Generator struct {
 	pkg      *packages.Package
 	types    *types.Info
 	state    State
-	externs  map[string]bool // symbols provided by C headers
-	includes []string        // included headers from //so:include
-	symbols  []symbol        // pre-collected top-level declarations
-	embeds   Embeds          // embedded C files from //so:embed
-	comments ast.CommentMap  // all comments across all files
-	panicked bool            // true after first panic caught in Visit
+	externs  map[string]externInfo // symbols provided by C headers
+	includes []string              // included headers from //so:include
+	symbols  []symbol              // pre-collected top-level declarations
+	embeds   Embeds                // embedded C files from //so:embed
+	comments ast.CommentMap        // all comments across all files
+	panicked bool                  // true after first panic caught in Visit
 }
 
 // newGenerator creates a new Generator instance.
@@ -90,7 +90,7 @@ func newGenerator(pkg *packages.Package) *Generator {
 	return &Generator{
 		pkg:     pkg,
 		types:   pkg.TypesInfo,
-		externs: make(map[string]bool),
+		externs: make(map[string]externInfo),
 	}
 }
 

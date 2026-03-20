@@ -6,6 +6,8 @@ typedef struct {
     so_String name;
     int64_t balance;
     so_Slice flags;
-} account;
+} Account;
 
-int64_t account_inc_balance(account* a, int64_t amount);
+int64_t account_inc_balance(Account* a, int64_t amount);
+
+void account_set_name(Account* a, so_String name);

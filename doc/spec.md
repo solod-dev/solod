@@ -835,6 +835,37 @@ f := Fopen("/tmp/test.txt", "w")
 // not Fopen(so_str("/tmp/test.txt"), so_str("w"))
 ```
 
+The `so:extern` directive supports two optional parameters: a C name override and the `nodecay` flag.
+
+_Name override_ specifies the C name to use instead of the default package-prefixed name. Useful for extern types that must match a C header:
+
+```go
+//so:extern Account
+type Account struct {
+    name    string
+    balance int64
+}
+// Uses "Account" in C instead of "main_Account"
+```
+
+_Nodecay_ skips the automatic decay of So types (`so_String`, `so_Slice`) to raw C types. Use this for C functions that are "So-aware" and accept So types directly:
+
+```go
+//so:extern nodecay
+func set_name(acc *Account, name string)
+
+// Generated C passes so_String directly:
+// set_name(&acc, name)
+// not set_name(&acc, so_cstr(name))
+```
+
+Both options can be combined:
+
+```go
+//so:extern MyFunc nodecay
+func MyFunc(s string)
+```
+
 The `so/c` package includes helpers for converting C pointers back to So string and slice types: `c.String(ptr)` and `c.Bytes(ptr, n)`. It also provides `c.CharPtr(ptr)` to cast a `*byte` (`uint8_t*`) to `char*` for C functions that expect `char*` (e.g. `strftime`).
 
 ## Embeds

@@ -222,17 +222,12 @@ func (g *Generator) declSymbolName(name string) string {
 }
 
 // symbolName returns the C symbol name for a Go identifier.
-// Exported names are prefixed with the package name (e.g. RectArea → geom_RectArea).
+// Exported names are prefixed with the package name (e.g. RectArea -> geom_RectArea).
+// Extern symbols with a name override use the specified C name instead.
 func (g *Generator) symbolName(name string) string {
-	// TODO: The original idea was for extern symbols to keep their original
-	// name, since they come from C headers. But this makes it impossible to
-	// call an exported extern function from a non-extern function in same
-	// package (e.g. calling Free emits Free instead of mem_Free). For now,
-	// we will just prefix all exported names with the package name.
-	//
-	// if g.hasExtern("", name) {
-	// 	return name
-	// }
+	if info, ok := g.getExtern("", name); ok && info.name != "" {
+		return info.name
+	}
 	if ast.IsExported(name) {
 		return g.pkg.Name + "_" + name
 	}

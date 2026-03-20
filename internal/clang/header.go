@@ -116,7 +116,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 // emitHeaderGenDecl emits extern const/var declarations.
 // Type declarations are handled separately via collected symbols.
 func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl) {
-	if hasExternDirective(decl.Doc) {
+	if found, _ := parseExternDirective(decl.Doc); found {
 		return
 	}
 	if decl.Tok == token.TYPE {

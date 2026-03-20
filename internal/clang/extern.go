@@ -6,55 +6,62 @@ import (
 	"strings"
 )
 
+// externInfo holds metadata parsed from a //so:extern directive.
+type externInfo struct {
+	name    string // C name override (empty = use default)
+	nodecay bool   // skip decay for call args
+}
+
 // collectFileExterns collects extern symbols from a single file's declarations.
 func (g *Generator) collectFileExterns(pkgName string, file *ast.File) {
 	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
-			if !hasExternDirective(d.Doc) {
+			found, info := parseExternDirective(d.Doc)
+			if !found {
 				continue
 			}
 			for _, spec := range d.Specs {
 				switch s := spec.(type) {
 				case *ast.TypeSpec:
-					g.markExtern(pkgName, s.Name.Name)
+					g.markExtern(pkgName, s.Name.Name, info)
 				case *ast.ValueSpec:
 					for _, name := range s.Names {
-						g.markExtern(pkgName, name.Name)
+						g.markExtern(pkgName, name.Name, info)
 					}
 				}
 			}
 		case *ast.FuncDecl:
-			if d.Body == nil || hasExternDirective(d.Doc) {
-				g.markExtern(pkgName, externFuncKey(d))
+			found, info := parseExternDirective(d.Doc)
+			if d.Body == nil || found {
+				g.markExtern(pkgName, externFuncKey(d), info)
 			}
 		}
 	}
 }
 
-// isExternCall reports whether a call expression targets an extern C function.
-func (g *Generator) isExternCall(call *ast.CallExpr) bool {
+// callExtern returns the extern metadata for a call expression, if it
+// targets an extern C function.
+func (g *Generator) callExtern(call *ast.CallExpr) (externInfo, bool) {
 	switch fun := call.Fun.(type) {
 	case *ast.Ident:
-		// Local package call.
-		return g.hasExtern("", fun.Name)
+		return g.getExtern("", fun.Name)
 	case *ast.SelectorExpr:
-		// Package-qualified call (e.g. stdio.Printf).
 		if ident, ok := fun.X.(*ast.Ident); ok {
 			if pkgName, ok := g.types.Uses[ident].(*types.PkgName); ok {
-				return g.hasExtern(pkgName.Name(), fun.Sel.Name)
+				return g.getExtern(pkgName.Name(), fun.Sel.Name)
 			}
 		}
 	}
-	return false
+	return externInfo{}, false
 }
 
 // markExtern marks a symbol in a package as extern.
-func (g *Generator) markExtern(pkgName, name string) {
+func (g *Generator) markExtern(pkgName, name string, info externInfo) {
 	if pkgName != "" {
 		name = pkgName + "." + name
 	}
-	g.externs[name] = true
+	g.externs[name] = info
 }
 
 // hasExtern reports whether a symbol in a package is marked as extern.
@@ -62,7 +69,17 @@ func (g *Generator) hasExtern(pkgName, name string) bool {
 	if pkgName != "" {
 		name = pkgName + "." + name
 	}
-	return g.externs[name]
+	_, ok := g.externs[name]
+	return ok
+}
+
+// getExtern returns the extern metadata for a symbol.
+func (g *Generator) getExtern(pkgName, name string) (externInfo, bool) {
+	if pkgName != "" {
+		name = pkgName + "." + name
+	}
+	info, ok := g.externs[name]
+	return info, ok
 }
 
 // externFuncKey returns a map key for a function or method declaration.
@@ -75,15 +92,27 @@ func externFuncKey(decl *ast.FuncDecl) string {
 	return decl.Name.Name
 }
 
-// hasExternDirective checks if a comment group contains the //so:extern directive.
-func hasExternDirective(doc *ast.CommentGroup) bool {
+// parseExternDirective checks if a comment group contains the //so:extern
+// directive and parses its options (name override and nodecay flag).
+func parseExternDirective(doc *ast.CommentGroup) (bool, externInfo) {
 	if doc == nil {
-		return false
+		return false, externInfo{}
 	}
 	for _, c := range doc.List {
-		if strings.TrimSpace(c.Text) == "//so:extern" {
-			return true
+		text := strings.TrimSpace(c.Text)
+		rest, ok := strings.CutPrefix(text, "//so:extern")
+		if !ok {
+			continue
 		}
+		var info externInfo
+		for tok := range strings.FieldsSeq(rest) {
+			if tok == "nodecay" {
+				info.nodecay = true
+			} else {
+				info.name = tok
+			}
+		}
+		return true, info
 	}
-	return false
+	return false, externInfo{}
 }

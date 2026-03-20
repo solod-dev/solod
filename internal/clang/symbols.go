@@ -35,7 +35,7 @@ func (g *Generator) collectSymbols() {
 		for _, decl := range file.Decls {
 			switch d := decl.(type) {
 			case *ast.GenDecl:
-				if hasExternDirective(d.Doc) {
+				if found, _ := parseExternDirective(d.Doc); found {
 					continue
 				}
 				switch d.Tok {
@@ -119,7 +119,7 @@ func (g *Generator) collectExterns() {
 		g.collectFileExterns("", file)
 	}
 
-	// Collect externs from imported packages so that isExternCall
+	// Collect externs from imported packages so that callExtern
 	// can identify cross-package extern calls (e.g. stdio.Printf).
 	for _, imp := range g.pkg.Imports {
 		for _, file := range imp.Syntax {

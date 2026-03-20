@@ -195,7 +195,7 @@ func (g *Generator) emitForClause(stmt ast.Stmt) {
 
 // emitGenDecl emits a general declaration (var, import, etc.).
 func (g *Generator) emitGenDecl(decl *ast.GenDecl) {
-	if hasExternDirective(decl.Doc) {
+	if found, _ := parseExternDirective(decl.Doc); found {
 		return
 	}
 	switch decl.Tok {
