@@ -17,8 +17,8 @@
 package io
 
 import (
-	"github.com/nalgeon/solod/so/errors"
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/errors"
+	"solod.dev/so/mem"
 )
 
 // Seek whence values.

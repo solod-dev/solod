@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/fmt"
-	"github.com/nalgeon/solod/so/strings"
+	"solod.dev/so/fmt"
+	"solod.dev/so/strings"
 )
 
 func main() {

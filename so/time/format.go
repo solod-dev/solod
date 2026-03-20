@@ -1,8 +1,8 @@
 package time
 
 import (
-	"github.com/nalgeon/solod/so/c"
-	"github.com/nalgeon/solod/so/errors"
+	"solod.dev/so/c"
+	"solod.dev/so/errors"
 )
 
 // Commonly used layouts for Format and Parse.

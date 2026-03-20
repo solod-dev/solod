@@ -13,8 +13,8 @@
 package stringslite
 
 import (
-	"github.com/nalgeon/solod/so/bytealg"
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/bytealg"
+	"solod.dev/so/mem"
 )
 
 func Clone(a mem.Allocator, s string) string {

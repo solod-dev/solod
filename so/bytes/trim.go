@@ -5,8 +5,8 @@
 package bytes
 
 import (
-	"github.com/nalgeon/solod/so/unicode"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/unicode"
+	"solod.dev/so/unicode/utf8"
 )
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}

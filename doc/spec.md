@@ -703,7 +703,7 @@ const main_Day main_Tuesday = 2;
 Errors use the `so_Error` type (a pointer). So only supports sentinel errors, which are defined at the package level using `errors.New`:
 
 ```go
-import "github.com/nalgeon/solod/so/errors"
+import "solod.dev/so/errors"
 
 var ErrOutOfTea = errors.New("no more tea available")
 ```

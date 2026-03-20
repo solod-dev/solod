@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nalgeon/solod/so/bytes"
-	. "github.com/nalgeon/solod/so/io"
+	"solod.dev/so/bytes"
+	. "solod.dev/so/io"
 )
 
 func TestSectionReader_ReadAt(t *testing.T) {

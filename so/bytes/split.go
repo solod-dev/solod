@@ -5,8 +5,8 @@
 package bytes
 
 import (
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/mem"
+	"solod.dev/so/unicode/utf8"
 )
 
 // Split slices s into all subslices separated by sep and returns a slice of

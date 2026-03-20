@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/c"
-	"github.com/nalgeon/solod/so/c/stdlib"
+	"solod.dev/so/c"
+	"solod.dev/so/c/stdlib"
 )
 
 //so:include <string.h>

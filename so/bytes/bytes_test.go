@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/mem"
+	. "solod.dev/so/bytes"
+	"solod.dev/so/mem"
 )
 
 const space = "\t\v\r\f\n\u0085\u00a0\u2000\u3000"

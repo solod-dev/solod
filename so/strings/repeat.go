@@ -5,10 +5,10 @@
 package strings
 
 import (
-	"github.com/nalgeon/solod/so"
-	"github.com/nalgeon/solod/so/math/bits"
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/stringslite"
+	"solod.dev/so"
+	"solod.dev/so/math/bits"
+	"solod.dev/so/mem"
+	"solod.dev/so/stringslite"
 )
 
 // maxInt is the maximum value of an int.

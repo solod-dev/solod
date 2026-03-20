@@ -11,11 +11,11 @@
 package bytes
 
 import (
-	"github.com/nalgeon/solod/so/bytealg"
-	"github.com/nalgeon/solod/so/errors"
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/slices"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/bytealg"
+	"solod.dev/so/errors"
+	"solod.dev/so/mem"
+	"solod.dev/so/slices"
+	"solod.dev/so/unicode/utf8"
 )
 
 var ErrInvalidWhence = errors.New("bytes: invalid whence")

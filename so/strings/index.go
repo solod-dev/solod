@@ -5,9 +5,9 @@
 package strings
 
 import (
-	"github.com/nalgeon/solod/so/bytealg"
-	"github.com/nalgeon/solod/so/stringslite"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/bytealg"
+	"solod.dev/so/stringslite"
+	"solod.dev/so/unicode/utf8"
 )
 
 // asciiSet is a 32-byte value, where each bit represents the presence of a

@@ -11,7 +11,7 @@
 package bits
 
 import (
-	"github.com/nalgeon/solod/so"
+	"solod.dev/so"
 )
 
 const uintSize = 32 << ((^uint(0)) >> 63) // 32 or 64

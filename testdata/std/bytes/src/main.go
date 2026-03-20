@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/bytes"
+	"solod.dev/so/io"
+	"solod.dev/so/mem"
 )
 
 func toDot(r rune) rune {

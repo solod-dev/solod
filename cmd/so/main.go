@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/nalgeon/solod/internal/compiler"
+	"solod.dev/internal/compiler"
 )
 
 func main() {

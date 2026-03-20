@@ -6,7 +6,7 @@
 // an integer that represents a Unicode code point.
 package main
 
-import "github.com/nalgeon/solod/so/c/stdio"
+import "solod.dev/so/c/stdio"
 
 func main() {
 	// `s` is a `string` assigned a literal value

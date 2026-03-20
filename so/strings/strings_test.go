@@ -8,8 +8,8 @@ import (
 	"testing"
 	"unsafe"
 
-	. "github.com/nalgeon/solod/so/strings"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	. "solod.dev/so/strings"
+	"solod.dev/so/unicode/utf8"
 )
 
 var abcd = "abcd"

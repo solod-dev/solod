@@ -2,7 +2,7 @@
 // a more powerful interface to sequences than arrays.
 package main
 
-import "github.com/nalgeon/solod/so/c/stdio"
+import "solod.dev/so/c/stdio"
 
 func main() {
 	// Unlike arrays, slices are typed only by the

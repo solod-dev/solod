@@ -9,7 +9,7 @@ import (
 	"testing"
 	"unsafe"
 
-	. "github.com/nalgeon/solod/so/math/bits"
+	. "solod.dev/so/math/bits"
 )
 
 func TestUintSize(t *testing.T) {

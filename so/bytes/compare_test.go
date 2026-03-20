@@ -7,7 +7,7 @@ package bytes_test
 import (
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
+	. "solod.dev/so/bytes"
 )
 
 var compareTests = []struct {

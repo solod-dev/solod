@@ -4,7 +4,7 @@
 // scenarios.
 package main
 
-import "github.com/nalgeon/solod/so/c/stdio"
+import "solod.dev/so/c/stdio"
 
 func main() {
 	// Here we create an array `a` that will hold exactly

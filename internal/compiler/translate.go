@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/nalgeon/solod/internal/clang"
+	"solod.dev/internal/clang"
 )
 
 // Translate loads all Go packages from srcDir (including So stdlib dependencies),
@@ -103,7 +103,7 @@ func topoSort(entry *packages.Package, entryModulePath, soModulePath string) []*
 
 // packageOutDir returns the output directory for a package.
 // Entry package goes to outDir directly.
-// Other packages strip their module prefix (e.g. github.com/nalgeon/solod/math -> math).
+// Other packages strip their module prefix (e.g. solod.dev/math -> math).
 func packageOutDir(pkg, entry *packages.Package, outDir string) string {
 	if pkg.PkgPath == entry.PkgPath {
 		return outDir

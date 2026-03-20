@@ -9,8 +9,8 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/io"
+	. "solod.dev/so/bytes"
+	"solod.dev/so/io"
 )
 
 func TestReader(t *testing.T) {

@@ -4,10 +4,10 @@
 package os
 
 import (
-	"github.com/nalgeon/solod/so/c"
-	"github.com/nalgeon/solod/so/errors"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/c"
+	"solod.dev/so/errors"
+	"solod.dev/so/io"
+	"solod.dev/so/mem"
 )
 
 var ErrClosed = errors.New("file already closed")

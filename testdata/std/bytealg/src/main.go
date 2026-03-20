@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/bytealg"
+import "solod.dev/so/bytealg"
 
 func main() {
 	{

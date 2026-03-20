@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"unsafe"
 
-	"github.com/nalgeon/solod/so/errors"
+	"solod.dev/so/errors"
 )
 
 //so:embed mem.h

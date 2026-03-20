@@ -7,7 +7,7 @@ package unicode_test
 import (
 	"testing"
 
-	. "github.com/nalgeon/solod/so/unicode"
+	. "solod.dev/so/unicode"
 )
 
 var upperTest = []rune{

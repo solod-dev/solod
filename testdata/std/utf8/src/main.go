@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/unicode/utf8"
+import "solod.dev/so/unicode/utf8"
 
 func main() {
 	{

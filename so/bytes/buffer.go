@@ -7,11 +7,11 @@ package bytes
 // Simple byte buffer for marshaling data.
 
 import (
-	"github.com/nalgeon/solod/so"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/slices"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so"
+	"solod.dev/so/io"
+	"solod.dev/so/mem"
+	"solod.dev/so/slices"
+	"solod.dev/so/unicode/utf8"
 )
 
 // MinRead is the minimum slice size passed to a [Buffer.Read] call by

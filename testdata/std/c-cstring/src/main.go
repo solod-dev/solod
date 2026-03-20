@@ -3,8 +3,8 @@ package main
 import (
 	"unsafe"
 
-	"github.com/nalgeon/solod/so/c/cstring"
-	"github.com/nalgeon/solod/so/c/stdlib"
+	"solod.dev/so/c/cstring"
+	"solod.dev/so/c/stdlib"
 )
 
 func main() {

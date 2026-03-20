@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/math/bits"
+import "solod.dev/so/math/bits"
 
 func main() {
 	{

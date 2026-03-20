@@ -9,9 +9,9 @@ import (
 	"math/rand"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	. "solod.dev/so/bytes"
+	"solod.dev/so/io"
+	"solod.dev/so/unicode/utf8"
 )
 
 const N = 10000       // make this bigger for a larger (and slower) test

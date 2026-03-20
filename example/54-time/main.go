@@ -2,7 +2,7 @@
 // times and durations; here are some examples.
 package main
 
-import "github.com/nalgeon/solod/so/time"
+import "solod.dev/so/time"
 
 func main() {
 	// Pre-allocate a buffer for string formatting.

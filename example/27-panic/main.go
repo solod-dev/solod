@@ -4,7 +4,7 @@
 // aren't prepared to handle gracefully.
 package main
 
-import "github.com/nalgeon/solod/so/errors"
+import "solod.dev/so/errors"
 
 var Err42 = errors.New("got 42")
 

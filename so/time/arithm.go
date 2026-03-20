@@ -4,7 +4,7 @@
 
 package time
 
-import "github.com/nalgeon/solod/so"
+import "solod.dev/so"
 
 // Computations on Times
 //

@@ -7,9 +7,9 @@ package bytes_test
 import (
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/unicode"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	. "solod.dev/so/bytes"
+	"solod.dev/so/unicode"
+	"solod.dev/so/unicode/utf8"
 )
 
 var lowerTests = []StringTest{

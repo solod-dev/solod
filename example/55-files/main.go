@@ -4,9 +4,9 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/fmt"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/os"
+	"solod.dev/so/fmt"
+	"solod.dev/so/io"
+	"solod.dev/so/os"
 )
 
 func main() {

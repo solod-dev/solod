@@ -9,8 +9,8 @@ import (
 	"slices"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/strings"
-	"github.com/nalgeon/solod/so/unicode"
+	. "solod.dev/so/strings"
+	"solod.dev/so/unicode"
 )
 
 type SplitTest struct {

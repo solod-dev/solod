@@ -6,7 +6,7 @@ package main
 import (
 	_ "embed"
 
-	"github.com/nalgeon/solod/so/c"
+	"solod.dev/so/c"
 )
 
 // The include directive tell So to #include

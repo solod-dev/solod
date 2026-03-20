@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/time"
+	"solod.dev/so/time"
 )
 
 func main() {

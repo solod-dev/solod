@@ -4,7 +4,7 @@
 // `ensure` and `finally` would be used in other languages.
 package main
 
-import "github.com/nalgeon/solod/so/mem"
+import "solod.dev/so/mem"
 
 type Point struct {
 	x, y int

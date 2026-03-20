@@ -5,8 +5,8 @@
 package bytes
 
 import (
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/io"
+	"solod.dev/so/unicode/utf8"
 )
 
 // A Reader implements the [io.Reader], [io.ReaderAt], [io.WriterTo], [io.Seeker],

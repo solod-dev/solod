@@ -6,9 +6,9 @@ import (
 	"os"
 	"slices"
 
-	"github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/io"
-	"github.com/nalgeon/solod/so/unicode"
+	"solod.dev/so/bytes"
+	"solod.dev/so/io"
+	"solod.dev/so/unicode"
 )
 
 func ExampleBuffer() {

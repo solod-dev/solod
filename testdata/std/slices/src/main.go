@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/slices"
+	"solod.dev/so/mem"
+	"solod.dev/so/slices"
 )
 
 func main() {

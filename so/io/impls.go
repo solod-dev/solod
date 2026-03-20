@@ -5,7 +5,7 @@
 package io
 
 import (
-	"github.com/nalgeon/solod/so"
+	"solod.dev/so"
 )
 
 // A DiscardWriter provides Write methods

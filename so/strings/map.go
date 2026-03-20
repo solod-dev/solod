@@ -5,10 +5,10 @@
 package strings
 
 import (
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/stringslite"
-	"github.com/nalgeon/solod/so/unicode"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/mem"
+	"solod.dev/so/stringslite"
+	"solod.dev/so/unicode"
+	"solod.dev/so/unicode/utf8"
 )
 
 // RuneFunc maps a rune to another rune. If mapping returns

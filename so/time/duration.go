@@ -4,7 +4,7 @@
 
 package time
 
-import "github.com/nalgeon/solod/so"
+import "solod.dev/so"
 
 // A Duration represents the elapsed time between two instants
 // as an int64 nanosecond count. The representation limits the

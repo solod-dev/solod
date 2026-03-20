@@ -2,7 +2,7 @@
 // signatures.
 package main
 
-import "github.com/nalgeon/solod/so/c/math"
+import "solod.dev/so/c/math"
 
 // Here's a basic interface for geometric shapes.
 type geometry interface {

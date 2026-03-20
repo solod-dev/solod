@@ -8,7 +8,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	. "github.com/nalgeon/solod/so/time"
+	. "solod.dev/so/time"
 )
 
 func TestUnixUTC(t *testing.T) {

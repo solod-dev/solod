@@ -25,8 +25,8 @@ package fmt
 import (
 	_ "embed"
 
-	"github.com/nalgeon/solod/so/errors"
-	"github.com/nalgeon/solod/so/io"
+	"solod.dev/so/errors"
+	"solod.dev/so/io"
 )
 
 //so:embed fmt.h

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"unsafe"
 
-	. "github.com/nalgeon/solod/so/strings"
+	. "solod.dev/so/strings"
 )
 
 var compareTests = []struct {

@@ -7,7 +7,7 @@ package time_test
 import (
 	"testing"
 
-	. "github.com/nalgeon/solod/so/time"
+	. "solod.dev/so/time"
 )
 
 func TestZeroTime(t *testing.T) {

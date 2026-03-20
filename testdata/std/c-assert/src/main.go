@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/c/assert"
+import "solod.dev/so/c/assert"
 
 func main() {
 	if assert.Enabled {

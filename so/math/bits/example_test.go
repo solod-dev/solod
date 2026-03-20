@@ -7,7 +7,7 @@ package bits_test
 import (
 	"fmt"
 
-	"github.com/nalgeon/solod/so/math/bits"
+	"solod.dev/so/math/bits"
 )
 
 func ExampleLeadingZeros8() {

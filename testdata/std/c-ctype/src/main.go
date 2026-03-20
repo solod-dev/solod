@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/c/ctype"
+import "solod.dev/so/c/ctype"
 
 func main() {
 	if !ctype.IsAlnum('a') {

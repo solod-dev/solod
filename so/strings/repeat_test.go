@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/strings"
+	. "solod.dev/so/strings"
 )
 
 var longString = "a" + string(make([]byte, 1<<16)) + "z"

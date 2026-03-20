@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nalgeon/solod/so/bytes"
-	"github.com/nalgeon/solod/so/errors"
-	. "github.com/nalgeon/solod/so/io"
+	"solod.dev/so/bytes"
+	"solod.dev/so/errors"
+	. "solod.dev/so/io"
 )
 
 // A version of bytes.Buffer without ReadFrom and WriteTo

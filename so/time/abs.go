@@ -4,7 +4,7 @@
 
 package time
 
-import "github.com/nalgeon/solod/so/math/bits"
+import "solod.dev/so/math/bits"
 
 // A Month specifies a month of the year (January = 1, ...).
 type Month int

@@ -96,14 +96,14 @@ Check out more examples in [So by example](example/README.md) and learn about th
 Install the So command line tool:
 
 ```
-go install github.com/nalgeon/solod/cmd/so@latest
+go install solod.dev/cmd/so@latest
 ```
 
 Create a new Go project and add the Solod dependency to use the So standard library:
 
 ```
 go mod init example
-go get github.com/nalgeon/solod@latest
+go get solod.dev@latest
 ```
 
 Write regular Go code, but use So packages instead of the standard Go packages:
@@ -111,7 +111,7 @@ Write regular Go code, but use So packages instead of the standard Go packages:
 ```go
 package main
 
-import "github.com/nalgeon/solod/so/c/math"
+import "solod.dev/so/c/math"
 
 func main() {
     ans := math.Sqrt(1764)
@@ -215,7 +215,7 @@ Not for production at the moment.
 
 _Where's the standard library?_
 
-There is a growing set of high-level packages (`so/bytes`, `so/mem`, `so/slices`, ...). There are also low-level packages that wrap the libc API (`so/c/stdlib`, `so/c/stdio`, `so/c/cstring`, ...). Check out the [stdlib](doc/stdlib.md) document for a quick overview, or see the full [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so) for more details.
+There is a growing set of high-level packages (`so/bytes`, `so/mem`, `so/slices`, ...). There are also low-level packages that wrap the libc API (`so/c/stdlib`, `so/c/stdio`, `so/c/cstring`, ...). Check out the [stdlib](doc/stdlib.md) document for a quick overview, or see the full [package documentation](https://pkg.go.dev/solod.dev/so) for more details.
 
 ## Roadmap
 

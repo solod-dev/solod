@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/math"
+	"solod.dev/so/math"
 )
 
 func main() {

@@ -1,6 +1,6 @@
 package os
 
-import "github.com/nalgeon/solod/so/io"
+import "solod.dev/so/io"
 
 // File represents an open file descriptor.
 type File struct {

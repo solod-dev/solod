@@ -4,7 +4,7 @@ package slices
 import (
 	_ "embed"
 
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/mem"
 )
 
 //so:embed slices.h

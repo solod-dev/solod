@@ -5,9 +5,9 @@
 package strings
 
 import (
-	"github.com/nalgeon/solod/so/stringslite"
-	"github.com/nalgeon/solod/so/unicode"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/stringslite"
+	"solod.dev/so/unicode"
+	"solod.dev/so/unicode/utf8"
 )
 
 // Trim returns a slice of the string s with all leading and

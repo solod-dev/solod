@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/c/stdio"
-	"github.com/nalgeon/solod/so/c/time"
+	"solod.dev/so/c/stdio"
+	"solod.dev/so/c/time"
 )
 
 func main() {

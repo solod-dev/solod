@@ -8,7 +8,7 @@
 // non-error tasks.
 package main
 
-import "github.com/nalgeon/solod/so/errors"
+import "solod.dev/so/errors"
 
 // A sentinel error is a predeclared variable that
 // is used to signify a specific error condition.

@@ -9,7 +9,7 @@ import (
 	"slices"
 	"testing"
 
-	. "github.com/nalgeon/solod/so/bytes"
+	. "solod.dev/so/bytes"
 )
 
 var abcd = "abcd"

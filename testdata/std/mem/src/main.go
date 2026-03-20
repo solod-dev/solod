@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/mem"
+	"solod.dev/so/mem"
 )
 
 type Point struct {

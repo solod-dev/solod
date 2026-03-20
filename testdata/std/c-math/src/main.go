@@ -1,6 +1,6 @@
 package main
 
-import "github.com/nalgeon/solod/so/c/math"
+import "solod.dev/so/c/math"
 
 func main() {
 	pi := math.Pi

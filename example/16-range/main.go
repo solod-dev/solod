@@ -5,7 +5,7 @@
 
 package main
 
-import "github.com/nalgeon/solod/so/c/stdio"
+import "solod.dev/so/c/stdio"
 
 func main() {
 

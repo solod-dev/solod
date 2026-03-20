@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nalgeon/solod/so/errors"
+	"solod.dev/so/errors"
 )
 
 var ErrOutOfTea = errors.New("no more tea available")

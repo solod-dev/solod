@@ -7,7 +7,7 @@ package unicode_test
 import (
 	"fmt"
 
-	"github.com/nalgeon/solod/so/unicode"
+	"solod.dev/so/unicode"
 )
 
 // Functions starting with "Is" can be used to inspect which table of range a

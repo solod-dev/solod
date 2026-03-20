@@ -5,8 +5,8 @@
 package strings
 
 import (
-	"github.com/nalgeon/solod/so/mem"
-	"github.com/nalgeon/solod/so/unicode/utf8"
+	"solod.dev/so/mem"
+	"solod.dev/so/unicode/utf8"
 )
 
 // A Builder is used to efficiently build a string using [Builder.Write] methods.

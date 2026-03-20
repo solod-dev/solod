@@ -1,6 +1,6 @@
 # So standard library
 
-Solod provides a growing set of high-level packages similar to Go's stdlib, as well as low-level packages that wrap the libc API. For full API details, see the [package documentation](https://pkg.go.dev/github.com/nalgeon/solod/so).
+Solod provides a growing set of high-level packages similar to Go's stdlib, as well as low-level packages that wrap the libc API. For full API details, see the [package documentation](https://pkg.go.dev/solod.dev/so).
 
 High-level:
 [bytes](#sobytes) •
@@ -26,7 +26,7 @@ Low-level:
 [c/stdlib](#socstdlib) •
 [c/time](#soctime)
 
-## [so/bytes](https://pkg.go.dev/github.com/nalgeon/solod/so/bytes)
+## [so/bytes](https://pkg.go.dev/solod.dev/so/bytes)
 
 Byte slice operations. Offers an API similar to Go's `bytes` package, but with fewer features.
 
@@ -53,7 +53,7 @@ Types:
 - `Buffer` is a variable-sized buffer of bytes with `Read` and `Write` methods.
 - `Reader` reads data from a byte slice.
 
-## [so/errors](https://pkg.go.dev/github.com/nalgeon/solod/so/errors)
+## [so/errors](https://pkg.go.dev/solod.dev/so/errors)
 
 Error creation from text messages.
 
@@ -61,7 +61,7 @@ Error creation from text messages.
 
 So only supports sentinel errors, which are defined at the package level using `New`.
 
-## [so/fmt](https://pkg.go.dev/github.com/nalgeon/solod/so/fmt)
+## [so/fmt](https://pkg.go.dev/solod.dev/so/fmt)
 
 Formatted I/O with functions analogous to C's printf and scanf. Uses C format verbs (not Go verbs).
 
@@ -72,7 +72,7 @@ Formatted I/O with functions analogous to C's printf and scanf. Uses C format ve
 - `Sscanf` scans formatted text from a string.
 - `Fscanf` scans formatted text from an `io.Reader`.
 
-## [so/io](https://pkg.go.dev/github.com/nalgeon/solod/so/io)
+## [so/io](https://pkg.go.dev/solod.dev/so/io)
 
 Basic interfaces to I/O primitives. Offers an API similar to Go's `io` package, but with fewer features.
 
@@ -87,11 +87,11 @@ Types:
 - `LimitedReader` and `SectionReader` implement specialized readerss.
 - `Discard` is a no-op writer.
 
-## [so/math/bits](https://pkg.go.dev/github.com/nalgeon/solod/so/math/bits)
+## [so/math/bits](https://pkg.go.dev/solod.dev/so/math/bits)
 
 Bit counting and manipulation functions. Offers the same API as Go's `math/bits` package.
 
-## [so/mem](https://pkg.go.dev/github.com/nalgeon/solod/so/mem)
+## [so/mem](https://pkg.go.dev/solod.dev/so/mem)
 
 Memory allocation with a pluggable allocator interface.
 
@@ -105,7 +105,7 @@ Types:
 - `Allocator` interface - custom allocator support (`Alloc`, `Realloc`, `Free`).
 - `SystemAllocator` - default allocator backed by C `calloc`/`realloc`/`free`.
 
-## [so/os](https://pkg.go.dev/github.com/nalgeon/solod/so/os)
+## [so/os](https://pkg.go.dev/solod.dev/so/os)
 
 File I/O and filesystem operations. Offers an API similar to Go's `os` package, but with fewer features.
 
@@ -126,14 +126,14 @@ Types:
 
 `so/os` is currently built on libc's `stdio.h`, so it's much more limited than Go's `os` package.
 
-## [so/slices](https://pkg.go.dev/github.com/nalgeon/solod/so/slices)
+## [so/slices](https://pkg.go.dev/solod.dev/so/slices)
 
 Operations on slices.
 
 - `Append` - append elements to a heap slice, growing if needed.
 - `Extend` - append another slice to a heap slice, growing if needed.
 
-## [so/strings](https://pkg.go.dev/github.com/nalgeon/solod/so/strings)
+## [so/strings](https://pkg.go.dev/solod.dev/so/strings)
 
 String operations. Offers an API similar to Go's `strings` package, but with fewer features.
 
@@ -160,7 +160,7 @@ Types:
 - `Builder` efficiently builds a string, minimizing memory copying.
 - `Reader` reads data from a string.
 
-## [so/time](https://pkg.go.dev/github.com/nalgeon/solod/so/time)
+## [so/time](https://pkg.go.dev/solod.dev/so/time)
 
 Measuring and displaying time. Offers an API similar to Go's `time` package, but handles locations, formatting, and parsing differently.
 
@@ -187,7 +187,7 @@ Types:
 - `CalClock` is a time of day specified by hour, minute, and second.
 - `Offset` represents a fixed offset from UTC in seconds.
 
-## [so/unicode](https://pkg.go.dev/github.com/nalgeon/solod/so/unicode)
+## [so/unicode](https://pkg.go.dev/solod.dev/so/unicode)
 
 Data and functions to test certain properties of Unicode code points. Offers an API similar to Go's `unicode` package, but with fewer Unicode features (no support for graphic characters, punctuation, symbols, etc.).
 
@@ -195,7 +195,7 @@ Data and functions to test certain properties of Unicode code points. Offers an 
 - `IsLower`, `IsUpper` and `IsTitle` check for character case.
 - `ToLower`, `ToUpper` and `ToTitle` change the character case.
 
-## [so/unicode/utf8](https://pkg.go.dev/github.com/nalgeon/solod/so/unicode/utf8)
+## [so/unicode/utf8](https://pkg.go.dev/solod.dev/so/unicode/utf8)
 
 Functions to convert between runes and UTF-8 byte sequences. Offers the same API as Go's `unicode/utf8` package.
 
@@ -204,7 +204,7 @@ Functions to convert between runes and UTF-8 byte sequences. Offers the same API
 - `RuneCount` and `RuneCountInString` return the number of runes in a byte slice or a string.
 - `ValidString` reports whether a string consists entirely of valid UTF-8-encoded runes.
 
-## [so/c](https://pkg.go.dev/github.com/nalgeon/solod/so/c)
+## [so/c](https://pkg.go.dev/solod.dev/so/c)
 
 C-to-So type bridge for pointers and strings.
 
@@ -212,21 +212,21 @@ C-to-So type bridge for pointers and strings.
 - `String` - convert a null-terminated C string to a So string.
 - `CharPtr` - cast a `*byte` (`uint8_t*`) to `char*` for C interop.
 
-## [so/c/assert](https://pkg.go.dev/github.com/nalgeon/solod/so/c/assert)
+## [so/c/assert](https://pkg.go.dev/solod.dev/so/c/assert)
 
 Runtime assertions (wraps C `<assert.h>`).
 
 - `Assert` / `Assertf` - abort if a condition is false.
 - `Enabled` - whether assertions are active.
 
-## [so/c/ctype](https://pkg.go.dev/github.com/nalgeon/solod/so/c/ctype)
+## [so/c/ctype](https://pkg.go.dev/solod.dev/so/c/ctype)
 
 Character classification and conversion (wraps C `<ctype.h>`).
 
 - `IsAlpha`, `IsDigit`, `IsAlnum`, `IsSpace`, `IsUpper`, `IsLower`, `IsPrint`, `IsPunct`, `IsGraph`, `IsCntrl`, `IsBlank`, `IsXDigit` - classify a character.
 - `ToUpper` / `ToLower` - convert case.
 
-## [so/c/cstring](https://pkg.go.dev/github.com/nalgeon/solod/so/c/cstring)
+## [so/c/cstring](https://pkg.go.dev/solod.dev/so/c/cstring)
 
 Raw memory block operations (wraps C `<string.h>`).
 
@@ -235,7 +235,7 @@ Raw memory block operations (wraps C `<string.h>`).
 - `Memset` - fill n bytes with value.
 - `Memcmp` - compare n bytes.
 
-## [so/c/math](https://pkg.go.dev/github.com/nalgeon/solod/so/c/math)
+## [so/c/math](https://pkg.go.dev/solod.dev/so/c/math)
 
 Math constants and functions (wraps C `<math.h>`).
 
@@ -248,7 +248,7 @@ Functions:
 - `Sin`, `Cos`, `Atan2` - trigonometry.
 - `Fmin`, `Fmax`, `Fmod` - min, max, remainder.
 
-## [so/c/stdio](https://pkg.go.dev/github.com/nalgeon/solod/so/c/stdio)
+## [so/c/stdio](https://pkg.go.dev/solod.dev/so/c/stdio)
 
 File I/O and formatted I/O (wraps C `<stdio.h>`).
 
@@ -270,7 +270,7 @@ Formatted I/O:
 - `Snprintf` - print to buffer.
 - `Scanf`, `Fscanf`, `Sscanf` - scan formatted input.
 
-## [so/c/stdlib](https://pkg.go.dev/github.com/nalgeon/solod/so/c/stdlib)
+## [so/c/stdlib](https://pkg.go.dev/solod.dev/so/c/stdlib)
 
 Process control, memory, and string conversion (wraps C `<stdlib.h>`).
 
@@ -280,7 +280,7 @@ Process control, memory, and string conversion (wraps C `<stdlib.h>`).
 - `Getenv` - read an environment variable.
 - `ExitSuccess`, `ExitFailure` - standard exit codes.
 
-## [so/c/time](https://pkg.go.dev/github.com/nalgeon/solod/so/c/time)
+## [so/c/time](https://pkg.go.dev/solod.dev/so/c/time)
 
 Calendar time, broken-down time, and formatting (wraps C `<time.h>`).
 
