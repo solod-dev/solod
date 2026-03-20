@@ -77,7 +77,7 @@ func Printf(format string, a ...any) (int, error) {
 // Returns [ErrSize] if the output size exceeds BufSize.
 //
 //so:extern
-func Fprintf(w io.Writer, format string, a ...any) (n int, err error) {
+func Fprintf(w io.Writer, format string, a ...any) (int, error) {
 	return 0, nil
 }
 
@@ -86,7 +86,7 @@ func Fprintf(w io.Writer, format string, a ...any) (n int, err error) {
 // It returns the number of items successfully scanned.
 //
 //so:extern
-func Scanf(format string, a ...any) (n int, err error) {
+func Scanf(format string, a ...any) (int, error) {
 	return 0, nil
 }
 
@@ -95,7 +95,7 @@ func Scanf(format string, a ...any) (n int, err error) {
 // It returns the number of items successfully scanned.
 //
 //so:extern
-func Sscanf(str string, format string, a ...any) (n int, err error) {
+func Sscanf(str string, format string, a ...any) (int, error) {
 	return 0, nil
 }
 
