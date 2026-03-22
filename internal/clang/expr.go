@@ -281,9 +281,7 @@ func (g *Generator) emitSliceCast(call *ast.CallExpr, sl *types.Slice) {
 	case types.Int32:
 		fmt.Fprintf(w, "so_string_runes(")
 		g.emitExpr(call.Args[0])
-		fmt.Fprintf(w, ", so_len(")
-		g.emitExpr(call.Args[0])
-		fmt.Fprintf(w, "))")
+		fmt.Fprintf(w, ")")
 	}
 }
 

@@ -103,7 +103,7 @@ int main(void) {
         if (so_at(so_byte, bs, 0) != '1') {
             so_panic("unexpected byte");
         }
-        so_Slice rs = so_string_runes(s1, so_len(s1));
+        so_Slice rs = so_string_runes(s1);
         if (so_at(so_rune, rs, 1) != U'世') {
             so_panic("unexpected rune");
         }

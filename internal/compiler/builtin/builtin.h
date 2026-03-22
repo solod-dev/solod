@@ -187,9 +187,10 @@ typedef struct {
 
 // string_runes decodes a string's UTF-8 bytes into a rune slice.
 // Allocates memory on the stack until the calling function returns.
-#define so_string_runes(s, maxlen) ({                      \
-    so_rune* _buf = so_alloca((maxlen) * sizeof(so_rune)); \
-    so_string_runes_impl((s), _buf);                       \
+#define so_string_runes(s) ({                              \
+    so_String _s = (s);                                    \
+    so_rune* _buf = so_alloca((_s.len) * sizeof(so_rune)); \
+    so_string_runes_impl(_s, _buf);                        \
 })
 so_Slice so_string_runes_impl(so_String s, so_rune* buf);
 
