@@ -231,7 +231,6 @@ func trimRightUnicode(s []byte, cutset string) []byte {
 
 // containsRune is a simplified version of strings.ContainsRune
 // to avoid importing the strings package.
-// We avoid bytes.ContainsRune to avoid allocating a temporary copy of s.
 func containsRune(s string, r rune) bool {
 	for _, c := range s {
 		if c == r {

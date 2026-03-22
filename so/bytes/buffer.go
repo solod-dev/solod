@@ -15,9 +15,8 @@ import (
 	"solod.dev/so/unicode/utf8"
 )
 
-// ErrTooLarge is passed to panic if memory
-// cannot be allocated to store data in a buffer.
-var ErrTooLarge = errors.New("bytes.Buffer: too large")
+// ErrNegativeGrow means that a Buffer.Grow call was given a negative count.
+var ErrNegativeGrow = errors.New("bytes: negative grow")
 
 // MinRead is the minimum slice size passed to a [Buffer.Read] call by
 // [Buffer.ReadFrom]. As long as the [Buffer] has at least MinRead bytes beyond
@@ -31,30 +30,12 @@ const smallBufferSize = 64
 // maxInt is the maximum value of an int.
 const maxInt = int(so.MaxInt64)
 
-// The readOp constants describe the last action performed on
-// the buffer, so that UnreadRune and UnreadByte can check for
-// invalid usage. opReadRuneX constants are chosen such that
-// converted to int they correspond to the rune size that was read.
-type ReadOp int8
-
-// Don't use iota for these, as the values need to correspond with the
-// names and comments, which is easier to see when being explicit.
-const (
-	opRead      ReadOp = -1 // Any other read operation.
-	opInvalid   ReadOp = 0  // Non-read operation.
-	opReadRune1 ReadOp = 1  // Read rune of size 1.
-	// opReadRune2 ReadOp = 2  // Read rune of size 2.
-	// opReadRune3 ReadOp = 3  // Read rune of size 3.
-	// opReadRune4 ReadOp = 4  // Read rune of size 4.
-)
-
 // A Buffer is a variable-sized buffer of bytes with [Buffer.Read] and [Buffer.Write] methods.
 // The zero value for Buffer is an empty buffer ready to use.
 type Buffer struct {
-	a        mem.Allocator // memory allocator; nil falls back to default one.
-	buf      []byte        // contents are the bytes buf[off : len(buf)]
-	off      int           // read at &buf[off], write at &buf[len(buf)]
-	lastRead ReadOp        // last read operation, so that Unread* can work correctly.
+	a   mem.Allocator // memory allocator; nil falls back to default one.
+	buf []byte        // contents are the bytes buf[off : len(buf)]
+	off int           // read at &buf[off], write at &buf[len(buf)]
 }
 
 // Bytes returns a slice of length b.Len() holding the unread portion of the buffer.
@@ -108,16 +89,14 @@ func (b *Buffer) Available() int { return cap(b.buf) - len(b.buf) }
 func (b *Buffer) Reset() {
 	b.buf = b.buf[:0]
 	b.off = 0
-	b.lastRead = opInvalid
 }
 
 // Free frees the internal buffer and resets the Buffer to its zero value.
 // After Free, the Buffer can be reused with new writes.
 func (b *Buffer) Free() {
 	mem.FreeSlice(b.a, b.buf)
-	// b.buf = nil
+	b.buf = nil
 	b.off = 0
-	b.lastRead = opInvalid
 }
 
 // tryGrowByReslice is an inlineable version of grow for the fast-case where the
@@ -182,11 +161,11 @@ func (b *Buffer) growBuf(m, n int) {
 // Grow grows the buffer's capacity, if necessary, to guarantee space for
 // another n bytes. After Grow(n), at least n bytes can be written to the
 // buffer without another allocation.
-// If n is negative, Grow will panic.
+// If n is negative, Grow will panic with [ErrNegativeGrow].
 // If the buffer can't grow it will panic with [ErrTooLarge].
 func (b *Buffer) Grow(n int) {
 	if n < 0 {
-		panic("bytes.Buffer.Grow: negative count")
+		panic(ErrNegativeGrow)
 	}
 	m := b.grow(n)
 	b.buf = b.buf[:m]
@@ -196,7 +175,6 @@ func (b *Buffer) Grow(n int) {
 // needed. The return value n is the length of p; err is always nil. If the
 // buffer becomes too large, Write will panic with [ErrTooLarge].
 func (b *Buffer) Write(p []byte) (int, error) {
-	b.lastRead = opInvalid
 	m, ok := b.tryGrowByReslice(len(p))
 	if !ok {
 		m = b.grow(len(p))
@@ -208,7 +186,6 @@ func (b *Buffer) Write(p []byte) (int, error) {
 // needed. The return value n is the length of s; err is always nil. If the
 // buffer becomes too large, WriteString will panic with [ErrTooLarge].
 func (b *Buffer) WriteString(s string) (int, error) {
-	b.lastRead = opInvalid
 	m, ok := b.tryGrowByReslice(len(s))
 	if !ok {
 		m = b.grow(len(s))
@@ -222,7 +199,6 @@ func (b *Buffer) WriteString(s string) (int, error) {
 // buffer becomes too large, ReadFrom will panic with [ErrTooLarge].
 func (b *Buffer) ReadFrom(r io.Reader) (int64, error) {
 	var n int64
-	b.lastRead = opInvalid
 	for {
 		i := b.grow(MinRead)
 		b.buf = b.buf[:i]
@@ -248,11 +224,10 @@ func (b *Buffer) ReadFrom(r io.Reader) (int64, error) {
 // encountered during the write is also returned.
 func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 	var n int64
-	b.lastRead = opInvalid
 	if nBytes := b.Len(); nBytes > 0 {
 		m, err := w.Write(b.buf[b.off:])
 		if m > nBytes {
-			panic("bytes.Buffer.WriteTo: invalid Write count")
+			return n, ErrInvalidWrite
 		}
 		b.off += m
 		n = int64(m)
@@ -275,7 +250,6 @@ func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 // WriteByte. If the buffer becomes too large, WriteByte will panic with
 // [ErrTooLarge].
 func (b *Buffer) WriteByte(c byte) error {
-	b.lastRead = opInvalid
 	m, ok := b.tryGrowByReslice(1)
 	if !ok {
 		m = b.grow(1)
@@ -294,7 +268,6 @@ func (b *Buffer) WriteRune(r rune) (int, error) {
 		b.WriteByte(byte(r))
 		return 1, nil
 	}
-	b.lastRead = opInvalid
 	m, ok := b.tryGrowByReslice(utf8.UTFMax)
 	if !ok {
 		m = b.grow(utf8.UTFMax)
@@ -308,7 +281,6 @@ func (b *Buffer) WriteRune(r rune) (int, error) {
 // buffer has no data to return, err is [io.EOF] (unless len(p) is zero);
 // otherwise it is nil.
 func (b *Buffer) Read(p []byte) (int, error) {
-	b.lastRead = opInvalid
 	if b.empty() {
 		// Buffer is empty, reset to recover space.
 		b.Reset()
@@ -319,9 +291,6 @@ func (b *Buffer) Read(p []byte) (int, error) {
 	}
 	n := copy(p, b.buf[b.off:])
 	b.off += n
-	if n > 0 {
-		b.lastRead = opRead
-	}
 	return n, nil
 }
 
@@ -330,16 +299,12 @@ func (b *Buffer) Read(p []byte) (int, error) {
 // If there are fewer than n bytes in the buffer, Next returns the entire buffer.
 // The slice is only valid until the next call to a read or write method.
 func (b *Buffer) Next(n int) []byte {
-	b.lastRead = opInvalid
 	m := b.Len()
 	if n > m {
 		n = m
 	}
 	data := b.buf[b.off : b.off+n]
 	b.off += n
-	if n > 0 {
-		b.lastRead = opRead
-	}
 	return data
 }
 
@@ -353,7 +318,6 @@ func (b *Buffer) ReadByte() (byte, error) {
 	}
 	c := b.buf[b.off]
 	b.off++
-	b.lastRead = opRead
 	return c, nil
 }
 
@@ -371,12 +335,10 @@ func (b *Buffer) ReadRune() io.RuneSizeResult {
 	c := b.buf[b.off]
 	if c < utf8.RuneSelf {
 		b.off++
-		b.lastRead = opReadRune1
 		return io.RuneSizeResult{Rune: rune(c), Size: 1, Err: nil}
 	}
 	r, n := utf8.DecodeRune(b.buf[b.off:])
 	b.off += n
-	b.lastRead = ReadOp(n)
 	return io.RuneSizeResult{Rune: r, Size: n, Err: nil}
 }
 
@@ -408,7 +370,6 @@ func (b *Buffer) readSlice(delim byte) ([]byte, error) {
 	var line []byte
 	line = b.buf[b.off:end]
 	b.off = end
-	b.lastRead = opRead
 	return line, err
 }
 
@@ -428,8 +389,8 @@ func (b *Buffer) ReadString(delim byte) (string, error) {
 // NewBuffer creates and initializes a new [Buffer] using a copy of buf as its
 // initial contents. It is intended to prepare a buffer to read existing data.
 //
-// In most cases, new([Buffer]) (or just declaring a [Buffer] variable) is
-// sufficient to initialize a [Buffer].
+// The caller is responsible for freeing the buffer's resources
+// with [Buffer.Free] when done using it.
 func NewBuffer(a mem.Allocator, buf []byte) Buffer {
 	if buf == nil {
 		return Buffer{a: a}
@@ -440,11 +401,10 @@ func NewBuffer(a mem.Allocator, buf []byte) Buffer {
 }
 
 // NewBufferString creates and initializes a new [Buffer] using string s as its
-// initial contents. It is intended to prepare a buffer to read an existing
-// string.
+// initial contents. It is intended to prepare a buffer to read an existing string.
 //
-// In most cases, new([Buffer]) (or just declaring a [Buffer] variable) is
-// sufficient to initialize a [Buffer].
+// The caller is responsible for freeing the buffer's resources
+// with [Buffer.Free] when done using it.
 func NewBufferString(a mem.Allocator, s string) Buffer {
 	buf := mem.AllocSlice[byte](a, len(s), len(s))
 	copy(buf, s)

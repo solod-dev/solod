@@ -87,9 +87,6 @@ func ToUpper(a mem.Allocator, s []byte) []byte {
 //
 // The returned slice is allocated; the caller owns it.
 func Map(a mem.Allocator, mapping RuneFunc, s []byte) []byte {
-	// In the worst case, the slice can grow when mapped, making
-	// things unpleasant. But it's so rare we barge in assuming it's
-	// fine. It could also shrink but that falls out naturally.
 	b := mem.AllocSlice[byte](a, 0, len(s))
 	for i := 0; i < len(s); {
 		r, wid := utf8.DecodeRune(s[i:])

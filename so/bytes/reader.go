@@ -10,8 +10,7 @@ import (
 )
 
 // A Reader implements the [io.Reader], [io.ReaderAt], [io.WriterTo], [io.Seeker],
-// [io.ByteScanner], and [io.RuneScanner] interfaces by reading from
-// a byte slice.
+// [io.ByteScanner], and [io.RuneScanner] interfaces by reading from a byte slice.
 // Unlike a [Buffer], a Reader is read-only and supports seeking.
 // The zero value for Reader operates like a Reader of an empty slice.
 type Reader struct {
@@ -142,7 +141,7 @@ func (r *Reader) WriteTo(w io.Writer) (int64, error) {
 	b := r.s[r.i:]
 	m, err := w.Write(b)
 	if m > len(b) {
-		panic("bytes.Reader.WriteTo: invalid Write count")
+		return 0, ErrInvalidWrite
 	}
 	r.i += int64(m)
 	n := int64(m)
