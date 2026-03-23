@@ -89,7 +89,7 @@ int main(void) {
 }
 ```
 
-Check out more examples in [So by example](example/README.md) and learn about the supported language features in the [spec](doc/spec.md).
+Check out more examples in [So by example](example/README.md) and learn about the supported language features in the [language tour](doc/spec.md).
 
 ## Installation and usage
 

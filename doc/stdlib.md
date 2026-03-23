@@ -147,6 +147,7 @@ Operations on slices:
 - `Append` appends elements to a heap slice, growing if needed.
 - `Extend` appends another slice to a heap slice, growing if needed.
 - `Clone` creates a shallow copy of the slice.
+- `Equal` reports whether two slices are equal.
 
 ## [so/strings](https://pkg.go.dev/solod.dev/so/strings)
 
