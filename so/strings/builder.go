@@ -16,6 +16,9 @@ var ErrNegativeGrow = errors.New("strings: negative grow")
 // A Builder is used to efficiently build a string using [Builder.Write] methods.
 // It minimizes memory copying. The zero value is ready to use (with default allocator).
 // Do not copy a non-zero Builder.
+//
+// The caller is responsible for freeing the builder's resources
+// with [Builder.Free] when done using it.
 type Builder struct {
 	a   mem.Allocator
 	buf []byte

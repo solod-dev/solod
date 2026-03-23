@@ -1,3 +1,4 @@
+// Package maps provides a generic allocated map implementation.
 package maps
 
 import "solod.dev/so/mem"
@@ -56,6 +57,7 @@ func (m *Map[K, V]) Len() int {
 
 // Free frees internal resources used by the map.
 // If the map is already freed, does nothing.
+// The map must not be used after calling Free.
 //
 //so:extern
 func (m *Map[K, V]) Free() {

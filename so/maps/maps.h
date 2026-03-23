@@ -1,16 +1,15 @@
 #include "so/builtin/builtin.h"
 
-// Forward declaration for the ByteMap from map.go.
+// Forward declarations for ByteMap-related types and functions.
 typedef struct maps_ByteMap maps_ByteMap;
-
-// Forward declaration for HashKey.
-so_int maps_HashKey(so_Slice key);
+so_int maps_HashBytes(so_Slice key);
+bool maps_EqualBytes(so_Slice a, so_Slice b);
 
 // hashString hashes a string key by its content rather than pointer.
 static inline so_int maps_hashString(so_Slice key) {
     so_String* s = (so_String*)key.ptr;
     so_Slice content = {(void*)s->ptr, s->len, s->len};
-    return maps_HashKey(content);
+    return maps_HashBytes(content);
 }
 
 // equalString compares two string keys by their content.
@@ -28,10 +27,10 @@ typedef maps_ByteMap maps_Map;
                                       (so_int)sizeof(V));             \
     _m.hashFn = _Generic((K){0},                                      \
         so_String: maps_hashString,                                   \
-        default: maps_HashKey);                                       \
+        default: maps_HashBytes);                                     \
     _m.equalFn = _Generic((K){0},                                     \
         so_String: maps_equalString,                                  \
-        default: maps_BytesEqual);                                    \
+        default: maps_EqualBytes);                                    \
     _m;                                                               \
 })
 

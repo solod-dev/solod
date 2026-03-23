@@ -13,7 +13,6 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-// Package maps provides a generic allocated map implementation.
 package maps
 
 import (
@@ -34,13 +33,13 @@ type KeyHashFn func(key []byte) int
 // KeyEqualFn is a function that checks two key byte slices for equality.
 type KeyEqualFn func(a, b []byte) bool
 
-// HashKey hashes a byte key to an integer suitable for map indexing.
-func HashKey(key []byte) int {
+// HashBytes returns a hash of the given byte slice suitable for map indexing.
+func HashBytes(key []byte) int {
 	return int(wyhash(key, 0) >> dibBitSize)
 }
 
-// BytesEqual returns true if two byte slices are equal.
-func BytesEqual(a, b []byte) bool {
+// EqualBytes returns true if two byte slices are equal.
+func EqualBytes(a, b []byte) bool {
 	return bytes.Equal(a, b)
 }
 
@@ -64,7 +63,7 @@ type ByteMap struct {
 	shrinkAt int // length at which to shrink the map
 }
 
-// NewByteMap creates a new ByteMap with the given minimal capacity
+// NewByteMap creates a new ByteMap with the given minimal capacity,
 // key size, and value size, using the provided allocator (or the
 // default allocator if nil).
 //
@@ -74,7 +73,7 @@ type ByteMap struct {
 // The caller is responsible for freeing map resources
 // with [ByteMap.Free] when done using it.
 func NewByteMap(a mem.Allocator, minCap, ksize, vsize int) ByteMap {
-	m := ByteMap{a: a, hashFn: HashKey, equalFn: BytesEqual, minCap: minCap, ksize: ksize, vsize: vsize}
+	m := ByteMap{a: a, hashFn: HashBytes, equalFn: EqualBytes, minCap: minCap, ksize: ksize, vsize: vsize}
 	sz := 8
 	for sz < m.minCap {
 		sz *= 2
@@ -152,6 +151,7 @@ func (m *ByteMap) Len() int {
 
 // Free frees internal resources used by the map.
 // If the map is already freed, does nothing.
+// The map must not be used after Free.
 func (m *ByteMap) Free() {
 	if len(m.hdib) == 0 {
 		return
