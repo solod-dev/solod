@@ -129,7 +129,7 @@ func Now() Time {
 	if mono == 0 {
 		return Time{uint64(nsec), sec + unixToInternal}
 	}
-	mono -= time_monoStart
+	mono -= monoStart
 	sec += unixToInternal - minWall
 	if (uint64(sec) >> 33) != 0 {
 		// Seconds field overflowed the 33 bits available when

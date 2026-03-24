@@ -10,20 +10,10 @@ type File struct {
 	closed bool
 }
 
-// Stdin is the standard input file descriptor.
-//
-//so:extern
-var Stdin = File{}
-
-// Stdout is the standard output file descriptor.
-//
-//so:extern
-var Stdout = File{}
-
-// Stderr is the standard error file descriptor.
-//
-//so:extern
-var Stderr = File{}
+// Standard input, output, and error streams.
+var Stdin File
+var Stdout File
+var Stderr File
 
 // Read reads up to len(b) bytes from the file and stores them in b.
 // It returns the number of bytes read and any error encountered.
@@ -134,4 +124,10 @@ func (f *File) Close() error {
 	}
 	f.closed = true
 	return nil
+}
+
+func init() {
+	Stdin = File{fd: stdin}
+	Stdout = File{fd: stdout}
+	Stderr = File{fd: stderr}
 }

@@ -1078,3 +1078,19 @@ There's no automatic order for declarations within a package. You need to declar
 
 - If a function F uses a constant C or a variable V, you must declare V and C before F.
 - If type B refers to type A, you must declare A before B.
+
+### Init functions
+
+Each package can have an `init()` function (with no arguments or return values) that runs automatically before `main()`. Unlike Go, only one `init` function is allowed per package.
+
+Init functions can be used to initialize package-level variables with non-static values.
+
+```go
+var state int
+
+func init() {
+    state = 42
+}
+```
+
+If the program has multiple packages, each with its own `init` function, the order in which the `init` functions are called is not guaranteed.

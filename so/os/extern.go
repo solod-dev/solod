@@ -6,9 +6,6 @@ package os
 //so:embed os.h
 var os_h string
 
-//so:embed os.c
-var os_c string
-
 //so:extern
 var errno int
 
@@ -26,6 +23,13 @@ const (
 
 //so:extern
 type os_file struct{}
+
+//so:extern
+var (
+	stdin  *os_file
+	stdout *os_file
+	stderr *os_file
+)
 
 // FILE *fopen(const char *restrict filename, const char *restrict mode);
 //

@@ -69,6 +69,13 @@ func (g *Generator) collectSymbols() {
 				if d.Body == nil || d.Name.Name == "main" {
 					continue
 				}
+				if d.Name.Name == "init" {
+					if g.initFunc != nil {
+						g.fail(d.Name, "multiple init functions in package %s", g.pkg.Name)
+					}
+					g.initFunc = d
+					continue
+				}
 				if g.hasExtern("", externFuncKey(d)) {
 					continue
 				}

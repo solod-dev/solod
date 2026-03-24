@@ -358,7 +358,7 @@ func subMono(t, u int64) Duration {
 func Since(t Time) Duration {
 	if (t.wall & hasMonotonic) != 0 {
 		// Common case optimization: if t has monotonic time, then Sub will use only it.
-		return subMono(time_mono()-time_monoStart, t.ext)
+		return subMono(time_mono()-monoStart, t.ext)
 	}
 	return Now().Sub(t)
 }
@@ -368,7 +368,7 @@ func Since(t Time) Duration {
 func Until(t Time) Duration {
 	if (t.wall & hasMonotonic) != 0 {
 		// Common case optimization: if t has monotonic time, then Sub will use only it.
-		return subMono(t.ext, time_mono()-time_monoStart)
+		return subMono(t.ext, time_mono()-monoStart)
 	}
 	return t.Sub(Now())
 }

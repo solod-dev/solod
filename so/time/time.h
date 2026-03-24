@@ -7,9 +7,6 @@
 // Provide an explicit declaration for portability (e.g. glibc with gcc).
 char* strptime(const char*, const char*, struct tm*);
 
-// Monotonic times are reported as offsets from monoStart.
-extern int64_t time_monoStart;
-
 // wall returns the current wall clock time.
 static inline so_Result time_wall() {
     struct timespec ts;

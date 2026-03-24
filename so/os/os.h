@@ -10,12 +10,6 @@ typedef struct {
     bool closed;
 } os_File;
 
-// Stdin, Stdout and Stderr are the standard
-// input, output and error file descriptors.
-extern os_File os_Stdin;
-extern os_File os_Stdout;
-extern os_File os_Stderr;
-
 // Error codes.
 #define os_EACCES EACCES
 #define os_EEXIST EEXIST

@@ -96,6 +96,9 @@ func (g *Generator) emitFuncDecl(decl *ast.FuncDecl) {
 	if decl.Body == nil || g.hasExtern("", externFuncKey(decl)) {
 		return
 	}
+	if decl.Name.Name == "init" {
+		return
+	}
 	if decl.Recv != nil {
 		g.emitMethodDecl(decl)
 		return

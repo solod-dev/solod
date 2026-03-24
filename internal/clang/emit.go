@@ -82,6 +82,7 @@ type Generator struct {
 	symbols  []symbol              // pre-collected top-level declarations
 	embeds   Embeds                // embedded C files from //so:embed
 	comments ast.CommentMap        // all comments across all files
+	initFunc *ast.FuncDecl         // package init() function, if any
 	panicked bool                  // true after first panic caught in Visit
 }
 
@@ -129,6 +130,7 @@ func (g *Generator) emitImpl(w io.Writer) {
 		}
 		ast.Walk(g, file)
 	}
+	g.emitInitFunc(w)
 }
 
 // emitEmbeds writes the content of embedded files, separated by blank lines.
@@ -141,6 +143,27 @@ func (g *Generator) emitEmbeds(w io.Writer, files []embedFile) {
 	for _, ef := range files {
 		fmt.Fprintf(w, "\n%s\n", strings.TrimRight(ef.content, "\n"))
 	}
+}
+
+// emitInitFunc emits the package init() function as a GCC constructor
+// that runs automatically before main().
+func (g *Generator) emitInitFunc(w io.Writer) {
+	if g.initFunc == nil {
+		return
+	}
+	decl := g.initFunc
+	g.state.funcSig = g.funcSig(decl)
+	g.state.tempCount = 0
+
+	fmt.Fprintf(w, "\nstatic void __attribute__((constructor)) %s_init() {\n", g.pkg.Name)
+	g.state.indent++
+	g.walkStmts(decl.Body.List)
+	g.emitDeferredCalls()
+	g.state.indent--
+	fmt.Fprintf(w, "}\n")
+
+	g.state.defers = nil
+	g.state.funcSig = nil
 }
 
 // collectComments builds a merged CommentMap from all source files.

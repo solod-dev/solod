@@ -5,9 +5,6 @@ import _ "embed"
 //so:embed time.h
 var time_h string
 
-//so:embed time.c
-var time_c string
-
 //so:extern
 type time_tm struct {
 	tm_sec   int
@@ -53,6 +50,8 @@ func time_mono() int64 { return 0 }
 // which appears to have a default resolution of 15ms),
 // we avoid ever reporting a monotonic time of 0.
 // (Callers may want to use 0 as "time not set".)
-//
-//so:extern
-var time_monoStart int64 = time_mono() - 1
+var monoStart int64
+
+func init() {
+	monoStart = time_mono() - 1
+}
