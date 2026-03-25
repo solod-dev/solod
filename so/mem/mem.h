@@ -58,14 +58,3 @@
     if (!_a.self) _a = mem_System;                                       \
     _a.Free(_a.self, _s.ptr, sizeof(T) * _s.cap, alignof(so_typeof(T))); \
 })
-
-// MaxAllocaSize is the maximum size that can be allocated with Alloca.
-#define mem_MaxAllocaSize so_MaxAllocaSize
-
-// Alloca allocates a block of memory of the given size on the stack.
-// The memory is automatically freed when the function that called Alloca returns.
-// Panics if the requested size exceeds [MaxAllocaSize].
-#define mem_Alloca(size) ({               \
-    size_t _size = (size_t)(size);        \
-    so_make_slice(uint8_t, _size, _size); \
-})

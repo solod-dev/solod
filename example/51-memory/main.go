@@ -50,7 +50,7 @@ func main() {
 	//
 	// Arenas are ideal for short-lived allocations with simple lifetimes,
 	// such as during parsing or temporary buffers.
-	buf := mem.Alloca(1024) // stack-allocated buffer, no need to free
+	buf := make([]byte, 1024)
 	arena := mem.NewArena(buf)
 	var a mem.Allocator = &arena
 

@@ -71,24 +71,6 @@ func FreeString(a Allocator, s string) {
 	Free(a, unsafe.StringData(s))
 }
 
-// MaxAllocaSize is the maximum size that can be allocated with Alloca.
-// Defined as the so_MaxAllocaSize constant in the C code.
-//
-//so:extern
-var MaxAllocaSize = 64 << 10 // 64 KiB
-
-// Alloca allocates a block of memory of the given size on the stack.
-// The memory is automatically freed when the function that called Alloca returns.
-// Panics if the requested size exceeds [MaxAllocaSize].
-//
-//so:extern
-func Alloca(size int) []byte {
-	if size > MaxAllocaSize {
-		panic("mem: alloca size exceeds allowed")
-	}
-	return make([]byte, size)
-}
-
 //so:extern
 var maxAllocSize = 1 << 10 // 1 KiB, for testing purposes
 

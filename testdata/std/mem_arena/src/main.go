@@ -10,7 +10,7 @@ type Point struct {
 }
 
 func main() {
-	buf := mem.Alloca(1024)
+	buf := make([]byte, 1024)
 	arena := mem.NewArena(buf)
 	var a mem.Allocator = &arena
 

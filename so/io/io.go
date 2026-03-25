@@ -90,7 +90,7 @@ func Copy(dst Writer, src Reader) (int64, error) {
 			}
 		}
 	}
-	buf := mem.Alloca(size)
+	buf := make([]byte, size)
 
 	var written int64
 	var err error

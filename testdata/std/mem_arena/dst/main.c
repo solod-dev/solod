@@ -3,7 +3,7 @@
 // -- Implementation --
 
 int main(void) {
-    so_Slice buf = mem_Alloca(1024);
+    so_Slice buf = so_make_slice(so_byte, 1024, 1024);
     mem_Arena arena = mem_NewArena(buf);
     mem_Allocator a = (mem_Allocator){.self = &arena, .Alloc = mem_Arena_Alloc, .Free = mem_Arena_Free, .Realloc = mem_Arena_Realloc};
     // Allocate a Point.
