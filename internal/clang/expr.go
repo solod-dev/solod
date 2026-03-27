@@ -391,6 +391,12 @@ func (g *Generator) emitParenExpr(expr ast.Expr) {
 func (g *Generator) emitSelectorExpr(n *ast.SelectorExpr) {
 	if ident, ok := n.X.(*ast.Ident); ok {
 		if pkgName, ok := g.types.Uses[ident].(*types.PkgName); ok {
+			// Use the extern C name if the symbol has one
+			// (e.g. math.MaxInt64 → INT64_MAX).
+			if info, ok := g.getExtern(pkgName.Name(), n.Sel.Name); ok && info.name != "" {
+				fmt.Fprintf(g.state.writer, "%s", info.name)
+				return
+			}
 			// Imported symbols are prefixed with the
 			// package name (e.g. fmt.Println → fmt_Println).
 			fmt.Fprintf(g.state.writer, "%s_%s", pkgName.Name(), n.Sel.Name)
