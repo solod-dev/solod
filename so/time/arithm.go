@@ -4,7 +4,7 @@
 
 package time
 
-import "solod.dev/so"
+import "solod.dev/so/math"
 
 // Computations on Times
 //
@@ -448,9 +448,9 @@ func (t *Time) addSec(d int64) {
 	if (sum > t.ext) == (d > 0) {
 		t.ext = sum
 	} else if d > 0 {
-		t.ext = int64(so.MaxInt64)
+		t.ext = int64(math.MaxInt64)
 	} else {
-		t.ext = -int64(so.MaxInt64)
+		t.ext = -int64(math.MaxInt64)
 	}
 }
 

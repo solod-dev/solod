@@ -5,14 +5,14 @@
 package strings
 
 import (
-	"solod.dev/so"
+	"solod.dev/so/math"
 	"solod.dev/so/math/bits"
 	"solod.dev/so/mem"
 	"solod.dev/so/stringslite"
 )
 
 // maxInt is the maximum value of an int.
-const maxInt = int(so.MaxInt64)
+const maxInt = int(math.MaxInt64)
 
 // According to static analysis, spaces, dashes, zeros, equals, and tabs
 // are the most commonly repeated string literal,

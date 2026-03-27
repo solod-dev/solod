@@ -4,9 +4,7 @@
 
 package io
 
-import (
-	"solod.dev/so"
-)
+import "solod.dev/so/math"
 
 // A DiscardWriter provides Write methods
 // that succeed without doing anything.
@@ -70,12 +68,12 @@ func (*NopCloser) Close() error { return nil }
 // starting at offset off and stops with EOF after n bytes.
 func NewSectionReader(r ReaderAt, off int64, n int64) SectionReader {
 	var remaining int64
-	if off <= so.MaxInt64-n {
+	if off <= math.MaxInt64-n {
 		remaining = n + off
 	} else {
 		// Overflow, with no way to return error.
 		// Assume we can read up to an offset of 1<<63 - 1.
-		remaining = so.MaxInt64
+		remaining = math.MaxInt64
 	}
 	return SectionReader{r, off, off, remaining, n}
 }

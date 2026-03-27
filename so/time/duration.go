@@ -4,7 +4,7 @@
 
 package time
 
-import "solod.dev/so"
+import "solod.dev/so/math"
 
 // A Duration represents the elapsed time between two instants
 // as an int64 nanosecond count. The representation limits the
@@ -12,8 +12,8 @@ import "solod.dev/so"
 type Duration int64
 
 const (
-	minDuration Duration = Duration(so.MinInt64)
-	maxDuration Duration = Duration(so.MaxInt64)
+	minDuration Duration = Duration(math.MinInt64)
+	maxDuration Duration = Duration(math.MaxInt64)
 )
 
 // Common durations. There is no definition for units of Day or larger
