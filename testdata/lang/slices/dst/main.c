@@ -213,6 +213,18 @@ int main(void) {
         }
     }
     {
+        // Append: string to byte slice.
+        so_Slice b = so_make_slice(so_byte, 0, 8);
+        so_String s = so_str("hello");
+        b = so_extend(so_byte, b, so_string_bytes(s));
+        if (so_len(b) != 5) {
+            so_panic("len(b) != 5");
+        }
+        if (so_string_ne(so_bytes_string(b), so_str("hello"))) {
+            so_panic("string(b) != hello");
+        }
+    }
+    {
         // Append: strings.
         so_Slice s = so_make_slice(so_String, 0, 4);
         s = so_append(so_String, s, so_str("hello"));

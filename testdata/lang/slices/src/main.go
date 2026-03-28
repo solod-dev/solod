@@ -224,6 +224,18 @@ func main() {
 		}
 	}
 	{
+		// Append: string to byte slice.
+		b := make([]byte, 0, 8)
+		s := "hello"
+		b = append(b, s...)
+		if len(b) != 5 {
+			panic("len(b) != 5")
+		}
+		if string(b) != "hello" {
+			panic("string(b) != hello")
+		}
+	}
+	{
 		// Append: strings.
 		s := make([]string, 0, 4)
 		s = append(s, "hello")

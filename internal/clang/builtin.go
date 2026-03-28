@@ -73,12 +73,22 @@ func (g *Generator) emitAppendCall(call *ast.CallExpr) {
 	sliceType := g.types.TypeOf(call.Args[0]).Underlying().(*types.Slice)
 	elemType := g.mapType(call, sliceType.Elem())
 	if call.Ellipsis.IsValid() {
-		// Appending a slice (e.g. append(dst, src...)).
-		fmt.Fprintf(w, "so_extend(%s, ", elemType)
-		g.emitExpr(call.Args[0])
-		fmt.Fprintf(w, ", (")
-		g.emitExpr(call.Args[1])
-		fmt.Fprintf(w, "))")
+		srcType := g.types.TypeOf(call.Args[1]).Underlying()
+		if basic, ok := srcType.(*types.Basic); ok && basic.Info()&types.IsString != 0 {
+			// Appending a string to a byte slice (e.g. append(dst, str...)).
+			fmt.Fprintf(w, "so_extend(%s, ", elemType)
+			g.emitExpr(call.Args[0])
+			fmt.Fprintf(w, ", so_string_bytes(")
+			g.emitExpr(call.Args[1])
+			fmt.Fprintf(w, "))")
+		} else {
+			// Appending a slice (e.g. append(dst, src...)).
+			fmt.Fprintf(w, "so_extend(%s, ", elemType)
+			g.emitExpr(call.Args[0])
+			fmt.Fprintf(w, ", (")
+			g.emitExpr(call.Args[1])
+			fmt.Fprintf(w, "))")
+		}
 	} else {
 		// Appending individual values (e.g. append(dst, v1, v2, v3)).
 		fmt.Fprintf(w, "so_append(%s, ", elemType)
