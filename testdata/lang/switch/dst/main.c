@@ -11,11 +11,11 @@ int main(void) {
     {
         // Switch on int with cases and default.
         so_int i = 2;
-        if (i == 1) {
+        if (i == (1)) {
             so_panic("unexpected i == 1");
-        } else if (i == 2) {
+        } else if (i == (2)) {
             so_println("%s", "i == 2");
-        } else if (i == 3) {
+        } else if (i == (3)) {
             so_panic("unexpected i == 3");
         } else {
             so_panic("unexpected default");
@@ -35,9 +35,9 @@ int main(void) {
     {
         // Multiple values per case.
         so_int y = 3;
-        if (y == 1 || y == 2 || y == 3) {
+        if (y == (1) || y == (2) || y == (3)) {
             so_println("%s", "y == 3");
-        } else if (y == 4 || y == 5 || y == 6) {
+        } else if (y == (4) || y == (5) || y == (6)) {
             so_panic("unexpected y == 4, 5, 6");
         } else {
             so_panic("unexpected default");
@@ -47,7 +47,7 @@ int main(void) {
         // Switch with init statement.
         {
             so_int n = 42;
-            if (n == 42) {
+            if (n == (42)) {
                 so_println("%s", "n == 42");
             } else {
                 so_panic("unexpected default");
@@ -68,9 +68,9 @@ int main(void) {
     {
         // Cases without default.
         so_int z = 5;
-        if (z == 1) {
+        if (z == (1)) {
             so_panic("unexpected z == 1");
-        } else if (z == 5) {
+        } else if (z == (5)) {
             so_println("%s", "z == 5");
         }
     }

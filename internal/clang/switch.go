@@ -69,8 +69,9 @@ func (g *Generator) emitSwitchBody(w io.Writer, stmt *ast.SwitchStmt) {
 				fmt.Fprintf(w, ")")
 			} else {
 				g.emitExpr(stmt.Tag)
-				fmt.Fprintf(w, " == ")
+				fmt.Fprintf(w, " == (")
 				g.emitExpr(expr)
+				fmt.Fprintf(w, ")")
 			}
 		}
 		fmt.Fprintf(w, ") {\n")
