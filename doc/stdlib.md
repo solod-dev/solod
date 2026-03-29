@@ -130,24 +130,28 @@ Types:
 
 ## [so/os](https://pkg.go.dev/solod.dev/so/os)
 
-File I/O and filesystem operations. Offers an API similar to Go's `os` package, but with fewer features.
+File I/O and filesystem operations. Offers an API similar to Go's `os` package, built on POSIX APIs.
 
 Functions:
 
-- `Create` creates or truncates a file for reading and writing.
-- `Open` opens a file for reading.
-- `ReadFile` reads an entire file into a byte slice.
-- `WriteFile` writes a byte slice to a file, creating or truncating it.
+- `Create`, `Open`, `OpenFile` open files for reading and/or writing.
+- `ReadFile` and `WriteFile` read or write an entire file.
+- `Stat` and `Lstat` return file information.
+- `Chmod`, `Chown`, `Lchown`, `Chtimes` change file attributes.
 - `Rename` renames (moves) a file.
 - `Remove` removes a file or empty directory.
-- `Getenv` returns the value of an environment variable.
+- `Mkdir` creates a directory.
+- `TempDir`, `CreateTemp`, `MkdirTemp` work with temporary files and directories.
+- `Getwd` and `Chdir` manage the current working directory.
+- `Getenv`, `LookupEnv`, `Setenv` and `Unsetenv` manage environment variables.
+- `Getpid`, `Getppid`, `Getuid`, `Geteuid`, `Getgid`, `Getegid` return process/user info.
 - `Exit` terminates the program with the given status code.
 
 Types:
 
 - `File` represents an open file with methods for reading and writing data.
-
-`so/os` is currently built on libc's `stdio.h`, so it's much more limited than Go's `os` package.
+- `FileInfo` describes a file (returned by `Stat` and `Lstat`).
+- `FileMode` represents a file's mode and permission bits.
 
 ## [so/slices](https://pkg.go.dev/solod.dev/so/slices)
 

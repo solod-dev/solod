@@ -9,19 +9,22 @@ var os_h string
 //so:extern
 var errno int
 
-// Errno constants mapped to C macros in os.h.
+// Errno constants.
 //
-//so:extern
-const (
-	os_EACCES = iota
-	os_EEXIST
-	os_EISDIR
-	os_ENOENT
-	os_ENOTDIR
-	os_EPERM
-)
+//so:extern EACCES
+const eACCES = 0 // Permission denied
+//so:extern EEXIST
+const eEXIST = 0 // File exists
+//so:extern EISDIR
+const eISDIR = 0 // Is a directory
+//so:extern ENOENT
+const eNOENT = 0 // No such file or directory
+//so:extern ENOTDIR
+const eNOTDIR = 0 // Not a directory
+//so:extern EPERM
+const ePERM = 0 // Operation not permitted
 
-//so:extern
+//so:extern FILE
 type os_file struct{}
 
 //so:extern

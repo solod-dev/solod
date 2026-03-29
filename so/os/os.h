@@ -1,19 +1,67 @@
+#include "so/builtin/builtin.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#define os_file FILE
-
-// File represents an open file descriptor.
+// Stat result - flat struct filled by C helpers.
 typedef struct {
-    os_file* fd;
-    bool closed;
-} os_File;
+    int64_t size;
+    uint32_t mode;
+    int64_t modSec;
+    int64_t modNsec;
+    uint64_t dev;
+    uint64_t ino;
+    bool ok;
+} os_statResult;
 
-// Error codes.
-#define os_EACCES EACCES
-#define os_EEXIST EEXIST
-#define os_EISDIR EISDIR
-#define os_ENOENT ENOENT
-#define os_ENOTDIR ENOTDIR
-#define os_EPERM EPERM
+// os_stat fills result from stat().
+static inline os_statResult os_stat(const char* path) {
+    struct stat st;
+    if (stat(path, &st) != 0) return (os_statResult){.ok = false};
+    return (os_statResult){
+        .size = st.st_size,
+        .mode = st.st_mode,
+        .modSec = st.st_mtime,
+        .modNsec = 0,  // fields differ on macos and linux, set to 0 for now
+        .dev = st.st_dev,
+        .ino = st.st_ino,
+        .ok = true,
+    };
+}
+
+// os_lstat fills result from lstat().
+static inline os_statResult os_lstat(const char* path) {
+    struct stat st;
+    if (lstat(path, &st) != 0) return (os_statResult){.ok = false};
+    return (os_statResult){
+        .size = st.st_size,
+        .mode = st.st_mode,
+        .modSec = st.st_mtime,
+        .modNsec = 0,  // fields differ on macos and linux, set to 0 for now
+        .dev = st.st_dev,
+        .ino = st.st_ino,
+        .ok = true,
+    };
+}
+
+// os_gethostname wraps gethostname with a null check to avoid
+// glibc fortify-source nonnull warning when buf comes from a slice.
+static inline int os_gethostname(so_byte* buf, so_int len) {
+    if (buf == NULL) return -1;
+    return gethostname((char*)buf, (size_t)len);
+}
+
+// os_utimens sets access and modification times using utimensat.
+// A tv_nsec of UTIME_OMIT leaves the corresponding time unchanged.
+static inline int os_utimens(const char* path, int64_t asec, int64_t ansec, int64_t msec, int64_t mnsec) {
+    struct timespec times[2] = {
+        {.tv_sec = asec, .tv_nsec = ansec},
+        {.tv_sec = msec, .tv_nsec = mnsec},
+    };
+    return utimensat(AT_FDCWD, path, times, 0);
+}

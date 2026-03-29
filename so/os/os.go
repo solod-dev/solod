@@ -6,8 +6,7 @@ package os
 import (
 	"solod.dev/so/c"
 	"solod.dev/so/errors"
-	"solod.dev/so/io"
-	"solod.dev/so/mem"
+	"solod.dev/so/time"
 )
 
 // IO-related errors that can be returned by functions in this package.
@@ -22,68 +21,101 @@ var ErrPermission = errors.New("os: permission denied")
 // does not match any of the other, more specific errors.
 var ErrIO = errors.New("os: i/o error")
 
-// FileResult is a helper struct for returning
-// a File and an error from a function.
-type FileResult struct {
-	val File
-	err error
-}
-
-// Create creates or truncates the named file. If the file already exists,
-// it is truncated. If the file does not exist, it is created with mode 0o666
-// (before umask). If successful, methods on the returned File can
-// be used for I/O; the associated file descriptor has mode O_RDWR.
-// The directory containing the file must already exist.
-func Create(name string) (File, error) {
-	fd := fopen(name, "w+b")
-	if fd == nil {
-		return File{}, mapError()
+// Chdir changes the current working directory to the named directory.
+func Chdir(dir string) error {
+	if chdir(dir) != 0 {
+		return mapError()
 	}
-	return File{fd: fd}, nil
+	return nil
 }
 
-// Open opens the named file for reading. If successful, methods on
-// the returned file can be used for reading; the associated file
-// descriptor has mode O_RDONLY.
-func Open(name string) (File, error) {
-	fd := fopen(name, "rb")
-	if fd == nil {
-		return File{}, mapError()
+// Chmod changes the mode of the named file to mode.
+// If the file is a symbolic link, it changes the mode of the link's target.
+func Chmod(name string, mode FileMode) error {
+	pmode := makePosixMode(mode)
+	if chmod(name, pmode) != 0 {
+		return mapError()
 	}
-	return File{fd: fd}, nil
+	return nil
 }
 
-// ReadFile reads the named file and returns the contents.
-// A successful call returns err == nil, not err == EOF.
-// Because ReadFile reads the whole file, it does not treat
-// an EOF from Read as an error to be reported.
+// Chown changes the numeric uid and gid of the named file.
+// If the file is a symbolic link, it changes the uid and gid of the link's target.
+// A uid or gid of -1 means to not change that value.
+func Chown(name string, uid, gid int) error {
+	if chown(name, uid_t(uid), gid_t(gid)) != 0 {
+		return mapError()
+	}
+	return nil
+}
+
+// Chtimes changes the access and modification times of the named
+// file, similar to the Unix utime() or utimes() functions.
+// A zero [time.Time] value will leave the corresponding file time unchanged.
+func Chtimes(name string, atime time.Time, mtime time.Time) error {
+	var asec, ansec, msec, mnsec int64
+	if atime.IsZero() {
+		ansec = utimeOmit
+	} else {
+		asec, ansec = atime.Unix(), int64(atime.Nanosecond())
+	}
+	if mtime.IsZero() {
+		mnsec = utimeOmit
+	} else {
+		msec, mnsec = mtime.Unix(), int64(mtime.Nanosecond())
+	}
+	if os_utimens(name, asec, ansec, msec, mnsec) != 0 {
+		return mapError()
+	}
+	return nil
+}
+
+// Lchown changes the numeric uid and gid of the named file.
+// If the file is a symbolic link, it changes the uid and gid of the link itself.
+func Lchown(name string, uid, gid int) error {
+	if lchown(name, uid_t(uid), gid_t(gid)) != 0 {
+		return mapError()
+	}
+	return nil
+}
+
+// Link creates newname as a hard link to the oldname file.
+func Link(oldname, newname string) error {
+	if link(oldname, newname) != 0 {
+		return mapError()
+	}
+	return nil
+}
+
+// Mkdir creates a new directory with the specified name and permission
+// bits (before umask).
+func Mkdir(name string, perm FileMode) error {
+	pmode := makePosixMode(perm)
+	if mkdir(name, pmode) != 0 {
+		return mapError()
+	}
+	return nil
+}
+
+// Readlink returns the destination of the named symbolic link.
+// If the link destination is relative, Readlink returns the relative path
+// without resolving it to an absolute one.
 //
-// If the allocator is nil, uses the system allocator.
-// The returned slice is allocated; the caller owns it.
-func ReadFile(a mem.Allocator, name string) ([]byte, error) {
-	f, err := Open(name)
-	if err != nil {
-		return []byte{}, err
+// Writes the result into buf. The returned string is a view into buf.
+func Readlink(buf []byte, name string) (string, error) {
+	n := readlink(name, c.CharPtr(&buf[0]), uintptr(len(buf)))
+	if n < 0 {
+		return "", mapError()
 	}
-	b, err := io.ReadAll(a, &f)
-	f.Close()
-	return b, err
+	return string(c.Bytes(&buf[0], n)), nil
 }
 
-// WriteFile writes data to the named file, creating it if necessary.
-// If the file does not exist, WriteFile creates it.
-// If the file exists, WriteFile truncates it before writing.
-func WriteFile(name string, data []byte) error {
-	f, err := Create(name)
-	if err != nil {
-		return err
+// Remove removes the named file or (empty) directory.
+func Remove(name string) error {
+	if remove(name) != 0 {
+		return mapError()
 	}
-	_, err = f.Write(data)
-	closeErr := f.Close()
-	if err != nil {
-		return err
-	}
-	return closeErr
+	return nil
 }
 
 // Rename renames (moves) oldpath to newpath. If newpath already exists
@@ -99,48 +131,48 @@ func Rename(oldpath, newpath string) error {
 	return nil
 }
 
-// Remove removes the named file or (empty) directory.
-func Remove(name string) error {
-	if remove(name) != 0 {
+// SameFile reports whether fi1 and fi2 describe the same file.
+// For example, on Unix this means that the device and inode fields
+// of the two underlying structures are identical.
+func SameFile(fi1, fi2 FileInfo) bool {
+	return fi1.dev == fi2.dev && fi1.ino == fi2.ino
+}
+
+// Symlink creates newname as a symbolic link to oldname.
+func Symlink(oldname, newname string) error {
+	if symlink(oldname, newname) != 0 {
 		return mapError()
 	}
 	return nil
 }
 
-// Getenv retrieves the value of the environment variable named by the key.
-// It returns the value, which will be empty if the variable is not present.
-func Getenv(key string) string {
-	ptr := getenv(key).(*byte)
-	if ptr == nil {
-		return ""
+// Truncate changes the size of the named file.
+// If the file is a symbolic link, it changes the size of the link's target.
+func Truncate(name string, size int64) error {
+	if truncate(name, size) != 0 {
+		return mapError()
 	}
-	return c.String(ptr)
-}
-
-// Exit causes the current program to exit with the given status code.
-// Conventionally, code zero indicates success, non-zero an error.
-func Exit(code int) {
-	exit(code)
+	return nil
 }
 
 // mapError maps errno to a sentinel error.
 func mapError() error {
-	if errno == os_EACCES {
+	if errno == eACCES {
 		return ErrPermission
 	}
-	if errno == os_EEXIST {
+	if errno == eEXIST {
 		return ErrExist
 	}
-	if errno == os_EISDIR {
+	if errno == eISDIR {
 		return ErrIsDir
 	}
-	if errno == os_ENOENT {
+	if errno == eNOENT {
 		return ErrNotExist
 	}
-	if errno == os_ENOTDIR {
+	if errno == eNOTDIR {
 		return ErrNotDir
 	}
-	if errno == os_EPERM {
+	if errno == ePERM {
 		return ErrPermission
 	}
 	return ErrIO
