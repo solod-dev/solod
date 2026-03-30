@@ -96,8 +96,9 @@ func (g *Generator) emitDefine(stmt *ast.AssignStmt) {
 		def := g.types.Defs[ident]
 		if def == nil {
 			// Redeclared variable - emit plain assignment.
+			typ := g.types.Uses[ident].Type()
 			fmt.Fprintf(w, "%s%s = ", g.indent(), ident.Name)
-			g.emitExpr(stmt.Rhs[i])
+			g.emitExprAsType(stmt, stmt.Rhs[i], typ)
 			fmt.Fprintf(w, ";\n")
 			i++
 			continue

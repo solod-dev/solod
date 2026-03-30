@@ -314,7 +314,7 @@ func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
 			cType := g.mapType(spec, typ)
 			fmt.Fprintf(w, "%s%s %s = ", g.indent(), cType, name.Name)
 			if len(spec.Values) > i {
-				g.emitExpr(spec.Values[i])
+				g.emitExprAsType(spec, spec.Values[i], typ)
 			} else {
 				fmt.Fprintf(w, "%s", g.zeroValue(spec, typ))
 			}
@@ -331,7 +331,7 @@ func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
 				}
 				fmt.Fprintf(w, ", %s = ", nextName.Name)
 				if len(spec.Values) > i {
-					g.emitExpr(spec.Values[i])
+					g.emitExprAsType(spec, spec.Values[i], nextTyp)
 				} else {
 					fmt.Fprintf(w, "%s", g.zeroValue(spec, nextTyp))
 				}

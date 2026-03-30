@@ -136,16 +136,18 @@ func (g *Generator) emitAnonStructLit(n *ast.CompositeLit, st *ast.StructType) {
 	// Struct fields initialization.
 	fmt.Fprintf(w, "{\n")
 	fields := collectFieldNames(st)
+	struc := g.types.TypeOf(n).Underlying().(*types.Struct)
 	for i, elt := range n.Elts {
 		if i > 0 {
 			fmt.Fprintf(w, ",\n")
 		}
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
-			fmt.Fprintf(w, "%s    .%s = ", g.indent(), kv.Key.(*ast.Ident).Name)
-			g.emitExpr(kv.Value)
+			fieldName := kv.Key.(*ast.Ident).Name
+			fmt.Fprintf(w, "%s    .%s = ", g.indent(), fieldName)
+			g.emitExprAsType(n, kv.Value, structFieldType(struc, fieldName))
 		} else {
 			fmt.Fprintf(w, "%s    .%s = ", g.indent(), fields[i])
-			g.emitExpr(elt)
+			g.emitExprAsType(n, elt, struc.Field(i).Type())
 		}
 	}
 	fmt.Fprintf(w, ",\n")
@@ -170,23 +172,25 @@ func (g *Generator) emitStructLit(n *ast.CompositeLit) {
 // (e.g. {.n = 200, .i = 10}) without a compound literal cast prefix.
 func (g *Generator) emitBareStructInit(n *ast.CompositeLit) {
 	w := g.state.writer
+	struc := g.types.TypeOf(n).Underlying().(*types.Struct)
 	fmt.Fprintf(w, "{")
 	for i, elt := range n.Elts {
 		if i > 0 {
 			fmt.Fprintf(w, ", ")
 		}
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
-			fmt.Fprintf(w, ".%s = ", kv.Key.(*ast.Ident).Name)
+			fieldName := kv.Key.(*ast.Ident).Name
+			fmt.Fprintf(w, ".%s = ", fieldName)
 			if lit, ok := isAnonStructLit(kv.Value); ok {
 				g.emitBareStructInit(lit)
 			} else {
-				g.emitExpr(kv.Value)
+				g.emitExprAsType(n, kv.Value, structFieldType(struc, fieldName))
 			}
 		} else {
 			if lit, ok := isAnonStructLit(elt); ok {
 				g.emitBareStructInit(lit)
 			} else {
-				g.emitExpr(elt)
+				g.emitExprAsType(n, elt, struc.Field(i).Type())
 			}
 		}
 	}
@@ -269,6 +273,16 @@ func (g *Generator) emitMethodCall(sel *ast.SelectorExpr, args []ast.Expr) {
 		g.emitExprAsType(sel, arg, sig.Params().At(i).Type())
 	}
 	fmt.Fprintf(w, ")")
+}
+
+// structFieldType returns the type of a struct field by name.
+func structFieldType(st *types.Struct, name string) types.Type {
+	for field := range st.Fields() {
+		if field.Name() == name {
+			return field.Type()
+		}
+	}
+	panic("structFieldType: field not found: " + name)
 }
 
 // collectFieldNames returns the field names from a struct type in order.

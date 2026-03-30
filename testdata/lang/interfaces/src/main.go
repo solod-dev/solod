@@ -5,6 +5,11 @@ type Shape interface {
 	Perim(n int) int
 }
 
+type Canvas struct {
+	name  string
+	shape Shape
+}
+
 type Rect struct {
 	width, height int
 }
@@ -93,6 +98,57 @@ func main() {
 		var s4 Shape = &r
 		if s4 == nil {
 			panic("want non-nil interface")
+		}
+	}
+	{
+		// Interface field in struct.
+		c1 := Canvas{name: "c1", shape: &r}
+		if c1.shape.Area() != 50 {
+			panic("c1.shape.Area() != 50")
+		}
+		c2 := Canvas{name: "c2", shape: &Rect{5, 4}}
+		if c2.shape.Area() != 20 {
+			panic("c2.shape.Area() != 20")
+		}
+		c3 := Canvas{name: "c3", shape: nil}
+		if c3.shape != nil {
+			panic("c3.shape != nil")
+		}
+	}
+	{
+		// Interface field assignment.
+		var c Canvas
+		c.shape = &r
+		if c.shape.Area() != 50 {
+			panic("c.shape.Area() != 50")
+		}
+	}
+	{
+		// Existing interface in struct literal.
+		s := Shape(&r)
+		c := Canvas{name: "wrap", shape: s}
+		if c.shape.Area() != 50 {
+			panic("c.shape.Area() != 50")
+		}
+	}
+	{
+		// Multi-var interface declaration.
+		r2 := Rect{width: 3, height: 4}
+		var s1, s2 Shape = &r, &r2
+		if s1.Area() != 50 {
+			panic("s1.Area() != 50")
+		}
+		if s2.Area() != 12 {
+			panic("s2.Area() != 12")
+		}
+	}
+	{
+		// Redeclared interface variable.
+		var s Shape
+		s, n := &r, 42
+		_ = n
+		if s.Area() != 50 {
+			panic("s.Area() != 50")
 		}
 	}
 }

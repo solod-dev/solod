@@ -9,6 +9,11 @@ typedef struct main_Shape {
     so_int (*Perim)(void* self, so_int n);
 } main_Shape;
 
+typedef struct main_Canvas {
+    so_String name;
+    main_Shape shape;
+} main_Canvas;
+
 typedef struct main_Rect {
     so_int width;
     so_int height;
