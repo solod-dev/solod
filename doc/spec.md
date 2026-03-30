@@ -655,6 +655,21 @@ dog := struct {
 }{"Rex", true}
 ```
 
+Inner structs (anonymous struct fields):
+
+```go
+type Benchmark struct {
+    name string
+    loop struct {
+        n int
+        i int
+    }
+}
+
+b := Benchmark{name: "Test", loop: struct{ n, i int }{n: 200, i: 10}}
+b.loop.n = 100
+```
+
 `new()` works with types and values:
 
 ```go

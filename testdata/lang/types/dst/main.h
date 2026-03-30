@@ -33,3 +33,12 @@ typedef struct main_Person {
 // Alias for a struct type.
 typedef main_Person main_Human;
 typedef main_Person main_Employee;
+
+// Inner struct.
+typedef struct main_Benchmark {
+    so_String name;
+    struct {
+        so_int n;
+        so_int i;
+    } loop;
+} main_Benchmark;

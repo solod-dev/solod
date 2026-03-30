@@ -70,4 +70,24 @@ int main(void) {
         Point p = (Point){1, 2};
         (void)p;
     }
+    {
+        // Inner struct.
+        main_Benchmark b1 = (main_Benchmark){.name = so_str("Test")};
+        b1.loop.n = 100;
+        if (b1.loop.n != 100) {
+            so_panic("b1.loop.n != 100");
+        }
+        main_Benchmark b2 = (main_Benchmark){.name = so_str("Test2"), .loop = {.n = 200, .i = 10}};
+        if (b2.loop.n != 200) {
+            so_panic("b2.loop.n != 200");
+        }
+        main_Benchmark b3 = (main_Benchmark){.name = so_str("Test3"), .loop = {300, 30}};
+        if (b3.loop.n != 300) {
+            so_panic("b3.loop.n != 300");
+        }
+        main_Benchmark b4 = {0};
+        if (b4.loop.n != 0) {
+            so_panic("b4.loop.n != 0");
+        }
+    }
 }

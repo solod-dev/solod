@@ -17,7 +17,9 @@ func (g *Generator) emitStructTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 	for _, field := range st.Fields.List {
 		typ := g.types.TypeOf(field.Type)
 		for _, name := range field.Names {
-			if sig, ok := typ.(*types.Signature); ok {
+			if innerSt, ok := field.Type.(*ast.StructType); ok {
+				g.emitInlineStructField(w, innerSt, name.Name)
+			} else if sig, ok := typ.(*types.Signature); ok {
 				g.emitFuncPtrField(w, spec, name.Name, sig, cName)
 			} else {
 				// Regular struct field (arrays get dimension suffix).
@@ -43,6 +45,23 @@ func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName strin
 		params = append(params, cType+" "+p.Name())
 	}
 	fmt.Fprintf(w, "%s%s (*%s)(%s);\n", g.indent(), retType, fieldName, strings.Join(params, ", "))
+}
+
+// emitInlineStructField emits an anonymous struct field inline within a parent struct.
+// Example: struct { so_int n; so_int i; } loop;
+// Does not support function pointer fields within the inline struct.
+func (g *Generator) emitInlineStructField(w io.Writer, st *ast.StructType, fieldName string) {
+	fmt.Fprintf(w, "%sstruct {\n", g.indent())
+	g.state.indent++
+	for _, f := range st.Fields.List {
+		typ := g.types.TypeOf(f.Type)
+		ct := g.mapCType(f, typ)
+		for _, name := range f.Names {
+			fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(name.Name))
+		}
+	}
+	g.state.indent--
+	fmt.Fprintf(w, "%s} %s;\n", g.indent(), fieldName)
 }
 
 // emitMethodDecl emits a method as a C function.
@@ -143,16 +162,32 @@ func (g *Generator) emitStructLit(n *ast.CompositeLit) {
 		typ = g.types.TypeOf(n)
 	}
 	cType := g.mapType(n, typ)
-	fmt.Fprintf(w, "(%s){", cType)
+	fmt.Fprintf(w, "(%s)", cType)
+	g.emitBareStructInit(n)
+}
+
+// emitBareStructInit emits a struct literal as a bare initializer
+// (e.g. {.n = 200, .i = 10}) without a compound literal cast prefix.
+func (g *Generator) emitBareStructInit(n *ast.CompositeLit) {
+	w := g.state.writer
+	fmt.Fprintf(w, "{")
 	for i, elt := range n.Elts {
 		if i > 0 {
 			fmt.Fprintf(w, ", ")
 		}
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
 			fmt.Fprintf(w, ".%s = ", kv.Key.(*ast.Ident).Name)
-			g.emitExpr(kv.Value)
+			if lit, ok := isAnonStructLit(kv.Value); ok {
+				g.emitBareStructInit(lit)
+			} else {
+				g.emitExpr(kv.Value)
+			}
 		} else {
-			g.emitExpr(elt)
+			if lit, ok := isAnonStructLit(elt); ok {
+				g.emitBareStructInit(lit)
+			} else {
+				g.emitExpr(elt)
+			}
 		}
 	}
 	fmt.Fprintf(w, "}")
@@ -245,4 +280,14 @@ func collectFieldNames(st *ast.StructType) []string {
 		}
 	}
 	return names
+}
+
+// isAnonStructLit checks if an expression is an anonymous struct composite literal.
+func isAnonStructLit(expr ast.Expr) (*ast.CompositeLit, bool) {
+	lit, ok := expr.(*ast.CompositeLit)
+	if !ok {
+		return nil, false
+	}
+	_, ok = lit.Type.(*ast.StructType)
+	return lit, ok
 }

@@ -30,6 +30,15 @@ func newPerson(name string) Person {
 type Human = Person
 type Employee Person
 
+// Inner struct.
+type Benchmark struct {
+	name string
+	loop struct {
+		n int
+		i int
+	}
+}
+
 func main() {
 	{
 		// Primitive types.
@@ -96,5 +105,25 @@ func main() {
 		}
 		p := Point{1, 2}
 		_ = p
+	}
+	{
+		// Inner struct.
+		b1 := Benchmark{name: "Test"}
+		b1.loop.n = 100
+		if b1.loop.n != 100 {
+			panic("b1.loop.n != 100")
+		}
+		b2 := Benchmark{name: "Test2", loop: struct{ n, i int }{n: 200, i: 10}}
+		if b2.loop.n != 200 {
+			panic("b2.loop.n != 200")
+		}
+		b3 := Benchmark{name: "Test3", loop: struct{ n, i int }{300, 30}}
+		if b3.loop.n != 300 {
+			panic("b3.loop.n != 300")
+		}
+		var b4 Benchmark
+		if b4.loop.n != 0 {
+			panic("b4.loop.n != 0")
+		}
 	}
 }
