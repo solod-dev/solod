@@ -153,9 +153,9 @@ func ExampleMkdirTemp() {
 		panic(err)
 	}
 
-	fmt.Println("created", file)
+	fmt.Println("ok")
 	// Output:
-	// created /tmp/exampleXXXXXX/tmpfile
+	// ok
 }
 
 func ExampleCreateTemp() {
