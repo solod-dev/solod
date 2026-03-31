@@ -20,7 +20,7 @@ var ErrParse = errors.New("time: cannot parse")
 // Format formats the time per layout (strftime verbs like "%Y-%m-%d"),
 // writing into buf. Returns the formatted string (a view into buf).
 // buf length must be large enough for the formatted output plus a null terminator.
-func (t Time) Format(layout string, offset Offset, buf []byte) string {
+func (t Time) Format(buf []byte, layout string, offset Offset) string {
 	date := t.Date(offset)
 	clock := t.Clock(offset)
 	var tm time_tm
@@ -41,7 +41,7 @@ func (t Time) Format(layout string, offset Offset, buf []byte) string {
 // writing into buf. Returns the formatted string (a view into buf).
 // buf must have a length of at least 21 bytes.
 func (t Time) String(buf []byte) string {
-	return t.Format("%Y-%m-%dT%H:%M:%SZ", UTC, buf)
+	return t.Format(buf, "%Y-%m-%dT%H:%M:%SZ", UTC)
 }
 
 // Parse parses value per layout (strptime verbs) and returns the Time.

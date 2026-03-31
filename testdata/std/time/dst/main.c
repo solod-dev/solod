@@ -3,6 +3,7 @@
 // -- Implementation --
 
 int main(void) {
+    so_Slice buf = so_make_slice(so_byte, 64, 64);
     {
         // time.Date and time.Time properties.
         time_Time t = time_Date(2021, time_May, 10, 12, 33, 44, 777888999, time_UTC);
@@ -32,12 +33,11 @@ int main(void) {
     {
         // time.Time.Format and time.Time.String.
         time_Time t = time_Date(2024, time_March, 15, 14, 30, 45, 0, time_UTC);
-        so_byte buf[64] = {0};
-        so_String s = time_Time_Format(t, so_str("%Y-%m-%d"), time_UTC, so_array_slice(so_byte, buf, 0, 64, 64));
+        so_String s = time_Time_Format(t, buf, so_str("%Y-%m-%d"), time_UTC);
         if (so_string_ne(s, so_str("2024-03-15"))) {
             so_panic("unexpected Format");
         }
-        s = time_Time_String(t, so_array_slice(so_byte, buf, 0, 64, 64));
+        s = time_Time_String(t, buf);
         if (so_string_ne(s, so_str("2024-03-15T14:30:45Z"))) {
             so_panic("unexpected String");
         }
@@ -73,8 +73,8 @@ int main(void) {
         if (time_Time_IsZero(t)) {
             so_panic("unexpected Time.IsZero");
         }
-        so_println("%s %.*s", "UTC:", time_Time_String(t, so_make_slice(so_byte, 64, 64)).len, time_Time_String(t, so_make_slice(so_byte, 64, 64)).ptr);
+        so_println("%s %.*s", "UTC:", time_Time_String(t, buf).len, time_Time_String(t, buf).ptr);
         time_Offset utc5 = (time_Offset)(5 * 3600);
-        so_println("%s %.*s", "UTC+5:", time_Time_Format(t, time_RFC3339, utc5, so_make_slice(so_byte, 64, 64)).len, time_Time_Format(t, time_RFC3339, utc5, so_make_slice(so_byte, 64, 64)).ptr);
+        so_println("%s %.*s", "UTC+5:", time_Time_Format(t, buf, time_RFC3339, utc5).len, time_Time_Format(t, buf, time_RFC3339, utc5).ptr);
     }
 }
