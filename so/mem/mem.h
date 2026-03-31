@@ -94,3 +94,12 @@ static inline void mem_Clear(void* ptr, so_int offset, so_int size) {
     if (size < 0) so_panic("mem: negative size");
     memset((char*)ptr + offset, 0, (size_t)size);
 }
+
+// Move copies n bytes from src to dst. Returns dst.
+// The memory areas may overlap.
+// Panics if either dst or src is nil.
+static inline void* mem_Move(void* dst, const void* src, so_int n) {
+    if (dst == NULL || src == NULL) so_panic("mem: nil pointer");
+    if (n < 0) so_panic("mem: negative size");
+    return memmove(dst, src, (size_t)n);
+}

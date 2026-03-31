@@ -62,6 +62,9 @@ func (b *Builder) Free() {
 // grow copies the buffer to a new, larger buffer so that there are at least n
 // bytes of capacity beyond len(b.buf).
 func (b *Builder) grow(n int) {
+	if cap(b.buf)-len(b.buf) >= n {
+		return
+	}
 	newCap := 2*cap(b.buf) + n
 	b.buf = mem.ReallocSlice(b.a, b.buf, len(b.buf), newCap)
 }
@@ -73,15 +76,13 @@ func (b *Builder) Grow(n int) {
 	if n < 0 {
 		panic("strings: negative grow")
 	}
-	if cap(b.buf)-len(b.buf) < n {
-		b.grow(n)
-	}
+	b.grow(n)
 }
 
 // Write appends the contents of p to b's buffer.
 // Write always returns len(p), nil.
 func (b *Builder) Write(p []byte) (int, error) {
-	b.Grow(len(p))
+	b.grow(len(p))
 	l := len(b.buf)
 	b.buf = b.buf[:l+len(p)]
 	copy(b.buf[l:], p)
@@ -91,7 +92,7 @@ func (b *Builder) Write(p []byte) (int, error) {
 // WriteByte appends the byte c to b's buffer.
 // The returned error is always nil.
 func (b *Builder) WriteByte(c byte) error {
-	b.Grow(1)
+	b.grow(1)
 	b.buf = append(b.buf, c)
 	return nil
 }
@@ -99,7 +100,7 @@ func (b *Builder) WriteByte(c byte) error {
 // WriteRune appends the UTF-8 encoding of Unicode code point r to b's buffer.
 // It returns the length of r and a nil error.
 func (b *Builder) WriteRune(r rune) (int, error) {
-	b.Grow(utf8.UTFMax)
+	b.grow(utf8.UTFMax)
 	n := len(b.buf)
 	b.buf = utf8.AppendRune(b.buf, r)
 	return len(b.buf) - n, nil
@@ -108,9 +109,7 @@ func (b *Builder) WriteRune(r rune) (int, error) {
 // WriteString appends the contents of s to b's buffer.
 // It returns the length of s and a nil error.
 func (b *Builder) WriteString(s string) (int, error) {
-	b.Grow(len(s))
-	l := len(b.buf)
-	b.buf = b.buf[:l+len(s)]
-	copy(b.buf[l:], s)
+	b.grow(len(s))
+	b.buf = append(b.buf, s...)
 	return len(s), nil
 }

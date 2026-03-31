@@ -497,3 +497,6 @@ static inline so_Slice unsafe_Slice(void* ptr, size_t len) {
 static inline void* unsafe_SliceData(so_Slice s) {
     return s.ptr;
 }
+static inline void* unsafe_Add(void* ptr, size_t offset) {
+    return (char*)ptr + offset;
+}

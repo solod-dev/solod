@@ -102,6 +102,13 @@ func FreeString(a Allocator, s string) {
 //so:extern
 func Clear(ptr any, offset int, size int) {}
 
+// Move copies n bytes from src to dst. Returns dst.
+// The memory areas may overlap.
+// Panics if either dst or src is nil.
+//
+//so:extern
+func Move(dst any, src any, n int) any { _, _, _ = dst, src, n; return nil }
+
 //so:extern
 var maxAllocSize = 1 << 10 // 1 KiB, for testing purposes
 
