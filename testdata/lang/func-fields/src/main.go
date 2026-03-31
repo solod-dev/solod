@@ -3,6 +3,7 @@ package main
 type Movie struct {
 	year     int
 	ratingFn func(m Movie) int
+	updateFn func(m *Movie)
 }
 
 func freshness(m Movie) int {
@@ -12,6 +13,7 @@ func freshness(m Movie) int {
 // Must define a named function type to use it
 // as function argument or return value.
 type RatingFn func(m Movie) int
+type UpdateFn func(m *Movie)
 
 func getRatingFn() RatingFn {
 	return freshness

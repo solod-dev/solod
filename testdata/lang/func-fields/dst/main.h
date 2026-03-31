@@ -6,8 +6,11 @@
 typedef struct main_Movie {
     so_int year;
     so_int (*ratingFn)(struct main_Movie m);
+    void (*updateFn)(struct main_Movie* m);
 } main_Movie;
 
 // Must define a named function type to use it
 // as function argument or return value.
 typedef so_int (*main_RatingFn)(main_Movie);
+
+typedef void (*main_UpdateFn)(main_Movie*);

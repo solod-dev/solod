@@ -39,7 +39,7 @@ func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName strin
 	var params []string
 	for p := range sig.Params().Variables() {
 		cType := g.mapType(node, p.Type())
-		if cType == enclosingStruct {
+		if cType == enclosingStruct || cType == enclosingStruct+"*" {
 			cType = "struct " + cType
 		}
 		params = append(params, cType+" "+p.Name())
