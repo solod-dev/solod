@@ -8,6 +8,7 @@ GCC_DOCKER  = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 compiler ?= $(СС)
 RUN_CMD = ./build/main
 
+# Set CC and CFLAGS based on the selected compiler.
 ifeq ($(compiler), clang)
     CC = $(CLANG)
 else ifeq ($(compiler), gcc)
@@ -17,6 +18,20 @@ else ifeq ($(compiler), docker)
     CC = $(GCC_DOCKER) gcc
 	CFLAGS += -fanalyzer -D_FORTIFY_SOURCE=2
     RUN_CMD = $(GCC_DOCKER) ./build/main
+endif
+
+# Preload mimalloc if available.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    MIMALLOC_LIB := $(shell ls /opt/homebrew/lib/libmimalloc.dylib /usr/local/lib/libmimalloc.dylib 2>/dev/null | head -1)
+    ifneq ($(MIMALLOC_LIB),)
+        MIMALLOC_PRELOAD := DYLD_INSERT_LIBRARIES=$(MIMALLOC_LIB)
+    endif
+else ifeq ($(UNAME_S),Linux)
+    MIMALLOC_LIB := $(shell ls /usr/lib/libmimalloc.so /usr/local/lib/libmimalloc.so 2>/dev/null | head -1)
+    ifneq ($(MIMALLOC_LIB),)
+        MIMALLOC_PRELOAD := LD_PRELOAD=$(MIMALLOC_LIB)
+    endif
 endif
 
 inspect:
@@ -78,3 +93,10 @@ run-c:
 	@$(CC) -O1 $(CFLAGS) -I$(path) -o build/main $(shell find $(path) -name "*.c") $(LDLIBS)
 	@$(RUN_CMD)
 	@rm -f build/main
+
+.PHONY: bench
+bench:
+	@cd bench/$(name) && go test -bench=.
+	@CFLAGS="-Ofast -march=native -flto -funroll-loops" \
+	$(MIMALLOC_PRELOAD) \
+	go run ./cmd/so run ./bench/$(name)
