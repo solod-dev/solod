@@ -95,7 +95,7 @@ Types:
 
 ## [so/maps](https://pkg.go.dev/solod.dev/so/maps)
 
-Generic hashmap similar to Go's built-in `map[K]V`, backed by a Robin Hood hash table with automatic grow/shrink.
+Generic hashmap similar to Go's built-in `map[K]V`, backed by a Robin Hood hash table with automatic grow.
 
 Functions:
 

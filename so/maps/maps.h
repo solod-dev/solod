@@ -1,34 +1,66 @@
 #include "so/builtin/builtin.h"
 
-// equalBytes compares two byte keys for equality.
-static inline bool maps_equalBytes(so_Slice a, so_Slice b) {
-    return a.len == b.len && (a.len == 0 || memcmp(a.ptr, b.ptr, a.len) == 0);
-}
-
-// equalString compares two string keys by their content.
-static inline bool maps_equalString(so_Slice a, so_Slice b) {
-    return so_string_eq(*(so_String*)a.ptr, *(so_String*)b.ptr);
-}
-
-// equal compares two typed key pointers for equality.
-#define maps_keyEqual(K, a, b)                                       \
-    _Generic((K){0},                                                 \
-        so_String: so_string_eq(*(so_String*)(a), *(so_String*)(b)), \
-        default: memcmp((a), (b), sizeof(K)) == 0)
-
 // Map is a generic hashmap similar to Go's built-in map[K]V.
 typedef maps_ByteMap maps_Map;
 
+// maps_insert does byte-level Robin Hood insertion into a map.
+// Used during rehash only - skips equality check since keys are unique.
+static inline void maps_insert(maps_ByteMap* m, so_int hash,
+                               const void* key, const void* val) {
+    uint64_t ehdib = ((uint64_t)hash << 16) | 1;
+    so_int ksize = m->ksize, vsize = m->vsize;
+    uint64_t* hd = (uint64_t*)m->hdib.ptr;
+    uint8_t* ks = (uint8_t*)m->keys.ptr;
+    uint8_t* vs = (uint8_t*)m->vals.ptr;
+    uint8_t ekey[ksize], eval[vsize];  // VLA
+    memcpy(ekey, key, ksize);
+    memcpy(eval, val, vsize);
+    so_int i = hash & m->mask;
+    for (;;) {
+        if ((hd[i] & 0xFFFF) == 0) {
+            hd[i] = ehdib;
+            memcpy(ks + i * ksize, ekey, ksize);
+            memcpy(vs + i * vsize, eval, vsize);
+            m->len++;
+            return;
+        }
+        if ((hd[i] & 0xFFFF) < (ehdib & 0xFFFF)) {
+            uint64_t te = ehdib;
+            ehdib = hd[i];
+            hd[i] = te;
+            uint8_t tmp[ksize];
+            memcpy(tmp, ekey, ksize);
+            memcpy(ekey, ks + i * ksize, ksize);
+            memcpy(ks + i * ksize, tmp, ksize);
+            uint8_t tmpv[vsize];
+            memcpy(tmpv, eval, vsize);
+            memcpy(eval, vs + i * vsize, vsize);
+            memcpy(vs + i * vsize, tmpv, vsize);
+        }
+        i = (i + 1) & m->mask;
+        ehdib++;
+    }
+}
+
+// maps_rehash moves all entries from src into dst.
+static inline void maps_rehash(maps_ByteMap* dst, maps_ByteMap* src) {
+    uint64_t* hd = (uint64_t*)src->hdib.ptr;
+    uint8_t* ks = (uint8_t*)src->keys.ptr;
+    uint8_t* vs = (uint8_t*)src->vals.ptr;
+    so_int ksize = src->ksize, vsize = src->vsize;
+    so_int n = src->hdib.len;
+    for (so_int i = 0; i < n; i++) {
+        if ((hd[i] & 0xFFFF) > 0) {
+            maps_insert(dst, (so_int)(hd[i] >> 16),
+                        ks + i * ksize, vs + i * vsize);
+        }
+    }
+}
+
 // New creates a new Map with the given minimal capacity
 // using the provided allocator (or the default allocator if nil).
-#define maps_New(K, V, a, size) ({                                    \
-    maps_ByteMap _m = maps_NewByteMap((a), (size), (so_int)sizeof(K), \
-                                      (so_int)sizeof(V));             \
-    _m.equalFn = _Generic((K){0},                                     \
-        so_String: maps_equalString,                                  \
-        default: maps_equalBytes);                                    \
-    _m;                                                               \
-})
+#define maps_New(K, V, a, size) \
+    maps_NewByteMap((a), (size), (so_int)sizeof(K), (so_int)sizeof(V))
 
 // Has returns true if the given key is in the map.
 #define maps_Map_Has(K, V, m, key) ({                     \
@@ -177,3 +209,9 @@ typedef maps_ByteMap maps_Map;
 // If the map is already freed, does nothing.
 #define maps_Map_Free(K, V, m) \
     maps_ByteMap_Free(m)
+
+// equal compares two typed key pointers for equality.
+#define maps_keyEqual(K, a, b)                                       \
+    _Generic((K){0},                                                 \
+        so_String: so_string_eq(*(so_String*)(a), *(so_String*)(b)), \
+        default: memcmp((a), (b), sizeof(K)) == 0)
