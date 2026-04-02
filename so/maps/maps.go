@@ -3,19 +3,22 @@ package maps
 
 import "solod.dev/so/mem"
 
+//so:embed hash.h
+var hash_h string
+
 //so:embed maps.h
 var maps_h string
 
 // Map is a generic hashmap similar to Go's built-in map[K]V.
+// It automatically grows as needed, but does not shrink.
 //
 //so:extern
-type Map[K comparable, V any] struct{}
+type Map[K comparable, V any] struct {
+	m map[K]V
+}
 
-// New creates a new Map with the given minimal capacity
+// New creates a new Map with the given initial capacity
 // using the provided allocator (or the default allocator if nil).
-//
-// Map will automatically grow and shrink as needed,
-// but will not shrink below minCap.
 //
 // If the allocator is nil, uses the system allocator.
 // The caller is responsible for freeing map resources
@@ -23,14 +26,17 @@ type Map[K comparable, V any] struct{}
 //
 //so:extern
 func New[K comparable, V any](a mem.Allocator, size int) Map[K, V] {
-	return Map[K, V]{}
+	return Map[K, V]{
+		m: make(map[K]V, size),
+	}
 }
 
 // Has returns true if the given key is in the map.
 //
 //so:extern
 func (m *Map[K, V]) Has(key K) bool {
-	return false
+	_, ok := m.m[key]
+	return ok
 }
 
 // Get returns the value for the given key,
@@ -38,8 +44,7 @@ func (m *Map[K, V]) Has(key K) bool {
 //
 //so:extern
 func (m *Map[K, V]) Get(key K) V {
-	var zero V
-	return zero
+	return m.m[key]
 }
 
 // Set sets the value for the given key,
@@ -47,6 +52,7 @@ func (m *Map[K, V]) Get(key K) V {
 //
 //so:extern
 func (m *Map[K, V]) Set(key K, value V) {
+	m.m[key] = value
 }
 
 // Delete removes the key and its value from the map.
@@ -54,13 +60,14 @@ func (m *Map[K, V]) Set(key K, value V) {
 //
 //so:extern
 func (m *Map[K, V]) Delete(key K) {
+	delete(m.m, key)
 }
 
 // Len returns the number of key-value pairs in the map.
 //
 //so:extern
 func (m *Map[K, V]) Len() int {
-	return 0
+	return len(m.m)
 }
 
 // Free frees internal resources used by the map.
@@ -69,4 +76,5 @@ func (m *Map[K, V]) Len() int {
 //
 //so:extern
 func (m *Map[K, V]) Free() {
+	m.m = nil
 }
