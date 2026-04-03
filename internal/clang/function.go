@@ -135,7 +135,10 @@ func (g *Generator) emitMacroFuncDecl(w io.Writer, decl *ast.FuncDecl) {
 	}
 
 	// Build param list: type params, then receiver (for methods), then regular params.
+	// Non-type params are suffixed with _ to avoid name collisions (b->val = val).
+	// References are wrapped in parens to avoid syntax errors (&b->val).
 	var params []string
+	macroParams := make(map[string]bool)
 	if decl.Type.TypeParams != nil {
 		for _, field := range decl.Type.TypeParams.List {
 			for _, n := range field.Names {
@@ -145,19 +148,21 @@ func (g *Generator) emitMacroFuncDecl(w io.Writer, decl *ast.FuncDecl) {
 	}
 	if decl.Recv != nil {
 		recv := decl.Recv.List[0]
-		// Add receiver type params.
+		// Add receiver type params (no suffix - these are type names).
 		params = append(params, recvTypeParams(recv)...)
-		// Add receiver as parameter.
+		// Add receiver as parameter (suffixed).
 		recvName := "self"
 		if len(recv.Names) > 0 {
 			recvName = recv.Names[0].Name
 		}
-		params = append(params, recvName)
+		macroParams[recvName] = true
+		params = append(params, recvName+"_")
 	}
 	if decl.Type.Params != nil {
 		for _, field := range decl.Type.Params.List {
 			for _, n := range field.Names {
-				params = append(params, n.Name)
+				macroParams[n.Name] = true
+				params = append(params, n.Name+"_")
 			}
 		}
 	}
@@ -170,6 +175,7 @@ func (g *Generator) emitMacroFuncDecl(w io.Writer, decl *ast.FuncDecl) {
 	g.state.tempCount = 0
 	g.state.indent = 1
 	g.state.inMacro = true
+	g.state.macroParams = macroParams
 	g.state.defers = nil
 	g.walkStmts(decl.Body.List)
 	g.state = savedState
@@ -465,4 +471,3 @@ func recvTypeParams(recv *ast.Field) []string {
 	}
 	return nil
 }
-

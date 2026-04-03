@@ -374,6 +374,10 @@ func (g *Generator) emitIdent(n *ast.Ident) {
 			name = g.symbolName(name)
 		}
 	}
+	if g.state.macroParams[name] {
+		fmt.Fprintf(g.state.writer, "(%s_)", name)
+		return
+	}
 	fmt.Fprintf(g.state.writer, "%s", name)
 }
 

@@ -72,6 +72,9 @@ type State struct {
 	tempCount int
 	// Whether we are emitting inside a #define macro body.
 	inMacro bool
+	// Non-type macro parameter names. They are suffixed with _ and parenthesized
+	// to avoid name collisions (b->val = val) and syntax errors (&b->val) in macro bodies.
+	macroParams map[string]bool
 }
 
 // Generator is responsible for generating C code from Go ASTs.
