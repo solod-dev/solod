@@ -70,6 +70,8 @@ type State struct {
 	defers []string
 	// Counter for unique temp variable names.
 	tempCount int
+	// Whether we are emitting inside a #define macro body.
+	inMacro bool
 }
 
 // Generator is responsible for generating C code from Go ASTs.

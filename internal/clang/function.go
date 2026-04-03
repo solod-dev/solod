@@ -110,13 +110,97 @@ func (g *Generator) emitFuncDecl(decl *ast.FuncDecl) {
 	g.emitFuncBody(decl)
 }
 
-// emitInlineFuncDecl emits a so:inline function declaration as static inline
-// into the given writer (typically the header).
+// emitInlineFuncDecl emits a so:inline function declaration into the header.
+// Generic functions are emitted as #define macros; non-generic as static inline.
 func (g *Generator) emitInlineFuncDecl(w io.Writer, decl *ast.FuncDecl) {
+	if isGenericFunc(decl) {
+		g.emitMacroFuncDecl(w, decl)
+		return
+	}
 	saved := g.state.writer
 	g.state.writer = w
 	g.emitFuncBody(decl)
 	g.state.writer = saved
+}
+
+// emitMacroFuncDecl emits a generic so:inline function as a #define macro.
+func (g *Generator) emitMacroFuncDecl(w io.Writer, decl *ast.FuncDecl) {
+	sig := g.funcSig(decl)
+	g.rejectNamedReturns(decl, sig)
+
+	// Build macro name.
+	name := g.symbolName(decl.Name.Name)
+	if decl.Recv != nil {
+		name = g.symbolName(recvTypeName(decl.Recv.List[0])) + "_" + decl.Name.Name
+	}
+
+	// Build param list: type params, then receiver (for methods), then regular params.
+	var params []string
+	if decl.Type.TypeParams != nil {
+		for _, field := range decl.Type.TypeParams.List {
+			for _, n := range field.Names {
+				params = append(params, n.Name)
+			}
+		}
+	}
+	if decl.Recv != nil {
+		recv := decl.Recv.List[0]
+		// Add receiver type params.
+		params = append(params, recvTypeParams(recv)...)
+		// Add receiver as parameter.
+		recvName := "self"
+		if len(recv.Names) > 0 {
+			recvName = recv.Names[0].Name
+		}
+		params = append(params, recvName)
+	}
+	if decl.Type.Params != nil {
+		for _, field := range decl.Type.Params.List {
+			for _, n := range field.Names {
+				params = append(params, n.Name)
+			}
+		}
+	}
+
+	// Capture body output.
+	var buf strings.Builder
+	savedState := g.state
+	g.state.writer = &buf
+	g.state.funcSig = sig
+	g.state.tempCount = 0
+	g.state.indent = 1
+	g.state.inMacro = true
+	g.state.defers = nil
+	g.walkStmts(decl.Body.List)
+	g.state = savedState
+
+	// Determine if returning or void.
+	hasReturn := sig.Results() != nil && sig.Results().Len() > 0
+
+	// Emit #define with line continuations.
+	body := buf.String()
+	// Trim trailing newline.
+	body = strings.TrimRight(body, "\n")
+	lines := strings.Split(body, "\n")
+
+	if !g.emitComments(w, decl) {
+		fmt.Fprintln(w)
+	}
+	if hasReturn {
+		fmt.Fprintf(w, "#define %s(%s) ({", name, strings.Join(params, ", "))
+	} else {
+		fmt.Fprintf(w, "#define %s(%s) do {", name, strings.Join(params, ", "))
+	}
+	for _, line := range lines {
+		fmt.Fprintf(w, " \\\n%s", line)
+	}
+	if hasReturn {
+		fmt.Fprintln(w, " \\")
+		fmt.Fprintln(w, "})")
+	} else {
+		fmt.Fprintln(w, " \\")
+		fmt.Fprintln(w, "} while (0)")
+	}
 }
 
 // emitFuncBody emits a function or method body. Shared by [Generator.emitFuncDecl]
@@ -285,6 +369,26 @@ func (g *Generator) emitCArg(arg ast.Expr) {
 	}
 }
 
+// isGenericFunc reports whether a function declaration is generic
+// (has type params on the function itself or on its receiver type).
+func isGenericFunc(decl *ast.FuncDecl) bool {
+	if decl.Type.TypeParams != nil && len(decl.Type.TypeParams.List) > 0 {
+		return true
+	}
+	if decl.Recv != nil {
+		recv := decl.Recv.List[0]
+		typ := recv.Type
+		if star, ok := typ.(*ast.StarExpr); ok {
+			typ = star.X
+		}
+		switch typ.(type) {
+		case *ast.IndexExpr, *ast.IndexListExpr:
+			return true
+		}
+	}
+	return false
+}
+
 // hasUnexportedTypes reports whether a function declaration
 // references any unexported types from the current package.
 func (g *Generator) hasUnexportedTypes(decl *ast.FuncDecl) bool {
@@ -338,3 +442,27 @@ func recvTypeName(recv *ast.Field) string {
 	}
 	panic(fmt.Sprintf("unsupported receiver type: %T", recv.Type))
 }
+
+// recvTypeParams extracts type parameter names from a generic receiver field.
+func recvTypeParams(recv *ast.Field) []string {
+	typ := recv.Type
+	if star, ok := typ.(*ast.StarExpr); ok {
+		typ = star.X
+	}
+	switch t := typ.(type) {
+	case *ast.IndexExpr:
+		if ident, ok := t.Index.(*ast.Ident); ok {
+			return []string{ident.Name}
+		}
+	case *ast.IndexListExpr:
+		var names []string
+		for _, idx := range t.Indices {
+			if ident, ok := idx.(*ast.Ident); ok {
+				names = append(names, ident.Name)
+			}
+		}
+		return names
+	}
+	return nil
+}
+

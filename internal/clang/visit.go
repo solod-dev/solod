@@ -506,6 +506,18 @@ func (g *Generator) emitRangeStmt(stmt *ast.RangeStmt) {
 
 // emitReturnStmt emits a return statement, preceded by any deferred generic calls.
 func (g *Generator) emitReturnStmt(stmt *ast.ReturnStmt) {
+	if g.state.inMacro {
+		// In macro mode: "return X" becomes just "X;", void return is a no-op.
+		if len(stmt.Results) > 0 {
+			w := g.state.writer
+			fmt.Fprintf(w, "%s", g.indent())
+			retType := g.state.funcSig.Results().At(0).Type()
+			g.emitExprAsType(stmt, stmt.Results[0], retType)
+			fmt.Fprintf(w, ";\n")
+		}
+		return
+	}
+
 	g.emitDeferredCalls()
 	w := g.state.writer
 

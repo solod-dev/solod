@@ -109,6 +109,9 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 
 	case *types.Struct:
 		return "so_auto"
+
+	case *types.TypeParam:
+		return t.Obj().Name()
 	}
 
 	// Basic types (e.g. int, bool, string).
