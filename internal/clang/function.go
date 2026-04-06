@@ -365,8 +365,9 @@ func (g *Generator) emitCArg(arg ast.Expr) {
 		g.emitExpr(arg)
 		fmt.Fprintf(w, ")")
 	} else if _, ok := g.types.TypeOf(arg).Underlying().(*types.Slice); ok {
+		fmt.Fprintf(w, "so_decay(")
 		g.emitExpr(arg)
-		fmt.Fprintf(w, ".ptr")
+		fmt.Fprintf(w, ")")
 	} else if isErrorType(g.types.TypeOf(arg)) {
 		g.emitExpr(arg)
 		fmt.Fprintf(w, "->msg")

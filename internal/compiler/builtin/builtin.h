@@ -188,6 +188,10 @@ extern so_byte so_Nil[];
     (so_Slice){(T*)_s.ptr + _from, _to - _from, _max - _from}; \
 })
 
+// decay extracts the pointer from a slice for passing to C functions.
+// Returns NULL for empty/nil slices instead of the so_Nil sentinel.
+#define so_decay(s) ({ so_Slice _s = (s); _s.cap ? _s.ptr : NULL; })
+
 // string_bytes reinterprets a string as a byte slice (zero-copy).
 #define so_string_bytes(s) ({                  \
     so_String _s = (s);                        \
@@ -712,7 +716,7 @@ static inline so_Slice unsafe_Slice(void* ptr, size_t len) {
     return (so_Slice){ptr, len, len};
 }
 static inline void* unsafe_SliceData(so_Slice s) {
-    if (s.len == 0) {
+    if (s.cap == 0) {
         return NULL;
     }
     return s.ptr;
