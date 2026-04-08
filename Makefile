@@ -5,7 +5,7 @@ CLANG       = clang
 GCC_NATIVE  = gcc-15
 GCC_DOCKER  = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 
-compiler ?= $(СС)
+compiler ?= $(CC)
 RUN_CMD = ./build/main
 
 # Set CC and CFLAGS based on the selected compiler.
