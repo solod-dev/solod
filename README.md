@@ -17,7 +17,7 @@ So is for systems programming in C, but with Go's syntax, type safety, and tooli
 [Example](#example) •
 [Installation and usage](#installation-and-usage) •
 [Language tour](doc/spec.md) •
-[Stdlib](doc/stdlib.md) •
+[Standard library](doc/stdlib.md) •
 [Playground](https://codapi.org/so/) •
 [So by example](example/README.md) •
 [Testing](#testing) •
@@ -190,7 +190,7 @@ So generates C11 code that relies on several GCC/Clang extensions:
 - `__attribute__((constructor))` for package-level initialization.
 - `__auto_type` for local type inference in generated code.
 - `__typeof__` for type inference in generic macros.
-- `alloca` for `make()` and other dynamic stack allocations.
+- `alloca` and VLAs for `make()` and other dynamic stack allocations.
 
 You can use GCC, Clang, or `zig cc` to compile the transpiled C code. MSVC is not supported.
 
