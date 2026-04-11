@@ -1,18 +1,18 @@
 # Solod: Go can be a better C
 
-Solod (**So**) is a strict subset of Go that translates to regular C — with zero runtime, manual memory management, and source-level interop.
+Solod (**So**) is a strict subset of Go that translates to regular C.
 
 Highlights:
 
 - Go in, C out. You write regular Go code and get readable C11 as output.
 - Zero runtime. No garbage collection, no reference counting, no hidden allocations.
-- Everything is stack-allocated by default. Heap is opt-in through the standard library.
+- Rich standard library. Use familiar types and functions ported from Go's stdlib.
 - Native C interop. Call C from So and So from C — no CGO, no overhead.
-- Go tooling works out of the box — syntax highlighting, LSP, linting and "go test".
+- Go tooling works out of the box. Syntax highlighting, LSP, linting and "go test".
 
-So supports structs, methods, interfaces, slices, multiple returns, and defer. To keep things simple, there are no channels, goroutines, closures, or generics.
+So supports structs, methods, interfaces, slices, maps, multiple returns, and defer. Everything is stack-allocated by default; heap is opt-in through the standard library. To keep things simple, there are no channels, goroutines, closures, or generics.
 
-So is for systems programming in C, but with Go's syntax, type safety, and tooling.
+So is for Go developers who want systems-level control without learning a new language. And for C programmers who like Go's safety, structure, and tooling.
 
 [Example](#example) •
 [Installation and usage](#installation-and-usage) •
