@@ -1,5 +1,6 @@
 package os
 
+//so:include <dirent.h>
 //so:include <fcntl.h>
 //so:include <sys/stat.h>
 //so:include <unistd.h>
@@ -7,8 +8,8 @@ package os
 // MaxPathLen is the maximum length of a path.
 const MaxPathLen = 4096
 
-// MaxHostnameLen is the maximum length of a hostname.
-const MaxHostnameLen = 255
+// MaxNameLen is the maximum length of a filename.
+const MaxNameLen = 256
 
 //so:extern S_IFMT
 const sIFMT = 0170000 // type of file mask
@@ -56,6 +57,42 @@ type os_statResult struct {
 	ok      bool
 }
 
+//so:extern DIR
+type os_dir struct{}
+
+// dirent d_type constants.
+//
+//so:extern DT_UNKNOWN
+const dtUnknown = 0
+
+//so:extern DT_FIFO
+const dtFIFO = 1
+
+//so:extern DT_CHR
+const dtCHR = 2
+
+//so:extern DT_DIR
+const dtDIR = 4
+
+//so:extern DT_BLK
+const dtBLK = 6
+
+//so:extern DT_REG
+const dtREG = 8
+
+//so:extern DT_LNK
+const dtLNK = 10
+
+//so:extern DT_SOCK
+const dtSOCK = 12
+
+//so:extern
+type os_readdirResult struct {
+	nameLen int32
+	dtype   uint8
+	ok      bool
+}
+
 // int chdir(const char *path);
 //
 //so:extern
@@ -77,6 +114,14 @@ func chmod(path string, mode mode_t) int {
 //so:extern
 func chown(path string, uid uid_t, gid gid_t) int {
 	_, _, _ = path, uid, gid
+	return 0
+}
+
+// int closedir(DIR *dirp);
+//
+//so:extern
+func closedir(dir *os_dir) int {
+	_ = dir
 	return 0
 }
 
@@ -204,12 +249,28 @@ func mkdtemp(tmpl *byte) any {
 	return &b[0]
 }
 
+// DIR *opendir(const char *name);
+//
+//so:extern
+func opendir(name string) *os_dir {
+	_ = name
+	return nil
+}
+
 // int open(const char *path, int oflag, ...);
 //
 //so:extern open
 func posixOpen(path string, flags int, mode uint32) int {
 	_, _, _ = path, flags, mode
 	return 42
+}
+
+// os_readdir_next reads the next directory entry into buf.
+//
+//so:extern
+func os_readdir_next(dir *os_dir, buf *byte, bufsize uintptr) os_readdirResult {
+	_, _, _ = dir, buf, bufsize
+	return os_readdirResult{}
 }
 
 // ssize_t readlink(const char* restrict path, char* restrict buf, size_t bufsize);

@@ -38,6 +38,20 @@ func (m FileMode) Perm() FileMode {
 	return m & ModePerm
 }
 
+// A DirEntry is an entry read from a directory (using the [ReadDir] function).
+type DirEntry struct {
+	// Name of the file (or subdirectory) described by the entry.
+	// This is only the final element of the path (the base name), not the entire path.
+	// For example, Name would be "hello.go" not "home/gopher/hello.go".
+	Name string
+
+	// Whether the entry describes a directory.
+	IsDir bool
+
+	// Type bits for the entry (a subset of the usual [FileMode] bits).
+	Type FileMode
+}
+
 // makePosixMode converts Go FileMode bits to POSIX mode_t bits.
 func makePosixMode(fmode FileMode) mode_t {
 	pmode := mode_t(fmode & 0777)

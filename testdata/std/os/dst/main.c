@@ -2,6 +2,7 @@
 
 // -- Forward declarations --
 static void basicTest(void);
+static void dirTest(void);
 static void envTest(void);
 static void fileTest(void);
 static void procTest(void);
@@ -162,6 +163,103 @@ static void basicTest(void) {
             so_panic("Stderr: wrong count");
         }
         so_println("");
+    }
+}
+
+// -- dir.go --
+
+static void dirTest(void) {
+    {
+        // ReadDir on a directory with known contents.
+        so_String dirName = so_str("test_readdir");
+        os_Mkdir(dirName, 0755);
+        os_WriteFile(so_string_add(dirName, so_str("/aaa.txt")), so_string_bytes(so_str("hello")), 0666);
+        os_WriteFile(so_string_add(dirName, so_str("/bbb.txt")), so_string_bytes(so_str("world")), 0666);
+        os_Mkdir(so_string_add(dirName, so_str("/subdir")), 0755);
+        so_R_slice_err _res1 = os_ReadDir((mem_Allocator){0}, dirName);
+        so_Slice entries = _res1.val;
+        so_Error err = _res1.err;
+        if (err != NULL) {
+            os_Remove(so_string_add(dirName, so_str("/subdir")));
+            os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+            os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+            os_Remove(dirName);
+            so_panic("ReadDir failed");
+        }
+        if (so_len(entries) != 3) {
+            fmt_Printf("ReadDir: expected 3 entries, got %d\n", so_len(entries));
+            os_FreeDirEntry((mem_Allocator){0}, entries);
+            os_Remove(so_string_add(dirName, so_str("/subdir")));
+            os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+            os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+            os_Remove(dirName);
+            so_panic("ReadDir: wrong count");
+        }
+        // Check that we find each expected entry.
+        bool foundFile = false;
+        bool foundDir = false;
+        for (so_int _ = 0; _ < so_len(entries); _++) {
+            os_DirEntry entry = so_at(os_DirEntry, entries, _);
+            if (so_string_eq(entry.Name, so_str("aaa.txt")) || so_string_eq(entry.Name, so_str("bbb.txt"))) {
+                foundFile = true;
+                if (entry.IsDir) {
+                    os_FreeDirEntry((mem_Allocator){0}, entries);
+                    os_Remove(so_string_add(dirName, so_str("/subdir")));
+                    os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+                    os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+                    os_Remove(dirName);
+                    so_panic("ReadDir: file should not be dir");
+                }
+            }
+            if (so_string_eq(entry.Name, so_str("subdir"))) {
+                foundDir = true;
+                if (!entry.IsDir) {
+                    os_FreeDirEntry((mem_Allocator){0}, entries);
+                    os_Remove(so_string_add(dirName, so_str("/subdir")));
+                    os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+                    os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+                    os_Remove(dirName);
+                    so_panic("ReadDir: subdir should be dir");
+                }
+                if ((entry.Type & os_ModeDir) == 0) {
+                    os_FreeDirEntry((mem_Allocator){0}, entries);
+                    os_Remove(so_string_add(dirName, so_str("/subdir")));
+                    os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+                    os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+                    os_Remove(dirName);
+                    so_panic("ReadDir: subdir Type should have ModeDir");
+                }
+            }
+        }
+        if (!foundFile) {
+            os_FreeDirEntry((mem_Allocator){0}, entries);
+            os_Remove(so_string_add(dirName, so_str("/subdir")));
+            os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+            os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+            os_Remove(dirName);
+            so_panic("ReadDir: did not find file entries");
+        }
+        if (!foundDir) {
+            os_FreeDirEntry((mem_Allocator){0}, entries);
+            os_Remove(so_string_add(dirName, so_str("/subdir")));
+            os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+            os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+            os_Remove(dirName);
+            so_panic("ReadDir: did not find subdir");
+        }
+        os_FreeDirEntry((mem_Allocator){0}, entries);
+        os_Remove(so_string_add(dirName, so_str("/subdir")));
+        os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
+        os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
+        os_Remove(dirName);
+    }
+    {
+        // ReadDir on nonexistent directory.
+        so_R_slice_err _res2 = os_ReadDir((mem_Allocator){0}, so_str("nonexistent_dir_xyz"));
+        so_Error err = _res2.err;
+        if (err != os_ErrNotExist) {
+            so_panic("ReadDir nonexistent: wrong error");
+        }
     }
 }
 
@@ -554,6 +652,7 @@ static void fileTest(void) {
 
 int main(void) {
     basicTest();
+    dirTest();
     envTest();
     fileTest();
     procTest();
@@ -626,8 +725,8 @@ static void procTest(void) {
     }
     {
         // Hostname.
-        so_byte hostBuf[255] = {0};
-        so_R_str_err _res2 = os_Hostname(so_array_slice(so_byte, hostBuf, 0, 255, 255));
+        so_byte hostBuf[256] = {0};
+        so_R_str_err _res2 = os_Hostname(so_array_slice(so_byte, hostBuf, 0, 256, 256));
         so_String name = _res2.val;
         so_Error err = _res2.err;
         if (err != NULL) {

@@ -1,7 +1,10 @@
 //go:build ignore
-#include "so/builtin/builtin.h"
+#include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
+#include "so/builtin/builtin.h"
 
 // Stat result - flat struct filled by C helpers.
 typedef struct {
@@ -52,4 +55,24 @@ static int os_utimens(const char* path, int64_t asec, int64_t ansec, int64_t mse
         {.tv_sec = msec, .tv_nsec = mnsec},
     };
     return utimensat(AT_FDCWD, path, times, 0);
+}
+
+// readdir result - one entry at a time.
+typedef struct {
+    int32_t nameLen;
+    uint8_t dtype;
+    bool ok;
+} os_readdirResult;
+
+// os_readdir_next reads the next directory entry.
+// Copies d_name into buf. Returns {nameLen, dtype, ok}.
+static os_readdirResult os_readdir_next(DIR* dir, char* buf, size_t bufsize) {
+    errno = 0;
+    struct dirent* ent = readdir(dir);
+    if (ent == NULL) return (os_readdirResult){.ok = false};
+    size_t n = strlen(ent->d_name);
+    if (n >= bufsize) n = bufsize - 1;
+    memcpy(buf, ent->d_name, n);
+    buf[n] = '\0';
+    return (os_readdirResult){.nameLen = (int32_t)n, .dtype = ent->d_type, .ok = true};
 }

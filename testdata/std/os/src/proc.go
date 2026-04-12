@@ -64,7 +64,7 @@ func procTest() {
 	}
 	{
 		// Hostname.
-		var hostBuf [os.MaxHostnameLen]byte
+		var hostBuf [os.MaxNameLen]byte
 		name, err := os.Hostname(hostBuf[:])
 		if err != nil {
 			panic("Hostname failed")

@@ -139,6 +139,7 @@ Functions:
 
 - `Create`, `Open`, `OpenFile` open files for reading and/or writing.
 - `ReadFile` and `WriteFile` read or write an entire file.
+- `ReadDir` reads a directory and returns its entries.
 - `Stat` and `Lstat` return file information.
 - `Chmod`, `Chown`, `Lchown`, `Chtimes` change file attributes.
 - `Rename` renames (moves) a file.
@@ -155,6 +156,7 @@ Types:
 - `File` represents an open file with methods for reading and writing data.
 - `FileInfo` describes a file (returned by `Stat` and `Lstat`).
 - `FileMode` represents a file's mode and permission bits.
+- `DirEntry` describes an entry in a directory (returned by `ReadDir`).
 
 ## [so/runtime](https://pkg.go.dev/solod.dev/so/runtime)
 

@@ -112,13 +112,11 @@ func (g *Generator) multiReturnFields(node ast.Node, sig *types.Signature) multi
 		g.fail(node, "error must be the second return value")
 	}
 
-	// Check for custom result type: (NamedStruct, error).
+	// Check for custom result type: (NamedType, error).
 	if isErrorType(second) {
 		if named, ok := types.Unalias(first).(*types.Named); ok {
-			if _, isStruct := named.Underlying().(*types.Struct); isStruct {
-				resultType := g.findResultType(node, named)
-				return multiReturn{resultType: resultType, hasError: true}
-			}
+			resultType := g.findResultType(node, named)
+			return multiReturn{resultType: resultType, hasError: true}
 		}
 	}
 
@@ -135,7 +133,7 @@ func (g *Generator) findResultType(node ast.Node, named *types.Named) string {
 	resultName := named.Obj().Name() + "Result"
 	obj := named.Obj().Pkg().Scope().Lookup(resultName)
 	if obj == nil {
-		g.fail(node, "returning struct %s requires a %s type declaration", named.Obj().Name(), resultName)
+		g.fail(node, "returning %s requires a %s type declaration", named.Obj().Name(), resultName)
 	}
 	return g.mapType(node, obj.Type())
 }
