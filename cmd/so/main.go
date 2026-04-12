@@ -28,6 +28,9 @@ func main() {
 		err = build(args)
 	case "run":
 		err = run(args)
+	case "version":
+		fmt.Printf("so version %s\n", compiler.Version())
+		return
 	default:
 		usage()
 		os.Exit(1)
@@ -35,8 +38,7 @@ func main() {
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "so %s: %s\n", cmd, err)
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			os.Exit(exitErr.ExitCode())
 		}
 		os.Exit(1)
@@ -52,6 +54,7 @@ Commands:
     build        compile package to executable
     run          compile and run a package
     translate    translate package to C
+    version      print compiler version
 
 Run 'so <command> -h' for details.
 `)
