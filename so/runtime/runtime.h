@@ -1,26 +1,25 @@
 #include <time.h>
-#include <stdint.h>
 
-#if defined(so_build_darwin)
+#if defined(so_build_darwin) || defined(so_build_netbsd) || defined(so_build_openbsd)
 #include <stdlib.h>
-#elif defined(so_build_linux)
+#elif defined(so_build_linux) || defined(so_build_freebsd) || defined(so_build_dragonfly)
 #include <sys/random.h>
 #endif
+
+#include "so/builtin/builtin.h"
 
 // Seed returns a random 64-bit seed.
 static inline uint64_t runtime_Seed(void) {
     uint64_t seed = 0;
-#if defined(so_build_darwin)
+#if defined(so_build_darwin) || defined(so_build_netbsd) || defined(so_build_openbsd)
     arc4random_buf(&seed, sizeof(seed));
-#elif defined(so_build_linux)
-    if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
-        // Fallback to time-based seed.
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        seed ^= (uint64_t)ts.tv_nsec ^ (uint64_t)ts.tv_sec;
+#elif defined(so_build_linux) || defined(so_build_freebsd) || defined(so_build_dragonfly)
+    ssize_t n = getrandom(&seed, sizeof(seed), 0);
+    if (n != sizeof(seed)) {
+        so_panic("runtime: cryptographic random not available");
     }
 #else
-    seed = (uint64_t)time(NULL) ^ (uintptr_t)&seed;
+    so_panic("runtime: cryptographic random not available");
 #endif
     return seed;
 }
@@ -31,6 +30,14 @@ static inline uint64_t runtime_Seed(void) {
 #define runtime_GOOS so_str("darwin")
 #elif defined(so_build_linux)
 #define runtime_GOOS so_str("linux")
+#elif defined(so_build_freebsd)
+#define runtime_GOOS so_str("freebsd")
+#elif defined(so_build_netbsd)
+#define runtime_GOOS so_str("netbsd")
+#elif defined(so_build_openbsd)
+#define runtime_GOOS so_str("openbsd")
+#elif defined(so_build_dragonfly)
+#define runtime_GOOS so_str("dragonfly")
 #elif defined(so_build_windows)
 #define runtime_GOOS so_str("windows")
 #else

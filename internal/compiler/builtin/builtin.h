@@ -35,6 +35,14 @@ typedef uint64_t so_uint;
 #define so_build_darwin
 #elif defined(__linux__)
 #define so_build_linux
+#elif defined(__FreeBSD__)
+#define so_build_freebsd
+#elif defined(__NetBSD__)
+#define so_build_netbsd
+#elif defined(__OpenBSD__)
+#define so_build_openbsd
+#elif defined(__DragonFly__)
+#define so_build_dragonfly
 #elif defined(_WIN32)
 #define so_build_windows
 #endif
