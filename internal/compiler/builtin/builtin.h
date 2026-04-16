@@ -731,7 +731,7 @@ static inline void so_map_set_impl(so_Map* m, const void* key, size_t key_size,
         so_Map* _m = (m);                                        \
         K _k = (key);                                            \
         V _v = (val);                                            \
-        uint64_t _seed = (uint64_t)_m;                           \
+        uint64_t _seed = so_map_seed(_m);                        \
         uint64_t _hash = so_key_hash(_k)(&_k, sizeof(K), _seed); \
         so_map_set_impl(_m, &_k, sizeof(K), &_v, sizeof(V),      \
                         _hash, so_key_eq(_k));                   \
@@ -743,7 +743,7 @@ static inline void so_map_set_impl(so_Map* m, const void* key, size_t key_size,
     K _k = (key);                                            \
     V _v = {0};                                              \
     bool _found = false;                                     \
-    uint64_t _seed = (uint64_t)_m;                           \
+    uint64_t _seed = so_map_seed(_m);                        \
     uint64_t _hash = so_key_hash(_k)(&_k, sizeof(K), _seed); \
     so_map_find(_m, &_k, sizeof(K), &_v, sizeof(V),          \
                 _hash, &_found, so_key_eq(_k));              \
@@ -755,7 +755,7 @@ static inline void so_map_set_impl(so_Map* m, const void* key, size_t key_size,
     const so_Map* _m = (m);                                  \
     K _k = (key);                                            \
     bool _found = false;                                     \
-    uint64_t _seed = (uint64_t)_m;                           \
+    uint64_t _seed = so_map_seed(_m);                        \
     uint64_t _hash = so_key_hash(_k)(&_k, sizeof(K), _seed); \
     so_map_find(_m, &_k, sizeof(K), NULL, 0,                 \
                 _hash, &_found, so_key_eq(_k));              \
@@ -772,3 +772,5 @@ static inline void so_map_set_impl(so_Map* m, const void* key, size_t key_size,
         so_map_set(K, V, _ml_m, _ml_ks[_ml_i], _ml_vs[_ml_i]); \
     _ml_m;                                                     \
 })
+
+#define so_map_seed(m) ((uint64_t)(uintptr_t)(m))

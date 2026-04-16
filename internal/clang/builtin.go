@@ -54,7 +54,6 @@ func (g *Generator) emitBuiltin(call *ast.CallExpr, ident *ast.Ident, bi *types.
 	// len on maps emits m->len since maps are pointers.
 	if bi.Name() == "len" && len(call.Args) == 1 {
 		if _, ok := g.types.TypeOf(call.Args[0]).Underlying().(*types.Map); ok {
-			fmt.Fprintf(w, "(so_int)")
 			g.emitExpr(call.Args[0])
 			fmt.Fprintf(w, "->len")
 			return true

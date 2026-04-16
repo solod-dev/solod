@@ -119,7 +119,7 @@ func (g *Generator) emitMapRange(stmt *ast.RangeStmt) {
 	keyType := g.mapType(stmt, mapType.Key())
 	valType := g.mapType(stmt, mapType.Elem())
 
-	fmt.Fprintf(w, "%sfor (so_int _i = 0; _i < (so_int)", g.indent())
+	fmt.Fprintf(w, "%sfor (so_int _i = 0; _i < ", g.indent())
 	g.emitExpr(stmt.X)
 	fmt.Fprintf(w, "->cap; _i++) {\n")
 
