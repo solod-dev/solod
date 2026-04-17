@@ -455,7 +455,7 @@ func RunBenchmarks(a mem.Allocator, benchmarks []Benchmark) {
 		b := &B{
 			name:      bench.Name,
 			a:         mem.Tracker{Allocator: a},
-			w:         &os.Stdout,
+			w:         os.Stdout,
 			benchFunc: bench.F,
 			benchTime: BenchTime{d: 1 * time.Second},
 		}

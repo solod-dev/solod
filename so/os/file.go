@@ -41,9 +41,12 @@ type FileResult struct {
 }
 
 // Standard input, output, and error streams.
-var Stdin File
-var Stdout File
-var Stderr File
+var stdin_ File
+var Stdin *File
+var stdout_ File
+var Stdout *File
+var stderr_ File
+var Stderr *File
 
 // Create creates or truncates the named file. If the file already exists,
 // it is truncated. If the file does not exist, it is created with mode 0o666
@@ -264,7 +267,10 @@ func fdopenMode(flag int) string {
 }
 
 func init() {
-	Stdin = File{fd: stdin, name: "/dev/stdin"}
-	Stdout = File{fd: stdout, name: "/dev/stdout"}
-	Stderr = File{fd: stderr, name: "/dev/stderr"}
+	stdin_ = File{fd: stdin, name: "/dev/stdin"}
+	Stdin = &stdin_
+	stdout_ = File{fd: stdout, name: "/dev/stdout"}
+	Stdout = &stdout_
+	stderr_ = File{fd: stderr, name: "/dev/stderr"}
+	Stderr = &stderr_
 }

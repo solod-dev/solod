@@ -144,7 +144,7 @@ static void basicTest(void) {
     }
     {
         // Stdout, Stderr.
-        so_R_int_err _res9 = os_File_WriteString(&os_Stdout, so_str("hello"));
+        so_R_int_err _res9 = os_File_WriteString(os_Stdout, so_str("hello"));
         so_int n = _res9.val;
         so_Error err = _res9.err;
         if (err != NULL) {
@@ -153,7 +153,7 @@ static void basicTest(void) {
         if (n != 5) {
             so_panic("Stdout: wrong count");
         }
-        so_R_int_err _res10 = os_File_WriteString(&os_Stderr, so_str("goodbye"));
+        so_R_int_err _res10 = os_File_WriteString(os_Stderr, so_str("goodbye"));
         n = _res10.val;
         err = _res10.err;
         if (err != NULL) {
