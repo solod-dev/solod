@@ -613,6 +613,16 @@ nums := []int{1, 2, 3, 4}
 sum(nums...)
 ```
 
+Variadic methods work the same way:
+
+```go
+func (l *Logger) Info(msg string, attrs ...Attr) {
+    // attrs is a []Attr slice
+}
+
+l.Info("hello", attr1, attr2)
+```
+
 ## Structs
 
 Struct type declarations:
