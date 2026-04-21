@@ -28,6 +28,8 @@ const (
 	SeekEnd     = 2 // seek relative to the end
 )
 
+const defaultBufSize = 8 * 1024 // 8KB
+
 // EOF is the error returned by Read when no more input is available.
 // (Read must return EOF itself, not an error wrapping EOF,
 // because callers will test for EOF using ==.)
@@ -78,7 +80,7 @@ var ErrWhence = errors.New("io: invalid whence")
 //
 // Copy allocates a buffer on the stack to hold data during the copy.
 func Copy(dst Writer, src Reader) (int64, error) {
-	size := 8 * 1024 // 8 KiB
+	size := defaultBufSize
 	_, ok := src.(*LimitedReader)
 	if ok {
 		l := src.(*LimitedReader)

@@ -47,8 +47,7 @@ func (mr *MultiReader) Read(p []byte) (int, error) {
 }
 
 func (mr *MultiReader) WriteTo(w Writer) (int64, error) {
-	// Write using a 9KB stack-allocated buffer, similar to the one used by Copy.
-	return mr.writeToWithBuffer(w, make([]byte, 1024*8))
+	return mr.writeToWithBuffer(w, make([]byte, defaultBufSize))
 }
 
 func (mr *MultiReader) writeToWithBuffer(w Writer, buf []byte) (int64, error) {
