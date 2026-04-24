@@ -272,6 +272,9 @@ func (g *Generator) emitFuncCall(call *ast.CallExpr) {
 		// Extern C call: decay all args to C-compatible types.
 		// So wrapper types (so_String, so_Slice) must be unwrapped to their
 		// underlying C representations for C function macros.
+		if call.Ellipsis.IsValid() {
+			g.fail(call, "spreading variadic arguments to an extern function is not supported")
+		}
 		g.emitCArgs(call)
 	} else if sig != nil && sig.Variadic() && !call.Ellipsis.IsValid() {
 		// Variadic call with individual args: pack trailing args into a slice literal.
