@@ -17,11 +17,9 @@ So is for Go developers who want systems-level control without learning a new la
 [Example](#example) •
 [Installation](#installation-and-usage) •
 [Documentation](#documentation-and-examples) •
-[Testing](#testing) •
-[Benchmarks](bench/README.md) •
+[Benchmarks](#testing-and-benchmarks) •
 [Compatibility](#compatibility) •
-[Design principles](doc/design.md) •
-[FAQ](doc/faq.md) •
+[Design](#design-principles-and-faq) •
 [Roadmap](#roadmap) •
 [Contributing](#contributing)
 
@@ -162,15 +160,11 @@ Keep in mind that So is new, so it's still a bit rough around the edges.
 
 **[So by example](./example/README.md)**. If you like learning by doing, try a hands-on introduction to So with annotated example programs.
 
-## Testing
+## Testing and benchmarks
 
-So doesn't have its own testing framework. Since So code is valid Go code, you can just use `go test` like you normally would. Plus, your tests can use all Go features because they're never transpiled.
+**Testing**. So doesn't have its own testing framework. Since So code is valid Go code, you can just use `go test` like you normally would. Plus, your tests can use all Go features because they're never transpiled.
 
-The transpilation logic is covered by the So compiler's own tests.
-
-## Benchmarks
-
-So truly shines when it comes to C interop, but it's also [quite fast](bench/README.md) on regular Go code — typically on par with or faster than Go.
+**[Benchmarks](bench/README.md)**. So truly shines when it comes to C interop, but it's also quite fast on regular Go code — typically on par with or faster than Go.
 
 ## Compatibility
 
@@ -189,13 +183,11 @@ Supported operating systems: Linux, macOS, and Windows (core language only).
 
 Supported platforms: amd64, arm64, and riscv64. 32-bit targets are not supported.
 
-## Design principles
+## Design principles and FAQ
 
-So is [highly opinionated](doc/design.md). Simplicity is key. Heap allocations are explicit. Strictly Go syntax.
+**[Principles](doc/design.md)**. So is highly opinionated. Simplicity is key. Heap allocations are explicit. Strictly Go syntax.
 
-## Frequently asked questions
-
-I have heard these several times, so it's [worth answering](doc/faq.md).
+**[Frequently asked questions](doc/faq.md)**. I have heard these several times, so it's worth answering.
 
 ## Roadmap
 
