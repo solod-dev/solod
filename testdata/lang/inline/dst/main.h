@@ -3,6 +3,8 @@
 
 // -- Types --
 
+typedef struct main_Rect main_Rect;
+
 // Rect is a rectangle.
 typedef struct main_Rect {
     so_int W;

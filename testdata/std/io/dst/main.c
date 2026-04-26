@@ -2,6 +2,9 @@
 
 // -- Types --
 
+typedef struct reader reader;
+typedef struct writer writer;
+
 typedef struct reader {
     so_Slice b;
 } reader;

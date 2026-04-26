@@ -2,6 +2,8 @@
 
 // -- Types --
 
+typedef struct point point;
+
 typedef struct point {
     so_int x;
     so_int y;

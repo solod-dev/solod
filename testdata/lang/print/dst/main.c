@@ -2,6 +2,8 @@
 
 // -- Types --
 
+typedef struct person person;
+
 typedef struct person {
     so_String name;
 } person;

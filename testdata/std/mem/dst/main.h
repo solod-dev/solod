@@ -4,6 +4,8 @@
 
 // -- Types --
 
+typedef struct main_Point main_Point;
+
 typedef struct main_Point {
     so_int x;
     so_int y;

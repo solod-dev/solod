@@ -3,6 +3,8 @@
 
 // -- Types --
 
+typedef struct main_Point main_Point;
+
 // Point represents a 2D coordinate.
 typedef struct main_Point {
     so_int x;

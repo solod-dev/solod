@@ -3,6 +3,8 @@
 
 // -- Types --
 
+typedef struct main_Person main_Person;
+
 typedef struct main_Person {
     so_String Name;
     so_int Age;

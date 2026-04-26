@@ -3,6 +3,9 @@
 
 // -- Types --
 
+typedef struct main_Canvas main_Canvas;
+typedef struct main_Rect main_Rect;
+
 typedef struct main_Shape {
     void* self;
     so_int (*Area)(void* self);

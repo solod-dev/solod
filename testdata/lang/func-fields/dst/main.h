@@ -3,6 +3,8 @@
 
 // -- Types --
 
+typedef struct main_Movie main_Movie;
+
 typedef struct main_Movie {
     so_int year;
     so_int (*ratingFn)(struct main_Movie m);

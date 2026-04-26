@@ -3,6 +3,9 @@
 
 // -- Types --
 
+typedef struct main_Pair main_Pair;
+typedef struct main_MapHolder main_MapHolder;
+
 typedef struct main_Pair {
     so_int x;
     so_int y;

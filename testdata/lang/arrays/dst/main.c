@@ -1,6 +1,9 @@
 #include "main.h"
 
 // -- Types --
+
+typedef struct box box;
+typedef struct arange arange;
 typedef so_int array[3];
 
 typedef struct box {

@@ -187,12 +187,29 @@ func (g *Generator) emitUnexportedTypes(w io.Writer) {
 	}
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "// -- Types --")
+	g.emitForwardTypeDecls(w, typeSyms)
 	for _, sym := range typeSyms {
 		hasDocs := g.emitComments(w, sym.genDecl, sym.typeSpec)
 		if !hasDocs && isBlockTypeSpec(sym.typeSpec) {
 			fmt.Fprintln(w)
 		}
 		g.emitTypeSpec(w, sym.typeSpec)
+	}
+}
+
+// emitForwardTypeDecls writes forward declarations for struct types
+// so that self-referencing and out-of-order references resolve.
+func (g *Generator) emitForwardTypeDecls(w io.Writer, typeSyms []symbol) {
+	hasDecls := false
+	for _, sym := range typeSyms {
+		if _, ok := sym.typeSpec.Type.(*ast.StructType); ok {
+			cName := g.declSymbolName(g.types.Defs[sym.typeSpec.Name])
+			fmt.Fprintf(w, "\ntypedef struct %s %s;", cName, cName)
+			hasDecls = true
+		}
+	}
+	if hasDecls {
+		fmt.Fprintln(w)
 	}
 }
 

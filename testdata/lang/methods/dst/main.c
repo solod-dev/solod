@@ -2,6 +2,8 @@
 
 // -- Types --
 
+typedef struct circle circle;
+
 typedef struct circle {
     so_int radius;
 } circle;

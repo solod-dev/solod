@@ -50,6 +50,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 	if len(typeSyms) > 0 {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "// -- Types --")
+		g.emitForwardTypeDecls(w, typeSyms)
 		for _, sym := range typeSyms {
 			// The CommentMap might attach the doc comment to either decl
 			// or type spec, depending on whether it's a standalone or

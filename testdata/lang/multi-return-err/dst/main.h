@@ -3,6 +3,9 @@
 
 // -- Types --
 
+typedef struct main_File main_File;
+typedef struct main_FileResult main_FileResult;
+
 typedef struct main_Reader {
     void* self;
     so_R_int_err (*Read)(void* self, so_int buf);

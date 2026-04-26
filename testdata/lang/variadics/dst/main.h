@@ -3,6 +3,8 @@
 
 // -- Types --
 
+typedef struct main_Sum main_Sum;
+
 typedef struct main_Sum {
     so_int v;
 } main_Sum;

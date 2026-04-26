@@ -3,6 +3,10 @@
 
 // -- Types --
 
+typedef struct main_Empty main_Empty;
+typedef struct main_Person main_Person;
+typedef struct main_Benchmark main_Benchmark;
+
 // Primitive types.
 // not a different type
 typedef so_int main_ID;
