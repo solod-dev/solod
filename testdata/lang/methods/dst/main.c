@@ -8,10 +8,15 @@ typedef struct circle {
     so_int radius;
 } circle;
 
+typedef so_int (*circleValFunc)(circle);
+
+typedef so_int (*circlePtrFunc)(circle*);
+
 // -- Forward declarations --
 static so_int main_Rect_perim(void* self, so_int n);
 static main_Rect main_Rect_resize(main_Rect r, so_int x);
 static so_int circle_area(void* self);
+static so_int circle_perim(circle c);
 
 // -- Implementation --
 
@@ -34,6 +39,10 @@ static main_Rect main_Rect_resize(main_Rect r, so_int x) {
 static so_int circle_area(void* self) {
     circle* c = self;
     return 3 * c->radius * c->radius;
+}
+
+static so_int circle_perim(circle c) {
+    return 2 * 3 * c.radius;
 }
 
 so_String main_HttpStatus_String(main_HttpStatus s) {
@@ -111,6 +120,20 @@ int main(void) {
         s = 404;
         if (so_string_ne(main_HttpStatus_String(s), so_str("Not Found"))) {
             so_panic("unexpected string");
+        }
+    }
+    {
+        // Method expression.
+        circle c = (circle){.radius = 7};
+        circlePtrFunc areaFn = (circlePtrFunc)circle_area;
+        so_int area = areaFn(&c);
+        if (area != 147) {
+            so_panic("unexpected area");
+        }
+        circleValFunc perimFn = circle_perim;
+        so_int perim = perimFn(c);
+        if (perim != 42) {
+            so_panic("unexpected perimeter");
         }
     }
 }

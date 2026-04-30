@@ -733,6 +733,8 @@ func (s HttpStatus) String() string {
 }
 ```
 
+Method expressions (`T.method` or `(*T).method`) are supported. Method values (`v.method`) are not supported.
+
 ## Interfaces
 
 Interfaces in So are like Go interfaces, but they don't include runtime type information.

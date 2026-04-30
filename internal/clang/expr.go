@@ -418,6 +418,30 @@ func (g *Generator) emitSelectorExpr(n *ast.SelectorExpr) {
 		}
 	}
 
+	// Method expression: T.method or (*T).method -> function name.
+	if selection, ok := g.types.Selections[n]; ok && selection.Kind() == types.MethodExpr {
+		// Get the named type (strip pointer if present).
+		recv := selection.Recv()
+		var named *types.Named
+		if ptr, ok := recv.(*types.Pointer); ok {
+			named = ptr.Elem().(*types.Named)
+		} else {
+			named = recv.(*types.Named)
+		}
+		cName := g.mapType(n, named) + "_" + n.Sel.Name
+
+		// Pointer receiver methods use void* in C, but the function type expects T*.
+		// Cast to match the function pointer type.
+		declSig := selection.Obj().Type().(*types.Signature)
+		if _, isPtrRecv := declSig.Recv().Type().(*types.Pointer); isPtrRecv {
+			cTypeName := g.mapType(n, g.types.TypeOf(n))
+			fmt.Fprintf(g.state.writer, "(%s)%s", cTypeName, cName)
+		} else {
+			fmt.Fprint(g.state.writer, cName)
+		}
+		return
+	}
+
 	// Struct/interface field access.
 	w := g.state.writer
 	xType := g.types.TypeOf(n.X)

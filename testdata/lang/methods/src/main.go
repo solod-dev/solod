@@ -27,6 +27,13 @@ func (c *circle) area() int {
 	return 3 * c.radius * c.radius
 }
 
+func (c circle) perim() int {
+	return 2 * 3 * c.radius
+}
+
+type circleValFunc func(c circle) int
+type circlePtrFunc func(c *circle) int
+
 // Methods on primitive types are also supported.
 type HttpStatus int
 
@@ -105,6 +112,20 @@ func main() {
 		s = 404
 		if s.String() != "Not Found" {
 			panic("unexpected string")
+		}
+	}
+	{
+		// Method expression.
+		c := circle{radius: 7}
+		areaFn := (*circle).area
+		area := areaFn(&c)
+		if area != 147 {
+			panic("unexpected area")
+		}
+		perimFn := (circle).perim
+		perim := perimFn(c)
+		if perim != 42 {
+			panic("unexpected perimeter")
 		}
 	}
 }
