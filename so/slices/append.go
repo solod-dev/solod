@@ -62,7 +62,13 @@ func slices_grow(a mem.Allocator, s Slice, newLen, elemSize, elemAlign int) slic
 	newCap := slices_nextcap(newLen, s.cap)
 	oldSize := s.cap * elemSize
 	newSize := newCap * elemSize
-	newPtr, err := a.Realloc(s.ptr, oldSize, newSize, elemAlign)
+	var newPtr any
+	var err error
+	if s.cap == 0 {
+		newPtr, err = a.Alloc(newSize, elemAlign)
+	} else {
+		newPtr, err = a.Realloc(s.ptr, oldSize, newSize, elemAlign)
+	}
 	if err != nil {
 		return sliceResult{val: s, err: err}
 	}

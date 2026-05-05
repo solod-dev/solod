@@ -37,12 +37,31 @@ func sliceTest() {
 		slices.Free(nil, s)
 	}
 	{
+		// Append to nil slice.
+		var s []int
+		s = slices.Append(nil, s, 10, 20, 30)
+		if len(s) != 3 || s[0] != 10 || s[1] != 20 || s[2] != 30 {
+			panic("Append to nil failed")
+		}
+		slices.Free(nil, s)
+	}
+	{
 		// Extend from another slice.
 		s := slices.MakeCap[int](nil, 0, 8)
 		other := []int{100, 200, 300}
 		s = slices.Extend(nil, s, other)
 		if len(s) != 3 || s[0] != 100 || s[2] != 300 {
 			panic("Extend failed")
+		}
+		slices.Free(nil, s)
+	}
+	{
+		// Extend a nil slice.
+		var s []int
+		other := []int{10, 20, 30}
+		s = slices.Extend(nil, s, other)
+		if len(s) != 3 || s[0] != 10 || s[1] != 20 || s[2] != 30 {
+			panic("Extend to nil failed")
 		}
 		slices.Free(nil, s)
 	}

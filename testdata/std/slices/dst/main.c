@@ -51,12 +51,31 @@ static void sliceTest(void) {
         slices_Free(so_int, ((mem_Allocator){0}), (s));
     }
     {
+        // Append to nil slice.
+        so_Slice s = {0};
+        s = slices_Append(so_int, ((mem_Allocator){0}), (s), (10), (20), (30));
+        if (so_len(s) != 3 || so_at(so_int, s, 0) != 10 || so_at(so_int, s, 1) != 20 || so_at(so_int, s, 2) != 30) {
+            so_panic("Append to nil failed");
+        }
+        slices_Free(so_int, ((mem_Allocator){0}), (s));
+    }
+    {
         // Extend from another slice.
         so_Slice s = slices_MakeCap(so_int, ((mem_Allocator){0}), (0), (8));
         so_Slice other = (so_Slice){(so_int[3]){100, 200, 300}, 3, 3};
         s = slices_Extend(so_int, ((mem_Allocator){0}), (s), (other));
         if (so_len(s) != 3 || so_at(so_int, s, 0) != 100 || so_at(so_int, s, 2) != 300) {
             so_panic("Extend failed");
+        }
+        slices_Free(so_int, ((mem_Allocator){0}), (s));
+    }
+    {
+        // Extend a nil slice.
+        so_Slice s = {0};
+        so_Slice other = (so_Slice){(so_int[3]){10, 20, 30}, 3, 3};
+        s = slices_Extend(so_int, ((mem_Allocator){0}), (s), (other));
+        if (so_len(s) != 3 || so_at(so_int, s, 0) != 10 || so_at(so_int, s, 1) != 20 || so_at(so_int, s, 2) != 30) {
+            so_panic("Extend to nil failed");
         }
         slices_Free(so_int, ((mem_Allocator){0}), (s));
     }
