@@ -183,9 +183,14 @@ func (r *Rand) Float32() float32 {
  * Top-level convenience functions
  */
 
-// globalRand is the source of random numbers for the top-level
-// convenience functions.
+// globalSource is the source of random numbers for the top-level functions.
+//
+//so:thread_local
 var globalSource PCG
+
+// globalRand is the Rand that top-level functions use.
+//
+//so:thread_local
 var globalRand Rand
 
 // Int64 returns a non-negative pseudo-random 63-bit integer as an int64
