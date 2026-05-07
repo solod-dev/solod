@@ -6,10 +6,7 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
-//so:extern
+//so:volatile
 var sink int
 
 type soHandler struct{}

@@ -6,15 +6,14 @@ import (
 	"solod.dev/so/time"
 )
 
-//so:embed bench.h
-var bench_h string
+//so:volatile
+var sinkInt int64
 
-//so:extern
-var (
-	sinkInt  int64
-	sinkStr  string
-	sinkTime time.Time
-)
+//so:volatile
+var sinkStr string
+
+//so:volatile
+var sinkTime time.Time
 
 func Date(b *testing.B) {
 	t := time.Now()

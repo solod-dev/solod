@@ -8,16 +8,13 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
 var arena *mem.Arena
 
-//so:extern nodecay
-var (
-	sinkInt  int
-	sinkBool bool
-)
+//so:volatile
+var sinkInt int
+
+//so:volatile
+var sinkBool bool
 
 // nKeys is the number of map keys to use in benchmarks.
 const nKeys = 1024

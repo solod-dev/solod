@@ -7,16 +7,13 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
 var arena *mem.Arena
 
-//so:extern nodecay
-var (
-	sink    []byte
-	sinkInt int
-)
+//so:volatile
+var sink []byte
+
+//so:volatile
+var sinkInt int
 
 func Clone(b *testing.B) {
 	a := b.Allocator()

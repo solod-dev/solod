@@ -7,14 +7,11 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
+//so:volatile
+var sinkInt int
 
-//so:extern
-var (
-	sinkInt   int
-	sinkFloat float64
-)
+//so:volatile
+var sinkFloat float64
 
 func Atof64_Decimal(b *testing.B) {
 	for b.Loop() {

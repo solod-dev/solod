@@ -7,13 +7,10 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
 var arena *mem.Arena
 var someStr = "some string sdljlk jsklj3lkjlk djlkjw"
 
-//so:extern nodecay
+//so:volatile
 var sink string
 
 const numWrite = 16

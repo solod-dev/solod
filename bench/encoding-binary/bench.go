@@ -6,22 +6,22 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
-//so:extern Sink
 type Sink struct {
 	buf [8]byte
 	res []byte
 }
 
-//so:extern
+//so:volatile
 var sink Sink
+
+//so:volatile
+var sinkInt int
 
 func BE_PutUint64(b *testing.B) {
 	b.SetBytes(8)
 	for i := range b.N {
 		binary.BigEndian.PutUint64(sink.buf[:8], uint64(i))
+		sinkInt = i
 	}
 }
 
@@ -36,6 +36,7 @@ func LE_PutUint64(b *testing.B) {
 	b.SetBytes(8)
 	for i := range b.N {
 		binary.LittleEndian.PutUint64(sink.buf[:8], uint64(i))
+		sinkInt = i
 	}
 }
 

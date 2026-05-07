@@ -7,17 +7,16 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
-
 var arena *mem.Arena
 
-//so:extern nodecay
-var (
-	sinkBool bool
-	sinkErr  error
-	sinkStr  string
-)
+//so:volatile
+var sinkBool bool
+
+//so:volatile
+var sinkErr error
+
+//so:volatile
+var sinkStr string
 
 func Join(b *testing.B) {
 	a := b.Allocator()

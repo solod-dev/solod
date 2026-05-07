@@ -9,14 +9,11 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
+//so:volatile
+var sinkStr string
 
-//so:extern nodecay
-var (
-	sinkStr string
-	sinkInt int64
-)
+//so:volatile
+var sinkInt int64
 
 func ReaderBuf(b *testing.B) {
 	a := b.Allocator()

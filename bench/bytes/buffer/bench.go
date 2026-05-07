@@ -9,10 +9,7 @@ import (
 	"solod.dev/so/unicode/utf8"
 )
 
-//so:embed bench.h
-var bench_h string
-
-//so:extern nodecay
+//so:volatile
 var sink string
 
 var arena *mem.Arena

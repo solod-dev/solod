@@ -6,14 +6,11 @@ import (
 	"solod.dev/so/testing"
 )
 
-//so:embed bench.h
-var bench_h string
+//so:volatile
+var sinkSlice []byte
 
-//so:extern
-var (
-	sinkSlice []byte
-	sinkStr   string
-)
+//so:volatile
+var sinkStr string
 
 func Read_4(b *testing.B) {
 	const size = 4
