@@ -211,7 +211,7 @@ func (g *Generator) emitForClause(stmt ast.Stmt) {
 
 // emitGenDecl emits a general declaration (var, import, etc.).
 func (g *Generator) emitGenDecl(decl *ast.GenDecl) {
-	if found, _ := parseExternDirective(decl.Doc); found {
+	if found, _ := parseExtern(decl.Doc); found {
 		return
 	}
 	switch decl.Tok {
@@ -237,7 +237,7 @@ func (g *Generator) emitGenDecl(decl *ast.GenDecl) {
 				// Do not emit variables that are used as markers for embedded files.
 				continue
 			}
-			g.emitVarSpec(vs)
+			g.emitVarSpec(vs, directives{})
 		}
 	case token.TYPE:
 		// Package-level types are emitted by emitUnexportedTypes (unexported)
@@ -248,7 +248,7 @@ func (g *Generator) emitGenDecl(decl *ast.GenDecl) {
 		for _, spec := range decl.Specs {
 			ts := spec.(*ast.TypeSpec)
 			g.emitComments(g.state.writer, decl, ts)
-			g.emitTypeSpec(g.state.writer, ts)
+			g.emitTypeSpec(g.state.writer, ts, directives{})
 		}
 	default:
 		g.fail(decl, "unsupported GenDecl token: %s", decl.Tok)
@@ -303,7 +303,8 @@ func (g *Generator) emitConstVal(node ast.Node, name *ast.Ident) {
 }
 
 // emitVarSpec emits a single var specification (e.g. `var a int = 1`).
-func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
+// dirs provides parsed so: directives for package-level declarations.
+func (g *Generator) emitVarSpec(spec *ast.ValueSpec, dirs directives) {
 	w := g.state.writer
 
 	// Local multi-variable declaration: group consecutive same-type variables,
@@ -358,9 +359,18 @@ func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
 		ct := g.mapCType(spec, typ)
 		specifier := ""
 		if g.state.indent == 0 {
-			// Package-level variable.
+			// Package-level variable: build specifier with qualifiers.
 			if !ast.IsExported(name.Name) {
 				specifier = "static "
+			}
+			if dirs.threadLocal {
+				specifier += "_Thread_local "
+			}
+			if dirs.volatile {
+				specifier += "volatile "
+			}
+			if attr := dirs.attrString(); attr != "" {
+				specifier += attr + " "
 			}
 		}
 		cName := g.declSymbolName(g.types.Defs[name])
@@ -378,7 +388,8 @@ func (g *Generator) emitVarSpec(spec *ast.ValueSpec) {
 }
 
 // emitTypeSpec dispatches type declaration emission based on the spec type.
-func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec) {
+// dirs provides parsed so: directives for package-level declarations.
+func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs directives) {
 	switch spec.Type.(type) {
 	case *ast.FuncType:
 		g.emitFuncTypeSpec(w, spec)
@@ -397,7 +408,12 @@ func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 		}
 		ct := g.mapCType(spec, resolved)
 		cName := g.declSymbolName(g.types.Defs[spec.Name])
-		fmt.Fprintf(w, "%stypedef %s;\n", g.indent(), ct.Decl(cName))
+		attr := dirs.attrString()
+		if attr != "" {
+			fmt.Fprintf(w, "%stypedef %s %s;\n", g.indent(), attr, ct.Decl(cName))
+		} else {
+			fmt.Fprintf(w, "%stypedef %s;\n", g.indent(), ct.Decl(cName))
+		}
 
 	case *ast.InterfaceType:
 		iface := g.types.Defs[spec.Name].Type().Underlying().(*types.Interface)
@@ -410,7 +426,7 @@ func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 		}
 
 	case *ast.StructType:
-		g.emitStructTypeSpec(w, spec)
+		g.emitStructTypeSpec(w, spec, dirs)
 
 	default:
 		g.fail(spec, "unsupported type: %T", spec.Type)

@@ -6,6 +6,7 @@ So provides several tools for easy C interop.
 [Extern declarations](#extern-declarations) •
 [Extern options](#extern-options) •
 [Inlining](#inlining) •
+[Qualifiers](#qualifiers-v02) •
 [Embeds](#embeds) •
 [Raw C](#raw-c) •
 [Helpers](#helpers)
@@ -105,6 +106,62 @@ func add(a, b int) int {
 ```
 
 The function body is emitted directly in the `.h` file and skipped from the `.c` file. Works with both functions and methods.
+
+## Qualifiers (v0.2)
+
+### Volatile
+
+Mark a package-level variable as `volatile` using `//so:volatile`:
+
+```go
+//so:volatile
+var counter int
+```
+
+Only allowed on `var` declarations.
+
+### Thread-local storage
+
+Mark a package-level variable as thread-local using `//so:thread_local`. Uses C11 `_Thread_local`:
+
+```go
+//so:thread_local
+var perThread int
+```
+
+Can be combined with `//so:volatile`:
+
+```go
+//so:volatile
+//so:thread_local
+var flags int
+```
+
+Only allowed on `var` declarations.
+
+### Attributes
+
+Add GCC/Clang `__attribute__` annotations using `//so:attr`. The text after `so:attr` is used as the attribute value:
+
+```go
+//so:attr packed
+type header struct {
+    version byte
+    length  int
+}
+```
+
+Multiple `//so:attr` lines on the same declaration are combined:
+
+```go
+//so:attr packed
+//so:attr aligned(16)
+type aligned struct {
+    x int
+}
+```
+
+Allowed on `var`, `const`, `type`, and `func` declarations.
 
 ## Embeds
 

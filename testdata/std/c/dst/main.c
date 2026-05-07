@@ -1,8 +1,6 @@
 #include "main.h"
 #include <ctype.h>
 
-// -- Variables and constants --
-
 // -- Implementation --
 
 int main(void) {

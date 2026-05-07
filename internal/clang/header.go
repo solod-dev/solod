@@ -59,23 +59,23 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 			if !hasDocs && isBlockTypeSpec(sym.typeSpec) {
 				fmt.Fprintln(w)
 			}
-			g.emitTypeSpec(w, sym.typeSpec)
+			g.emitTypeSpec(w, sym.typeSpec, sym.dirs)
 		}
 	}
 
 	// Phase 2: exported const/var declarations from collected symbols.
-	var varDecls []*ast.GenDecl
+	var varSyms []symbol
 	for _, sym := range g.symbols {
 		if !sym.exported || (sym.kind != symbolVar && sym.kind != symbolConst) {
 			continue
 		}
-		varDecls = append(varDecls, sym.genDecl)
+		varSyms = append(varSyms, sym)
 	}
-	if len(varDecls) > 0 {
+	if len(varSyms) > 0 {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "// -- Variables and constants --")
-		for _, decl := range varDecls {
-			g.emitHeaderGenDecl(w, decl)
+		for _, sym := range varSyms {
+			g.emitHeaderGenDecl(w, sym.genDecl, sym.dirs)
 		}
 	}
 
@@ -85,7 +85,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 		if sym.kind != symbolFunc && sym.kind != symbolMethod {
 			continue
 		}
-		if !sym.exported && !sym.inlined {
+		if !sym.exported && !sym.dirs.inline {
 			continue
 		}
 		funcSyms = append(funcSyms, sym)
@@ -94,7 +94,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "// -- Functions and methods --")
 		for _, sym := range funcSyms {
-			if sym.inlined {
+			if sym.dirs.inline {
 				g.emitInlineFuncDecl(w, sym.funcDecl)
 			} else {
 				g.emitComments(w, sym.funcDecl)
@@ -107,8 +107,8 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 
 // emitHeaderGenDecl emits extern const/var declarations.
 // Type declarations are handled separately via collected symbols.
-func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl) {
-	if found, _ := parseExternDirective(decl.Doc); found {
+func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl, dirs directives) {
+	if found, _ := parseExtern(decl.Doc); found {
 		return
 	}
 	if decl.Tok == token.TYPE {
@@ -136,11 +136,21 @@ func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl) {
 			typ := g.types.Defs[name].Type()
 			ct := g.mapCType(spec, typ)
 			cName := g.symbolName(g.types.Defs[name])
+
+			// Build qualifier prefix for extern declarations.
+			qualifier := ""
+			if dirs.threadLocal {
+				qualifier += "_Thread_local "
+			}
+			if dirs.volatile {
+				qualifier += "volatile "
+			}
+
 			switch decl.Tok {
 			case token.CONST:
 				fmt.Fprintf(w, "extern const %s;\n", ct.Decl(cName))
 			case token.VAR:
-				fmt.Fprintf(w, "extern %s;\n", ct.Decl(cName))
+				fmt.Fprintf(w, "extern %s%s;\n", qualifier, ct.Decl(cName))
 			}
 		}
 	}

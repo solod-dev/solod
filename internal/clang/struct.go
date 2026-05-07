@@ -9,10 +9,16 @@ import (
 )
 
 // emitStructTypeSpec emits a typedef struct for a struct type declaration.
-func (g *Generator) emitStructTypeSpec(w io.Writer, spec *ast.TypeSpec) {
+// dirs provides parsed so: directives for package-level declarations.
+func (g *Generator) emitStructTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs directives) {
 	st := spec.Type.(*ast.StructType)
 	cName := g.declSymbolName(g.types.Defs[spec.Name])
-	fmt.Fprintf(w, "%stypedef struct %s {\n", g.indent(), cName)
+	attr := dirs.attrString()
+	if attr != "" {
+		fmt.Fprintf(w, "%stypedef struct %s %s {\n", g.indent(), attr, cName)
+	} else {
+		fmt.Fprintf(w, "%stypedef struct %s {\n", g.indent(), cName)
+	}
 	g.state.indent++
 	for _, field := range st.Fields.List {
 		typ := g.types.TypeOf(field.Type)

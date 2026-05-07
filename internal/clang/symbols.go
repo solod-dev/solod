@@ -5,6 +5,9 @@ import (
 	"go/ast"
 	"go/token"
 	"io"
+	"maps"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,80 +24,59 @@ const (
 type symbol struct {
 	kind     symbolKind
 	exported bool
-	inlined  bool         // so:inline directive present
+	dirs     directives   // parsed so: directives
 	genDecl  *ast.GenDecl // parent GenDecl (for type symbols, enables comment lookup)
 	typeSpec *ast.TypeSpec
 	funcDecl *ast.FuncDecl
 }
 
-// collectSymbols gathers all top-level type, function, var, and const
-// declarations into an ordered list. This list drives header emission
-// (exported symbols), forward declarations, and hoisted vars/consts.
-func (g *Generator) collectSymbols() {
-	// Collect top-level types and functions and their export status.
+// collect performs a single pass over all package files, collecting:
+// - Comment map (for doc comment emission)
+// - Include directives (so:include, so:include.c)
+// - Embed directives (so:embed) with file reads
+// - Extern symbols (so:extern, body-less functions)
+// - Symbol list (types, vars, consts, functions) with parsed directives
+func (g *Generator) collect() {
+	g.comments = ast.CommentMap{}
+	g.embeds = Embeds{vars: make(map[string]bool)}
+
+	srcDir := ""
+	if len(g.pkg.GoFiles) > 0 {
+		srcDir = filepath.Dir(g.pkg.GoFiles[0])
+	}
+
 	for _, file := range g.pkg.Syntax {
+		// Merge file comments into the global comment map.
+		fileComments := ast.NewCommentMap(g.pkg.Fset, file, file.Comments)
+		maps.Copy(g.comments, fileComments)
+
+		// Collect include directives from file-level comments.
+		for _, cg := range file.Comments {
+			for _, c := range cg.List {
+				if path, ok := strings.CutPrefix(c.Text, "//so:include.c"); ok {
+					g.includes.impl = append(g.includes.impl, strings.TrimSpace(path))
+				} else if path, ok := strings.CutPrefix(c.Text, "//so:include"); ok {
+					g.includes.header = append(g.includes.header, strings.TrimSpace(path))
+				}
+			}
+		}
+
+		// Collect extern symbols and build the symbol list.
 		for _, decl := range file.Decls {
 			switch d := decl.(type) {
 			case *ast.GenDecl:
-				if found, _ := parseExternDirective(d.Doc); found {
-					continue
-				}
-				switch d.Tok {
-				case token.TYPE:
-					for _, spec := range d.Specs {
-						ts := spec.(*ast.TypeSpec)
-						if g.hasExtern(g.types.Defs[ts.Name]) {
-							continue
-						}
-						g.symbols = append(g.symbols, symbol{
-							kind:     symbolType,
-							exported: ast.IsExported(ts.Name.Name),
-							genDecl:  d,
-							typeSpec: ts,
-						})
-					}
-				case token.VAR:
-					g.symbols = append(g.symbols, symbol{
-						kind:     symbolVar,
-						exported: hasExportedValueSpec(d),
-						genDecl:  d,
-					})
-				case token.CONST:
-					g.symbols = append(g.symbols, symbol{
-						kind:     symbolConst,
-						exported: hasExportedValueSpec(d),
-						genDecl:  d,
-					})
-				}
+				g.collectGenDecl(srcDir, d)
 			case *ast.FuncDecl:
-				if d.Body == nil || d.Name.Name == "main" {
-					continue
-				}
-				if d.Name.Name == "init" {
-					if g.initFunc != nil {
-						g.fail(d.Name, "multiple init functions in package %s", g.pkg.Name)
-					}
-					g.initFunc = d
-					continue
-				}
-				if g.hasExtern(g.types.Defs[d.Name]) {
-					continue
-				}
-				kind := symbolFunc
-				exported := ast.IsExported(d.Name.Name)
-				if d.Recv != nil {
-					kind = symbolMethod
-					if exported {
-						exported = ast.IsExported(recvTypeName(d.Recv.List[0]))
-					}
-				}
-				g.symbols = append(g.symbols, symbol{
-					kind:     kind,
-					exported: exported,
-					inlined:  hasInlineDirective(d.Doc),
-					funcDecl: d,
-				})
+				g.collectFuncDecl(d)
 			}
+		}
+	}
+
+	// Collect externs from imported packages so that callExtern
+	// can identify cross-package extern calls (e.g. stdio.Printf).
+	for _, imp := range g.pkg.Imports {
+		for _, file := range imp.Syntax {
+			g.collectFileExterns(imp.TypesInfo, file)
 		}
 	}
 
@@ -110,65 +92,181 @@ func (g *Generator) collectSymbols() {
 	}
 }
 
-// collectExterns scans all files for extern symbols and include directives.
-// Body-less functions and declarations annotated with so:extern are treated
-// as external C symbols that should not be emitted.
-func (g *Generator) collectExterns() {
-	for _, file := range g.pkg.Syntax {
-		// Collect include directives from the file.
-		for _, cg := range file.Comments {
-			for _, c := range cg.List {
-				if path, ok := strings.CutPrefix(c.Text, "//so:include.c"); ok {
-					g.includes.impl = append(g.includes.impl, strings.TrimSpace(path))
-				} else if path, ok := strings.CutPrefix(c.Text, "//so:include"); ok {
-					g.includes.header = append(g.includes.header, strings.TrimSpace(path))
+// collectGenDecl processes a GenDecl for externs, embeds, and symbol collection.
+func (g *Generator) collectGenDecl(srcDir string, d *ast.GenDecl) {
+	// Handle so:extern declarations.
+	foundExtern, externInf := parseExtern(d.Doc)
+	if foundExtern {
+		for _, spec := range d.Specs {
+			switch s := spec.(type) {
+			case *ast.TypeSpec:
+				g.markExtern(g.types.Defs[s.Name], externInf)
+				g.markExternFields(g.types, s, externInf)
+			case *ast.ValueSpec:
+				for _, name := range s.Names {
+					g.markExtern(g.types.Defs[name], externInf)
 				}
 			}
 		}
-
-		// Collect extern symbols from declarations.
-		g.collectFileExterns(g.types, file)
+		return
 	}
 
-	// Collect externs from imported packages so that callExtern
-	// can identify cross-package extern calls (e.g. stdio.Printf).
-	for _, imp := range g.pkg.Imports {
-		for _, file := range imp.Syntax {
-			g.collectFileExterns(imp.TypesInfo, file)
+	// Handle so:embed on variable declarations.
+	if d.Tok == token.VAR {
+		if filename, ok := embedDirective(d.Doc); ok {
+			content, err := os.ReadFile(filepath.Join(srcDir, filename))
+			if err != nil {
+				g.fail(d, "error reading file %s: %v", filename, err)
+			}
+			ef := embedFile{name: filename, content: string(content)}
+			switch filepath.Ext(filename) {
+			case ".h":
+				g.embeds.header = append(g.embeds.header, ef)
+			case ".c":
+				g.embeds.impl = append(g.embeds.impl, ef)
+			}
+			for _, spec := range d.Specs {
+				vs := spec.(*ast.ValueSpec)
+				for _, name := range vs.Names {
+					g.embeds.vars[name.Name] = true
+				}
+			}
+			return
 		}
 	}
+
+	// Parse directives for non-extern, non-embed GenDecls.
+	dirs := parseDirectives(d.Doc)
+
+	// Validate directive/declaration-kind compatibility.
+	if dirs.inline {
+		g.fail(d, "so:inline is only allowed on functions")
+	}
+	switch d.Tok {
+	case token.TYPE:
+		if dirs.volatile {
+			g.fail(d, "so:volatile is not allowed on type declarations")
+		}
+		if dirs.threadLocal {
+			g.fail(d, "so:thread_local is not allowed on type declarations")
+		}
+		for _, spec := range d.Specs {
+			ts := spec.(*ast.TypeSpec)
+			if g.hasExtern(g.types.Defs[ts.Name]) {
+				continue
+			}
+			g.symbols = append(g.symbols, symbol{
+				kind:     symbolType,
+				exported: ast.IsExported(ts.Name.Name),
+				dirs:     dirs,
+				genDecl:  d,
+				typeSpec: ts,
+			})
+		}
+	case token.VAR:
+		g.symbols = append(g.symbols, symbol{
+			kind:     symbolVar,
+			exported: hasExportedValueSpec(d),
+			dirs:     dirs,
+			genDecl:  d,
+		})
+	case token.CONST:
+		if dirs.volatile {
+			g.fail(d, "so:volatile is not allowed on const declarations")
+		}
+		if dirs.threadLocal {
+			g.fail(d, "so:thread_local is not allowed on const declarations")
+		}
+		g.symbols = append(g.symbols, symbol{
+			kind:     symbolConst,
+			exported: hasExportedValueSpec(d),
+			dirs:     dirs,
+			genDecl:  d,
+		})
+	}
+}
+
+// collectFuncDecl processes a FuncDecl for externs and symbol collection.
+func (g *Generator) collectFuncDecl(d *ast.FuncDecl) {
+	// Handle extern functions (body-less or so:extern).
+	foundExtern, externInf := parseExtern(d.Doc)
+	if d.Body == nil || foundExtern {
+		g.markExtern(g.types.Defs[d.Name], externInf)
+		return
+	}
+
+	if d.Name.Name == "main" {
+		return
+	}
+	if d.Name.Name == "init" {
+		if g.initFunc != nil {
+			g.fail(d.Name, "multiple init functions in package %s", g.pkg.Name)
+		}
+		g.initFunc = d
+		return
+	}
+	if g.hasExtern(g.types.Defs[d.Name]) {
+		return
+	}
+
+	dirs := parseDirectives(d.Doc)
+
+	// Validate directive/declaration-kind compatibility.
+	if dirs.volatile {
+		g.fail(d, "so:volatile is not allowed on functions")
+	}
+	if dirs.threadLocal {
+		g.fail(d, "so:thread_local is not allowed on functions")
+	}
+
+	g.funcDirs[d] = dirs
+
+	kind := symbolFunc
+	exported := ast.IsExported(d.Name.Name)
+	if d.Recv != nil {
+		kind = symbolMethod
+		if exported {
+			exported = ast.IsExported(recvTypeName(d.Recv.List[0]))
+		}
+	}
+	g.symbols = append(g.symbols, symbol{
+		kind:     kind,
+		exported: exported,
+		dirs:     dirs,
+		funcDecl: d,
+	})
 }
 
 // emitPackageVars writes all package-level variable and constant
 // declarations at the top of the .c file, before forward declarations.
 // This ensures they are defined before any function that references them.
 func (g *Generator) emitPackageVars(w io.Writer) {
-	var decls []*ast.GenDecl
+	var symbols []symbol
 	for _, sym := range g.symbols {
 		if sym.kind != symbolVar && sym.kind != symbolConst {
 			continue
 		}
-		decls = append(decls, sym.genDecl)
+		symbols = append(symbols, sym)
 	}
-	if len(decls) == 0 {
+	if len(symbols) == 0 {
 		return
 	}
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "// -- Variables and constants --")
-	for _, decl := range decls {
-		g.emitComments(w, decl)
-		switch decl.Tok {
+	for _, sym := range symbols {
+		g.emitComments(w, sym.genDecl)
+		switch sym.genDecl.Tok {
 		case token.CONST:
-			for _, spec := range decl.Specs {
+			for _, spec := range sym.genDecl.Specs {
 				g.emitConstSpec(spec.(*ast.ValueSpec))
 			}
 		case token.VAR:
-			for _, spec := range decl.Specs {
+			for _, spec := range sym.genDecl.Specs {
 				vs := spec.(*ast.ValueSpec)
 				if len(vs.Names) > 0 && g.embeds.vars[vs.Names[0].Name] {
 					continue
 				}
-				g.emitVarSpec(vs)
+				g.emitVarSpec(vs, sym.dirs)
 			}
 		}
 	}
@@ -195,7 +293,7 @@ func (g *Generator) emitUnexportedTypes(w io.Writer) {
 		if !hasDocs && isBlockTypeSpec(sym.typeSpec) {
 			fmt.Fprintln(w)
 		}
-		g.emitTypeSpec(w, sym.typeSpec)
+		g.emitTypeSpec(w, sym.typeSpec, sym.dirs)
 	}
 }
 
@@ -223,7 +321,7 @@ func (g *Generator) emitForwardFuncDecls(w io.Writer) {
 		if sym.kind != symbolFunc && sym.kind != symbolMethod {
 			continue
 		}
-		if sym.exported || sym.inlined {
+		if sym.exported || sym.dirs.inline {
 			continue
 		}
 		funcDecls = append(funcDecls, sym.funcDecl)

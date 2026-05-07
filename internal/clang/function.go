@@ -14,8 +14,9 @@ import (
 func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signature {
 	// Specifier: static inline for so:inline, static for unexported,
 	// empty for exported and main.
+	dirs := g.funcDirs[decl]
 	spec := ""
-	if hasInlineDirective(decl.Doc) {
+	if dirs.inline {
 		spec = "static inline "
 	} else if decl.Name.Name != "main" {
 		exported := ast.IsExported(decl.Name.Name)
@@ -25,6 +26,10 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 		if !exported {
 			spec = "static "
 		}
+	}
+	attr := dirs.attrString()
+	if attr != "" {
+		spec = spec + attr + " "
 	}
 
 	sig := g.funcSig(decl)
@@ -106,7 +111,7 @@ func (g *Generator) emitFuncDecl(decl *ast.FuncDecl) {
 	if decl.Name.Name == "init" {
 		return
 	}
-	if hasInlineDirective(decl.Doc) {
+	if g.funcDirs[decl].inline {
 		return
 	}
 	g.emitFuncBody(decl)

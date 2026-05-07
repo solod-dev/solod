@@ -19,7 +19,7 @@ func (g *Generator) collectFileExterns(typesInfo *types.Info, file *ast.File) {
 	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
-			found, info := parseExternDirective(d.Doc)
+			found, info := parseExtern(d.Doc)
 			if !found {
 				continue
 			}
@@ -35,16 +35,37 @@ func (g *Generator) collectFileExterns(typesInfo *types.Info, file *ast.File) {
 				}
 			}
 		case *ast.FuncDecl:
-			found, info := parseExternDirective(d.Doc)
+			found, info := parseExtern(d.Doc)
 			if d.Body == nil || found {
-				if d.Recv != nil {
-					g.markExtern(typesInfo.Defs[d.Name], info)
-				} else {
-					g.markExtern(typesInfo.Defs[d.Name], info)
-				}
+				g.markExtern(typesInfo.Defs[d.Name], info)
 			}
 		}
 	}
+}
+
+// parseExtern checks if a comment group contains the so:extern
+// directive and parses its options (name override and nodecay flag).
+func parseExtern(doc *ast.CommentGroup) (bool, externInfo) {
+	if doc == nil {
+		return false, externInfo{}
+	}
+	for _, c := range doc.List {
+		text := strings.TrimSpace(c.Text)
+		rest, ok := strings.CutPrefix(text, "//so:extern")
+		if !ok {
+			continue
+		}
+		var info externInfo
+		for tok := range strings.FieldsSeq(rest) {
+			if tok == "nodecay" {
+				info.nodecay = true
+			} else {
+				info.name = tok
+			}
+		}
+		return true, info
+	}
+	return false, externInfo{}
 }
 
 // callExtern returns the extern metadata for a call expression, if it
@@ -114,6 +135,49 @@ func (g *Generator) getExtern(obj types.Object) (externInfo, bool) {
 	return info, ok
 }
 
+// directives holds parsed so-directive annotations from a comment group.
+type directives struct {
+	inline      bool
+	volatile    bool
+	threadLocal bool
+	attrs       []string
+}
+
+// attrString returns a combined __attribute__((...)) string,
+// or "" if no attrs are present.
+func (d directives) attrString() string {
+	if len(d.attrs) == 0 {
+		return ""
+	}
+	return "__attribute__((" + strings.Join(d.attrs, ", ") + "))"
+}
+
+// parseDirectives scans a comment group for so:inline, so:volatile,
+// so:thread_local, and so:attr directives.
+func parseDirectives(doc *ast.CommentGroup) directives {
+	var d directives
+	if doc == nil {
+		return d
+	}
+	for _, c := range doc.List {
+		text := strings.TrimSpace(c.Text)
+		switch {
+		case text == "//so:inline":
+			d.inline = true
+		case text == "//so:volatile":
+			d.volatile = true
+		case text == "//so:thread_local":
+			d.threadLocal = true
+		case strings.HasPrefix(text, "//so:attr "):
+			attr := strings.TrimSpace(strings.TrimPrefix(text, "//so:attr "))
+			if attr != "" {
+				d.attrs = append(d.attrs, attr)
+			}
+		}
+	}
+	return d
+}
+
 // cIntrinsic checks whether an expression is a c.Raw or c.Val call
 // and returns the raw string content. The argument must be a string literal.
 func (g *Generator) cIntrinsic(expr ast.Expr) (string, bool) {
@@ -154,45 +218,6 @@ func (g *Generator) cIntrinsic(expr ast.Expr) (string, bool) {
 		}
 	}
 	return dedent(s), true
-}
-
-// hasInlineDirective reports whether a comment group
-// contains the so:inline directive.
-func hasInlineDirective(doc *ast.CommentGroup) bool {
-	if doc == nil {
-		return false
-	}
-	for _, c := range doc.List {
-		if strings.TrimSpace(c.Text) == "//so:inline" {
-			return true
-		}
-	}
-	return false
-}
-
-// parseExternDirective checks if a comment group contains the so:extern
-// directive and parses its options (name override and nodecay flag).
-func parseExternDirective(doc *ast.CommentGroup) (bool, externInfo) {
-	if doc == nil {
-		return false, externInfo{}
-	}
-	for _, c := range doc.List {
-		text := strings.TrimSpace(c.Text)
-		rest, ok := strings.CutPrefix(text, "//so:extern")
-		if !ok {
-			continue
-		}
-		var info externInfo
-		for tok := range strings.FieldsSeq(rest) {
-			if tok == "nodecay" {
-				info.nodecay = true
-			} else {
-				info.name = tok
-			}
-		}
-		return true, info
-	}
-	return false, externInfo{}
 }
 
 // dedent removes common leading whitespace from a multi-line string.

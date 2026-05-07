@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/types"
 	"io"
-	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,12 +29,7 @@ func Emit(opts EmitOptions) error {
 
 	// Initialize the generator with package information.
 	g := newGenerator(opts.Pkg)
-	if g.embeds, err = collectEmbeds(opts.Pkg); err != nil {
-		return fmt.Errorf("collect embeds: %w", err)
-	}
-	g.collectExterns()
-	g.collectSymbols()
-	g.collectComments()
+	g.collect()
 
 	// Emit header file.
 	hPath := filepath.Join(opts.OutDir, g.pkg.Name+".h")
@@ -88,21 +82,23 @@ type Generator struct {
 	pkg      *packages.Package
 	types    *types.Info
 	state    State
-	externs  map[types.Object]externInfo // symbols provided by C headers
-	includes Includes                    // included headers from so:include
-	symbols  []symbol                    // pre-collected top-level declarations
-	embeds   Embeds                      // embedded C files from so:embed
-	comments ast.CommentMap              // all comments across all files
-	initFunc *ast.FuncDecl               // package init() function, if any
-	panicked bool                        // true after first panic caught in Visit
+	externs  map[types.Object]externInfo  // symbols provided by C headers
+	includes Includes                     // included headers from so:include
+	symbols  []symbol                     // pre-collected top-level declarations
+	embeds   Embeds                       // embedded C files from so:embed
+	comments ast.CommentMap               // all comments across all files
+	funcDirs map[*ast.FuncDecl]directives // parsed directives per function decl
+	initFunc *ast.FuncDecl                // package init() function, if any
+	panicked bool                         // true after first panic caught in Visit
 }
 
 // newGenerator creates a new Generator instance.
 func newGenerator(pkg *packages.Package) *Generator {
 	return &Generator{
-		pkg:     pkg,
-		types:   pkg.TypesInfo,
-		externs: make(map[types.Object]externInfo),
+		pkg:      pkg,
+		types:    pkg.TypesInfo,
+		externs:  make(map[types.Object]externInfo),
+		funcDirs: make(map[*ast.FuncDecl]directives),
 	}
 }
 
@@ -178,15 +174,6 @@ func (g *Generator) emitInitFunc(w io.Writer) {
 
 	g.state.defers = nil
 	g.state.funcSig = nil
-}
-
-// collectComments builds a merged CommentMap from all source files.
-func (g *Generator) collectComments() {
-	g.comments = ast.CommentMap{}
-	for _, file := range g.pkg.Syntax {
-		fileComments := ast.NewCommentMap(g.pkg.Fset, file, file.Comments)
-		maps.Copy(g.comments, fileComments)
-	}
 }
 
 // indent returns the current indentation string based on the indent level.

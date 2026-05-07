@@ -1,7 +1,5 @@
 #include "main.h"
 
-// -- Variables and constants --
-
 // -- Implementation --
 
 int main(void) {
