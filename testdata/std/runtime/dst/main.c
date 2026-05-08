@@ -21,7 +21,7 @@ int main(void) {
     {
         // GOARCH.
         so_String arch = runtime_GOARCH;
-        if (so_string_ne(arch, so_str("amd64")) && so_string_ne(arch, so_str("arm64")) && so_string_ne(arch, so_str("riscv64"))) {
+        if (so_string_ne(arch, so_str("amd64")) && so_string_ne(arch, so_str("arm64")) && so_string_ne(arch, so_str("386")) && so_string_ne(arch, so_str("riscv64"))) {
             so_panic("Unexpected GOARCH");
         }
     }

@@ -21,7 +21,7 @@ func main() {
 	{
 		// GOARCH.
 		arch := runtime.GOARCH
-		if arch != "amd64" && arch != "arm64" && arch != "riscv64" {
+		if arch != "amd64" && arch != "arm64" && arch != "386" && arch != "riscv64" {
 			panic("Unexpected GOARCH")
 		}
 	}

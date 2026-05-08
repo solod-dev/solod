@@ -4,8 +4,6 @@
 
 package time
 
-import "solod.dev/so/math"
-
 // Computations on Times
 //
 // The zero value for a Time is defined to be
@@ -192,6 +190,7 @@ const (
 	absoluteToUnix = absoluteToInternal + internalToUnix
 
 	wallToInternal int64 = (1884*365 + 1884/4 - 1884/100 + 1884/400) * secondsPerDay
+	maxint64             = int64(^uint64(0) >> 1)
 )
 
 // Date returns the year, month, and day in which t occurs,
@@ -448,9 +447,9 @@ func (t *Time) addSec(d int64) {
 	if (sum > t.ext) == (d > 0) {
 		t.ext = sum
 	} else if d > 0 {
-		t.ext = int64(math.MaxInt64)
+		t.ext = maxint64
 	} else {
-		t.ext = -int64(math.MaxInt64)
+		t.ext = -maxint64
 	}
 }
 

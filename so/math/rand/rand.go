@@ -81,8 +81,13 @@ func (r *Rand) Uint64N(n uint64) uint64 {
 	return r.uint64n(n)
 }
 
+const is32bit = uint64(^uint(0))>>32 == 0
+
 // uint64n is the no-bounds-checks version of Uint64N.
 func (r *Rand) uint64n(n uint64) uint64 {
+	if is32bit && uint64(uint32(n)) == n {
+		return uint64(r.uint32n(uint32(n)))
+	}
 	if n&(n-1) == 0 { // n is power of two, can mask
 		return r.Uint64() & (n - 1)
 	}
@@ -122,6 +127,46 @@ func (r *Rand) uint64n(n uint64) uint64 {
 		thresh := -n % n
 		for lo < thresh {
 			hi, lo = bits.Mul64(r.Uint64(), n)
+		}
+	}
+	return hi
+}
+
+// uint32n is an identical computation to uint64n
+// but optimized for 32-bit systems.
+func (r *Rand) uint32n(n uint32) uint32 {
+	if n&(n-1) == 0 { // n is power of two, can mask
+		return uint32(r.Uint64()) & (n - 1)
+	}
+	// On 64-bit systems we still use the uint64 code below because
+	// the probability of a random uint64 lo being < a uint32 n is near zero,
+	// meaning the unbiasing loop almost never runs.
+	// On 32-bit systems, here we need to implement that same logic in 32-bit math,
+	// both to preserve the exact output sequence observed on 64-bit machines
+	// and to preserve the optimization that the unbiasing loop almost never runs.
+	//
+	// We want to compute
+	// 	hi, lo := bits.Mul64(r.Uint64(), n)
+	// In terms of 32-bit halves, this is:
+	// 	x1:x0 := r.Uint64()
+	// 	0:hi, lo1:lo0 := bits.Mul64(x1:x0, 0:n)
+	// Writing out the multiplication in terms of bits.Mul32 allows
+	// using direct hardware instructions and avoiding
+	// the computations involving these zeros.
+	x := r.Uint64()
+	lo1a, lo0 := bits.Mul32(uint32(x), n)
+	hi, lo1b := bits.Mul32(uint32(x>>32), n)
+	lo1, c := bits.Add32(lo1a, lo1b, 0)
+	hi += c
+	if lo1 == 0 && lo0 < uint32(n) {
+		n64 := uint64(n)
+		thresh := uint32(-n64 % n64)
+		for lo1 == 0 && lo0 < thresh {
+			x := r.Uint64()
+			lo1a, lo0 = bits.Mul32(uint32(x), n)
+			hi, lo1b = bits.Mul32(uint32(x>>32), n)
+			lo1, c = bits.Add32(lo1a, lo1b, 0)
+			hi += c
 		}
 	}
 	return hi

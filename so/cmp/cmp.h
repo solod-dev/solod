@@ -4,14 +4,14 @@
 // If T is not supported, returns NULL.
 #define cmp_FuncFor(T)         \
     _Generic((T){0},           \
-        so_byte: cmp_u8,       \
-        so_rune: cmp_i32,      \
-        so_int: cmp_i64,       \
-        so_uint: cmp_u64,      \
-        int8_t: cmp_i8,        \
-        int16_t: cmp_i16,      \
+        uint8_t: cmp_u8,       \
         uint16_t: cmp_u16,     \
         uint32_t: cmp_u32,     \
+        uint64_t: cmp_u64,     \
+        int8_t: cmp_i8,        \
+        int16_t: cmp_i16,      \
+        int32_t: cmp_i32,      \
+        int64_t: cmp_i64,      \
         float: cmp_f32,        \
         double: cmp_f64,       \
         so_String: cmp_string, \

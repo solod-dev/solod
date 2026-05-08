@@ -60,12 +60,14 @@ typedef int32_t so_rune;
 
 #if SIZE_MAX == 0xFFFFFFFFu
 #define so_int_bits 32
+#define so_max_int INT32_MAX
 #define PRIdINT "d"
 #define PRIuINT "u"
 typedef int32_t so_int;
 typedef uint32_t so_uint;
 #else
 #define so_int_bits 64
+#define so_max_int INT64_MAX
 #define PRIdINT PRId64
 #define PRIuINT PRIu64
 typedef int64_t so_int;

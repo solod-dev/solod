@@ -9,7 +9,6 @@ package bytes
 import (
 	"solod.dev/so/errors"
 	"solod.dev/so/io"
-	"solod.dev/so/math"
 	"solod.dev/so/mem"
 	"solod.dev/so/slices"
 	"solod.dev/so/unicode/utf8"
@@ -28,7 +27,7 @@ const MinRead = 512
 const smallBufferSize = 64
 
 // maxInt is the maximum value of an int.
-const maxInt = int(math.MaxInt64)
+const maxInt = int(uint64(^uint(0)) >> 1)
 
 // A Buffer is a variable-sized buffer of bytes with [Buffer.Read] and [Buffer.Write] methods.
 // The zero value for Buffer is an empty buffer ready to use (with default allocator).
