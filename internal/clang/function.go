@@ -36,7 +36,7 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 
 	// Return type.
 	retType := "void"
-	if decl.Name.Name == "main" {
+	if isMainFunc(decl) {
 		retType = "int"
 	} else if decl.Type.Results != nil && len(decl.Type.Results.List) > 0 {
 		retType = g.returnType(decl, sig)
@@ -75,7 +75,7 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 		}
 	}
 	params := "void"
-	if decl.Name.Name == "main" && g.importsOS() {
+	if isMainFunc(decl) && g.importsOS() {
 		params = "int argc, char* argv[]"
 	} else if len(parts) > 0 {
 		params = strings.Join(parts, ", ")
@@ -108,7 +108,7 @@ func (g *Generator) emitFuncDecl(decl *ast.FuncDecl) {
 	if decl.Body == nil || g.hasExtern(g.types.Defs[decl.Name]) {
 		return
 	}
-	if decl.Name.Name == "init" {
+	if isInitFunc(decl) {
 		return
 	}
 	if g.funcDirs[decl].inline {
@@ -240,7 +240,7 @@ func (g *Generator) emitFuncBody(decl *ast.FuncDecl) {
 
 	// Emit function body, handling deferred calls if needed.
 	g.state.indent++
-	if decl.Name.Name == "main" && g.importsOS() {
+	if isMainFunc(decl) && g.importsOS() {
 		fmt.Fprintf(w, "%sso_String _so_argv[argc];\n", g.indent())
 		fmt.Fprintf(w, "%sso_args_init(argc, argv, _so_argv);\n", g.indent())
 	}
@@ -409,6 +409,16 @@ func isGenericFunc(decl *ast.FuncDecl) bool {
 		}
 	}
 	return false
+}
+
+// isMainFunc reports whether a function declaration is the main function.
+func isMainFunc(decl *ast.FuncDecl) bool {
+	return decl.Name.Name == "main" && decl.Recv == nil
+}
+
+// isInitFunc reports whether a function declaration is the init function.
+func isInitFunc(decl *ast.FuncDecl) bool {
+	return decl.Name.Name == "init" && decl.Recv == nil
 }
 
 // hasUnexportedTypes reports whether a function declaration

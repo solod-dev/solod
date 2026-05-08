@@ -195,10 +195,10 @@ func (g *Generator) collectFuncDecl(d *ast.FuncDecl) {
 		return
 	}
 
-	if d.Name.Name == "main" {
+	if isMainFunc(d) {
 		return
 	}
-	if d.Name.Name == "init" {
+	if isInitFunc(d) {
 		if g.initFunc != nil {
 			g.fail(d.Name, "multiple init functions in package %s", g.pkg.Name)
 		}
