@@ -39,13 +39,13 @@
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define so_build_amd64
+#elif defined(__i386__) || defined(_M_IX86)
+#define so_build_i386
 #elif defined(__aarch64__) || defined(_M_ARM64)
 #define so_build_arm64
 #elif defined(__riscv) && __riscv_xlen == 64
 #define so_build_riscv64
 #endif
-
-_Static_assert(sizeof(void*) == 8, "64-bit platform required");
 
 // --- General utilities ---
 
@@ -57,8 +57,20 @@ _Static_assert(sizeof(void*) == 8, "64-bit platform required");
 
 typedef uint8_t so_byte;
 typedef int32_t so_rune;
+
+#if SIZE_MAX == 0xFFFFFFFFu
+#define so_int_bits 32
+#define PRIdINT "d"
+#define PRIuINT "u"
+typedef int32_t so_int;
+typedef uint32_t so_uint;
+#else
+#define so_int_bits 64
+#define PRIdINT PRId64
+#define PRIuINT PRIu64
 typedef int64_t so_int;
 typedef uint64_t so_uint;
+#endif
 
 // --- Alloca safety ---
 
@@ -560,7 +572,9 @@ static inline so_int so_map_nextpow2(so_int n) {
     n |= n >> 4;
     n |= n >> 8;
     n |= n >> 16;
+#if so_int_bits == 64
     n |= n >> 32;
+#endif
     return n + 1;
 }
 

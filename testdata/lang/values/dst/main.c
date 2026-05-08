@@ -5,17 +5,17 @@
 int main(void) {
     {
         // Integer literals.
-        const so_int d1 = 123;
+        const int64_t d1 = 123;
         (void)d1;
-        const so_int d2 = 100000;
+        const int64_t d2 = 100000;
         (void)d2;
-        const so_int d3 = 0b1010;
+        const int64_t d3 = 0b1010;
         (void)d3;
-        const so_int d4 = 0600;
+        const int64_t d4 = 0600;
         (void)d4;
-        const so_int d5 = 0xBadFace;
+        const int64_t d5 = 0xBadFace;
         (void)d5;
-        const so_int d6 = 0x677a2fcc40c6;
+        const int64_t d6 = 0x677a2fcc40c6;
         (void)d6;
     }
     {
@@ -71,12 +71,12 @@ int main(void) {
     }
     {
         // Conversions.
-        const uint64_t x = 123;
+        const so_uint x = 123;
         const so_int n1 = (so_int)(x);
         (void)n1;
         const so_int n2 = (so_int)(x & 7);
         (void)n2;
-        const so_int mask2 = 0b00011111;
+        const int64_t mask2 = 0b00011111;
         so_byte p0 = 'x';
         so_rune r = (so_rune)(p0 & mask2);
         (void)r;

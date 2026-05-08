@@ -11,7 +11,7 @@ so_int main_Person_Sleep(void* self) {
 int main(void) {
     main_Person p = (main_Person){.Name = so_str("Alice"), .Age = 30};
     main_Person_Sleep(&p);
-    so_println("%.*s %s %" PRId64 " %s", p.Name.len, p.Name.ptr, "is now", p.Age, "years old.");
+    so_println("%.*s %s %" PRIdINT " %s", p.Name.len, p.Name.ptr, "is now", p.Age, "years old.");
     p.Nums[0] = 42;
-    so_println("%s %" PRId64, "1st lucky number is", p.Nums[0]);
+    so_println("%s %" PRIdINT, "1st lucky number is", p.Nums[0]);
 }

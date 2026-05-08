@@ -26,7 +26,7 @@ int main(void) {
     }
     {
         // Extern constants.
-        if (INT64_MAX <= ((so_int)1 << 62)) {
+        if (INT64_MAX <= (int64_t)((int64_t)1 << 62)) {
             so_panic("maxInt64 <= 1<<62");
         }
     }

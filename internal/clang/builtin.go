@@ -351,7 +351,9 @@ func (g *Generator) formatSpec(arg ast.Expr, typ types.Type) (spec, macro string
 		return "%d", ""
 	case types.Float32, types.Float64, types.UntypedFloat:
 		return "%f", ""
-	case types.Int, types.UntypedInt:
+	case types.Int:
+		return "%", "PRIdINT"
+	case types.UntypedInt:
 		return "%", "PRId64"
 	case types.Int8, types.Int16, types.Int32:
 		return "%d", ""
@@ -359,8 +361,12 @@ func (g *Generator) formatSpec(arg ast.Expr, typ types.Type) (spec, macro string
 		return "%", "PRId64"
 	case types.Uint8, types.Uint16, types.Uint32:
 		return "%u", ""
-	case types.Uint, types.Uint64, types.Uintptr:
+	case types.Uint:
+		return "%", "PRIuINT"
+	case types.Uint64:
 		return "%", "PRIu64"
+	case types.Uintptr:
+		return "%", "PRIuPTR"
 	case types.String, types.UntypedString:
 		if lit, ok := arg.(*ast.BasicLit); ok && lit.Kind == token.STRING {
 			return "%s", ""

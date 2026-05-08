@@ -26,7 +26,7 @@ int main(void) {
         so_String str = so_str("Hi 世界!");
         for (so_int i = 0; i < so_len(str); i++) {
             so_byte chr = so_at(so_byte, str, i);
-            so_println("%s %" PRId64 " %s %u", "i =", i, "chr =", chr);
+            so_println("%s %" PRIdINT " %s %u", "i =", i, "chr =", chr);
         }
     }
     {
@@ -35,12 +35,12 @@ int main(void) {
         for (so_int i = 0, _iw = 0; i < so_len(str); i += _iw) {
             _iw = 0;
             so_rune r = so_utf8_decode(str, i, &_iw);
-            so_println("%s %" PRId64 " %s %d", "i =", i, "r =", r);
+            so_println("%s %" PRIdINT " %s %d", "i =", i, "r =", r);
         }
         for (so_int i = 0, _iw = 0; i < so_len(str); i += _iw) {
             _iw = 0;
             so_utf8_decode(str, i, &_iw);
-            so_println("%s %" PRId64, "i =", i);
+            so_println("%s %" PRIdINT, "i =", i);
         }
         for (so_int _ = 0, __w = 0; _ < so_len(str); _ += __w) {
             __w = 0;
@@ -56,7 +56,7 @@ int main(void) {
         for (so_int i = 0, _iw = 0; i < so_len(so_str("go")); i += _iw) {
             _iw = 0;
             so_rune r = so_utf8_decode(so_str("go"), i, &_iw);
-            so_println("%s %" PRId64 " %s %d", "i =", i, "r =", r);
+            so_println("%s %" PRIdINT " %s %d", "i =", i, "r =", r);
         }
         for (so_int _i = 0, _iw = 0; _i < so_len(str); _i += _iw) {
             _iw = 0;

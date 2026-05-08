@@ -21,7 +21,7 @@ const main_Day main_Tuesday = 2;
 int main(void) {
     {
         // Local constants.
-        const so_int lInt = 500000000;
+        const int64_t lInt = 500000000;
         (void)lInt;
         const double lFloat = 3e20 / lInt;
         (void)lFloat;

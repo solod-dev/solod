@@ -18,7 +18,7 @@ int main(void) {
         if (n1 == n2) {
             so_panic("same Int() twice in a row");
         }
-        so_println("%" PRId64 " %" PRId64, n1, n2);
+        so_println("%" PRIdINT " %" PRIdINT, n1, n2);
     }
     {
         // Float64.
@@ -47,6 +47,6 @@ int main(void) {
         if (n2 < 0 || n2 >= 100) {
             so_panic("IntN() out of range");
         }
-        so_println("%" PRId64 " %" PRId64, n1, n2);
+        so_println("%" PRIdINT " %" PRIdINT, n1, n2);
     }
 }

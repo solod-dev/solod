@@ -5,6 +5,7 @@ CLANG       = clang
 GCC_NATIVE  = gcc-15
 GCC_DOCKER  = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 RISCV64 = docker run --rm --platform linux/riscv64 -v "$(shell pwd)":/src -w /src solod/riscv64
+I386 = docker run --rm --platform linux/i386 -v "$(shell pwd)":/src -w /src solod/i386
 
 compiler =
 RUN_CMD = ./build/main
@@ -23,6 +24,10 @@ else ifeq ($(compiler), riscv64)
 	CC = $(RISCV64) gcc
 	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow
 	RUN_CMD = $(RISCV64) ./build/main
+else ifeq ($(compiler), i386)
+	CC = $(I386) gcc
+	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow
+	RUN_CMD = $(I386) ./build/main
 endif
 
 # Preload mimalloc if available.
@@ -50,6 +55,11 @@ prepare-riscv64:
 	@printf 'FROM alpine:edge\nRUN apk add --no-cache gcc musl-dev\n' \
 		| docker build --platform=linux/riscv64 -t solod/riscv64 -
 	@docker run --rm -it --platform=linux/riscv64 -v $(shell pwd):/src solod/riscv64 uname -m
+
+prepare-i386:
+	@printf 'FROM alpine:edge\nRUN apk add --no-cache gcc musl-dev\n' \
+		| docker build --platform=linux/i386 -t solod/i386 -
+	@docker run --rm -it --platform=linux/i386 -v $(shell pwd):/src solod/i386 uname -m
 
 update-dst:
 	make run-case name=$(name)

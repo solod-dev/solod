@@ -104,15 +104,15 @@ int main(void) {
         if (so_string_ne(s, so_str("-2a"))) {
             so_panic("FormatInt base 16");
         }
-        s = strconv_FormatInt(buf, (int64_t)(((so_int)1 << 31) - 1), 10);
+        s = strconv_FormatInt(buf, (int64_t)(((int64_t)1 << 31) - 1), 10);
         if (so_string_ne(s, so_str("2147483647"))) {
             so_panic("FormatInt 31bit");
         }
-        s = strconv_FormatInt(buf, (int64_t)(((so_int)1 << 56) - 1), 10);
+        s = strconv_FormatInt(buf, (int64_t)(((int64_t)1 << 56) - 1), 10);
         if (so_string_ne(s, so_str("72057594037927935"))) {
             so_panic("FormatInt 56bit");
         }
-        s = strconv_FormatInt(buf, (int64_t)(((so_int)1 << 62) - 1), 10);
+        s = strconv_FormatInt(buf, (int64_t)(((int64_t)1 << 62) - 1), 10);
         if (so_string_ne(s, so_str("4611686018427387903"))) {
             so_panic("FormatInt 62bit");
         }

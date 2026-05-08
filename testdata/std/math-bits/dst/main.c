@@ -52,7 +52,7 @@ int main(void) {
     }
     {
         // OnesCount.
-        uint64_t n = (uint64_t)(0b101010);
+        so_uint n = (so_uint)(0b101010);
         if (bits_OnesCount(n) != 3) {
             so_panic("OnesCount failed");
         }

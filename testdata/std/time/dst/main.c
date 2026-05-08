@@ -286,7 +286,7 @@ static void times(void) {
         if (time_Time_Nanosecond(t) != 777888999) {
             so_panic("unexpected Time.Nanosecond");
         }
-        so_println("%" PRId64 " %" PRId64 " %" PRId64 " %" PRId64 " %" PRId64 " %" PRId64 " %" PRId64, time_Time_Year(t), time_Time_Month(t), time_Time_Day(t), time_Time_Hour(t), time_Time_Minute(t), time_Time_Second(t), time_Time_Nanosecond(t));
+        so_println("%" PRIdINT " %" PRIdINT " %" PRIdINT " %" PRIdINT " %" PRIdINT " %" PRIdINT " %" PRIdINT, time_Time_Year(t), time_Time_Month(t), time_Time_Day(t), time_Time_Hour(t), time_Time_Minute(t), time_Time_Second(t), time_Time_Nanosecond(t));
     }
     {
         // Time.Now.

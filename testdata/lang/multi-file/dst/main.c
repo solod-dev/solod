@@ -17,5 +17,5 @@ static so_int add(so_int a, so_int b) {
 // -- main.go --
 
 int main(void) {
-    so_println("%" PRId64, add(1, 2));
+    so_println("%" PRIdINT, add(1, 2));
 }

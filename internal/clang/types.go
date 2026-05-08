@@ -126,8 +126,10 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 		return "float"
 	case types.Float64, types.UntypedFloat:
 		return "double"
-	case types.Int, types.UntypedInt:
+	case types.Int:
 		return "so_int"
+	case types.UntypedInt:
+		return "int64_t"
 	case types.Int8:
 		return "int8_t"
 	case types.Int16:
@@ -142,7 +144,7 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 	case types.Int64:
 		return "int64_t"
 	case types.Uint:
-		return "uint64_t"
+		return "so_uint"
 	case types.Uint8:
 		if basic.Name() == "byte" {
 			return "so_byte"
