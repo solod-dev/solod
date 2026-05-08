@@ -12,6 +12,8 @@ import (
 	"solod.dev/so/unicode/utf8"
 )
 
+const maxInt = int(uint64(^uint(0)) >> 1)
+
 // SplitResult holds the return values from a [SplitFunc].
 type SplitResult struct {
 	Advance  int
@@ -220,7 +222,6 @@ func (s *Scanner) Scan() bool {
 		// Is the buffer full? If so, resize.
 		if s.end == len(s.buf) {
 			// Guarantee no overflow in the multiplication below.
-			const maxInt = int(^uint(0) >> 1)
 			if len(s.buf) >= s.maxTokenSize || len(s.buf) > maxInt/2 {
 				s.setErr(ErrTooLong)
 				return false

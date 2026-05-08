@@ -4,18 +4,15 @@ import (
 	"unsafe"
 
 	"solod.dev/so/c"
+	_ "solod.dev/so/math/bits"
 	"solod.dev/so/mem"
 )
 
-//so:extern __uint128_t
-type uint128 uint64
-
-// wymum performs 128-bit multiply-and-mix using hardware support.
+// wymum performs 128-bit multiply-and-mix.
 //
-//so:inline
+//so:extern maps_wymum
 func wymum(a, b uint64) uint64 {
-	r := uint128(a) * uint128(b)
-	return uint64(r>>64) ^ uint64(r)
+	return a * b // for testing
 }
 
 // wyr8 reads 8 bytes as a little-endian uint64.

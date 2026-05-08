@@ -195,7 +195,7 @@ Supported compilers: GCC, Clang, and `zig cc`. MSVC is not supported.
 
 Supported operating systems: Linux, macOS, and Windows (core language only).
 
-Supported platforms: amd64, arm64, and riscv64. 32-bit targets are not supported.
+Supported platforms: amd64, arm64, riscv64, and i386.
 
 ## Design principles and FAQ
 

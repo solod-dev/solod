@@ -4,16 +4,14 @@
 
 package time
 
-import "solod.dev/so/math"
-
 // A Duration represents the elapsed time between two instants
 // as an int64 nanosecond count. The representation limits the
 // largest representable duration to approximately 290 years.
 type Duration int64
 
 const (
-	minDuration Duration = Duration(math.MinInt64)
-	maxDuration Duration = Duration(math.MaxInt64)
+	minDuration Duration = Duration(^int64(^uint64(0) >> 1)) // -1 << 63
+	maxDuration Duration = Duration(int64(^uint64(0) >> 1))  // 1<<63 - 1
 )
 
 // Common durations. There is no definition for units of Day or larger

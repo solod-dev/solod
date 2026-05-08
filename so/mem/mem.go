@@ -6,7 +6,6 @@ import (
 
 	"solod.dev/so/c"
 	"solod.dev/so/errors"
-	"solod.dev/so/math"
 )
 
 //so:embed mem.h
@@ -15,6 +14,9 @@ var mem_h string
 // ErrOutOfMemory is returned when a memory allocation
 // fails due to insufficient memory.
 var ErrOutOfMemory = errors.New("out of memory")
+
+//so:extern so_max_int
+const maxInt = int(uint64(^uint(0)) >> 1)
 
 // Alloc allocates a single value of type T using allocator a.
 // Returns a pointer to the allocated memory or panics on failure.
@@ -86,7 +88,7 @@ func TryAllocSlice[T any](a Allocator, len int, cap int) ([]T, error) {
 	c.Assert(_len >= 0, "mem: negative length")
 	c.Assert(_cap >= 0, "mem: negative capacity")
 	c.Assert(_len <= _cap, "mem: length exceeds capacity")
-	c.Assert(_cap < math.MaxInt/_esize, "mem: capacity overflow")
+	c.Assert(_cap < maxInt/_esize, "mem: capacity overflow")
 
 	var _ptr any
 	var _err error
@@ -133,7 +135,7 @@ func TryReallocSlice[T any](a Allocator, slice []T, newLen int, newCap int) ([]T
 	c.Assert(_newLen >= 0, "mem: negative length")
 	c.Assert(_newCap >= 0, "mem: negative capacity")
 	c.Assert(_newLen <= _newCap, "mem: length exceeds capacity")
-	c.Assert(_newCap < math.MaxInt/_esize, "mem: capacity overflow")
+	c.Assert(_newCap < maxInt/_esize, "mem: capacity overflow")
 
 	var _newPtr any
 	var _err error

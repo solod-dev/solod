@@ -23,6 +23,7 @@ const GOARCH string = "unknown"
 // darwin	arm64
 // linux	amd64
 // linux	arm64
+// linux	386
 // linux	riscv64
 // windows	amd64
 // windows	arm64

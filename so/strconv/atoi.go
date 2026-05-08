@@ -20,7 +20,7 @@ func lower(c byte) byte {
 	return c | ('x' - 'X')
 }
 
-const intSize = 32 << (^uint(0) >> 63)
+const intSize = 32 << (uint64(^uint(0)) >> 63)
 
 // IntSize is the size in bits of an int or uint value.
 const IntSize = intSize
@@ -82,7 +82,7 @@ func ParseUint(s string, base int, bitSize int) (uint64, error) {
 		cutoff = maxUint64/uint64(base) + 1
 	}
 
-	maxVal := (uint64(1)<<uint(bitSize-1)<<1) - 1
+	maxVal := (uint64(1) << uint(bitSize-1) << 1) - 1
 
 	underscores := false
 	var n uint64

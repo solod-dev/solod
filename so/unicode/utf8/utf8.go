@@ -480,7 +480,7 @@ func RuneCountInString(s string) int {
 // bits set to 10.
 func RuneStart(b byte) bool { return (b & 0xC0) != 0x80 }
 
-const ptrSize = 4 << (^uintptr(0) >> 63)
+const ptrSize = 4 << (uint64(^uintptr(0)) >> 63)
 const hiBits = 0x8080808080808080 >> (64 - 8*ptrSize)
 
 func wordSlice(s []byte) uintptr {

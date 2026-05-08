@@ -171,7 +171,7 @@ const smalls = "00010203040506070809" +
 	"80818283848586878889" +
 	"90919293949596979899"
 
-const host64bit = ^uint(0)>>32 != 0
+const host64bit = uint64(^uint(0))>>32 != 0
 
 // small returns the string for an i with 0 <= i < nSmalls.
 func small(i int) string {

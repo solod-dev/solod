@@ -62,9 +62,9 @@ const MaxUint32 = math.MaxUint32
 //so:extern UINT64_MAX
 const MaxUint64 = math.MaxUint64
 
-const MaxInt = MaxInt64
-const MinInt = MinInt64
-const MaxUint = MaxUint64
+const MaxInt = int(uint64(^uint(0)) >> 1)
+const MinInt = -MaxInt - 1
+const MaxUint = uint(^uint(0))
 
 // Basic operations.
 

@@ -9,6 +9,9 @@ typedef struct point {
     so_int y;
 } point;
 
+// -- Variables and constants --
+static const int64_t ptrSize = ((int64_t)4 << ((uint64_t)(~(uintptr_t)(0)) >> 63));
+
 // -- Implementation --
 
 int main(void) {
@@ -16,26 +19,26 @@ int main(void) {
         // Sizeof.
         so_int x = 42;
         uintptr_t size = unsafe_Sizeof(x);
-        if (size != 8) {
-            so_panic("want size == 8");
+        if (size != ptrSize) {
+            so_panic("invalid sizeof(int)");
         }
         point p = (point){1, 2};
         size = unsafe_Sizeof(p);
-        if (size != 16) {
-            so_panic("want size == 16");
+        if (size != 2 * ptrSize) {
+            so_panic("invalid sizeof(point)");
         }
     }
     {
         // Alignof.
         so_int x = 42;
         uintptr_t align = unsafe_Alignof(x);
-        if (align != 8) {
-            so_panic("want align == 8");
+        if (align != ptrSize) {
+            so_panic("invalid alignof(int)");
         }
         point p = (point){1, 2};
         align = unsafe_Alignof(p);
-        if (align != 8) {
-            so_panic("want align == 8");
+        if (align != ptrSize) {
+            so_panic("invalid alignof(point)");
         }
     }
     // {
