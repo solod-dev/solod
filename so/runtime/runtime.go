@@ -25,6 +25,7 @@ const GOARCH string = "unknown"
 // linux	arm64
 // linux	386
 // linux	riscv64
+// wasip1	wasm
 // windows	amd64
 // windows	arm64
 

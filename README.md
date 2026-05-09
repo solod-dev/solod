@@ -191,11 +191,11 @@ So generates C11 code that relies on several GCC/Clang extensions:
 - `__typeof__` for type inference in generic macros.
 - `alloca` and VLAs for `make()` and other dynamic stack allocations.
 
-Supported compilers: GCC, Clang, and `zig cc`. MSVC is not supported.
+Supported compilers: GCC, Clang, Emscripten, and `zig cc`. MSVC is not supported.
 
 Supported operating systems: Linux, macOS, and Windows (core language only).
 
-Supported platforms: amd64, arm64, riscv64, and i386.
+Supported platforms: amd64, arm64, riscv64, i386, and wasm32.
 
 ## Design principles and FAQ
 

@@ -33,6 +33,8 @@
 #define so_build_openbsd
 #elif defined(__DragonFly__)
 #define so_build_dragonfly
+#elif defined(__EMSCRIPTEN__)
+#define so_build_wasm
 #elif defined(_WIN32)
 #define so_build_windows
 #endif
@@ -45,6 +47,8 @@
 #define so_build_arm64
 #elif defined(__riscv) && __riscv_xlen == 64
 #define so_build_riscv64
+#elif defined(__wasm32__)
+#define so_build_wasm32
 #endif
 
 // --- General utilities ---

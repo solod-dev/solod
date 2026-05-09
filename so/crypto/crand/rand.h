@@ -12,6 +12,15 @@ static inline void crand_read(uint8_t* buf, so_int size) {
         buf += n;
         size -= n;
     }
+#elif defined(so_build_wasm)
+    while (size > 0) {
+        size_t n = size < 256 ? (size_t)size : 256;
+        if (getentropy(buf, n) != 0) {
+            so_panic("crypto/crand: cryptographic random not available");
+        }
+        buf += n;
+        size -= (so_int)n;
+    }
 #else
     so_panic("crypto/crand: cryptographic random not available");
 #endif

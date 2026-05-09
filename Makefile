@@ -1,13 +1,15 @@
 CFLAGS ?= -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow -fsanitize=address -fsanitize=undefined -fstack-protector-all -fno-omit-frame-pointer
 LDLIBS ?= -lm
 
-CLANG       = clang
-GCC_NATIVE  = gcc-15
-GCC_DOCKER  = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
+CLANG = clang
+GCC_NATIVE = gcc-15
+GCC_DOCKER = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 RISCV64 = docker run --rm --platform linux/riscv64 -v "$(shell pwd)":/src -w /src solod/riscv64
 I386 = docker run --rm --platform linux/i386 -v "$(shell pwd)":/src -w /src solod/i386
+WASM = emcc
 
 compiler =
+OUT_NAME = main
 RUN_CMD = ./build/main
 
 # Set CC and CFLAGS based on the selected compiler.
@@ -28,6 +30,11 @@ else ifeq ($(compiler), i386)
 	CC = $(I386) gcc
 	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow
 	RUN_CMD = $(I386) ./build/main
+else ifeq ($(compiler), wasm)
+	CC = $(WASM)
+	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow -sSTANDALONE_WASM
+	OUT_NAME = main.wasm
+	RUN_CMD = wasmtime ./build/main.wasm
 endif
 
 # Preload mimalloc if available.
@@ -104,11 +111,11 @@ run-c:
 	@mkdir -p build
 	@$(CC) $(CFLAGS) \
 		-I$(path) \
-		-o build/main \
+		-o build/$(OUT_NAME) \
 		$(shell find $(path) -name "*.c") \
 		$(LDLIBS)
 	@$(RUN_CMD)
-	@rm -f build/main
+	@rm -f build/$(OUT_NAME)
 
 .PHONY: bench
 bench:

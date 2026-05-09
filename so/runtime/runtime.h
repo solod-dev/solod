@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #elif defined(so_build_linux) || defined(so_build_freebsd) || defined(so_build_dragonfly)
 #include <sys/random.h>
+#elif defined(so_build_wasm)
+#include <unistd.h>
 #endif
 
 #include "so/builtin/builtin.h"
@@ -16,6 +18,10 @@ static inline uint64_t runtime_Seed(void) {
 #elif defined(so_build_linux) || defined(so_build_freebsd) || defined(so_build_dragonfly)
     ssize_t n = getrandom(&seed, sizeof(seed), 0);
     if (n != sizeof(seed)) {
+        so_panic("runtime: cryptographic random not available");
+    }
+#elif defined(so_build_wasm)
+    if (getentropy(&seed, sizeof(seed)) != 0) {
         so_panic("runtime: cryptographic random not available");
     }
 #else
@@ -38,6 +44,8 @@ static inline uint64_t runtime_Seed(void) {
 #define runtime_GOOS so_str("openbsd")
 #elif defined(so_build_dragonfly)
 #define runtime_GOOS so_str("dragonfly")
+#elif defined(so_build_wasm)
+#define runtime_GOOS so_str("wasip1")
 #elif defined(so_build_windows)
 #define runtime_GOOS so_str("windows")
 #else
@@ -52,6 +60,8 @@ static inline uint64_t runtime_Seed(void) {
 #define runtime_GOARCH so_str("riscv64")
 #elif defined(so_build_i386)
 #define runtime_GOARCH so_str("386")
+#elif defined(so_build_wasm32)
+#define runtime_GOARCH so_str("wasm")
 #else
 #define runtime_GOARCH so_str("unknown")
 #endif

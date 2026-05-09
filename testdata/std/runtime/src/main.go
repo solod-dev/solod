@@ -14,14 +14,14 @@ func main() {
 	{
 		// GOOS.
 		os := runtime.GOOS
-		if os != "darwin" && os != "linux" && os != "windows" {
+		if os != "darwin" && os != "linux" && os != "windows" && os != "wasip1" {
 			panic("Unexpected GOOS")
 		}
 	}
 	{
 		// GOARCH.
 		arch := runtime.GOARCH
-		if arch != "amd64" && arch != "arm64" && arch != "386" && arch != "riscv64" {
+		if arch != "amd64" && arch != "arm64" && arch != "386" && arch != "riscv64" && arch != "wasm" {
 			panic("Unexpected GOARCH")
 		}
 	}
