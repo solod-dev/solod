@@ -74,4 +74,5 @@ int main(void) {
             so_println("%s", "z == 5");
         }
     }
+    return 0;
 }

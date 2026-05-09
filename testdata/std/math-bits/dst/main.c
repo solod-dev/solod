@@ -85,4 +85,5 @@ int main(void) {
             so_panic("Len8 failed");
         }
     }
+    return 0;
 }

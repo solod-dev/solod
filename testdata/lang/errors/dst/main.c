@@ -79,4 +79,5 @@ int main(void) {
         so_Error nilErr = NULL;
         so_println("%s %s", "err =", errors_cstr(nilErr));
     }
+    return 0;
 }

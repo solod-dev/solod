@@ -48,4 +48,5 @@ int main(void) {
         (void)fInt;
         (void)fString;
     }
+    return 0;
 }

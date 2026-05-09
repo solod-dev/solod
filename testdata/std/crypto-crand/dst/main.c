@@ -51,4 +51,5 @@ int main(void) {
         }
         so_println("%.*s", s.len, s.ptr);
     }
+    return 0;
 }

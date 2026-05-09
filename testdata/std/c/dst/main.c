@@ -39,4 +39,5 @@ int main(void) {
             so_panic("b != 7");
         }
     }
+    return 0;
 }

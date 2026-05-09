@@ -33,4 +33,5 @@ int main(void) {
             so_panic("want s == 世界");
         }
     }
+    return 0;
 }

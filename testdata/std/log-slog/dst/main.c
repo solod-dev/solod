@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
     so_args_init(argc, argv, _so_argv);
     logger();
     defaults();
+    return 0;
 }
 
 static void logger(void) {

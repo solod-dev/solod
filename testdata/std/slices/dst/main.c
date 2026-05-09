@@ -12,6 +12,7 @@ int main(void) {
     minMaxTest();
     sliceTest();
     sortTest();
+    return 0;
 }
 
 // -- slice.go --

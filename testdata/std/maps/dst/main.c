@@ -53,6 +53,7 @@ static maps_Map makeMap(void) {
 int main(void) {
     mapTest();
     iterTest();
+    return 0;
 }
 
 // -- map.go --

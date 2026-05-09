@@ -285,4 +285,5 @@ int main(void) {
             so_panic("ParseUint 64 value");
         }
     }
+    return 0;
 }

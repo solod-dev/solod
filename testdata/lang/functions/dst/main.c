@@ -34,4 +34,5 @@ int main(void) {
     main_Sum3Fn fn5 = sub_Sum;
     so_int s5 = fn5(10, 20, 30);
     (void)s5;
+    return 0;
 }

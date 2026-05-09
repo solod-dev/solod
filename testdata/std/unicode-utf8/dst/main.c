@@ -87,4 +87,5 @@ int main(void) {
             so_panic("AppendRune failed");
         }
     }
+    return 0;
 }

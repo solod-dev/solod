@@ -279,4 +279,5 @@ int main(void) {
         }
         mem_FreeSlice(so_byte, ((mem_Allocator){0}), (b));
     }
+    return 0;
 }

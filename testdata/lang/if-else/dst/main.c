@@ -31,4 +31,5 @@ int main(void) {
             so_panic("want 0 <= num < 10");
         }
     }
+    return 0;
 }

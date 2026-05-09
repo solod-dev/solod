@@ -3,7 +3,6 @@ package main
 import "example/interop/src/sub"
 
 //so:include <stdint.h>
-//so:include <stdio.h>
 //so:include "person.ext.h"
 
 //so:extern INT64_MAX

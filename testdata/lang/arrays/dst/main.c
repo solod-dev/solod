@@ -222,4 +222,5 @@ int main(void) {
         }
     }
     (void)aranges;
+    return 0;
 }

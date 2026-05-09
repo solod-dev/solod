@@ -203,4 +203,5 @@ static void arenaTest(void) {
 int main(void) {
     allocTest();
     arenaTest();
+    return 0;
 }

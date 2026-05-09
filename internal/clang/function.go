@@ -247,6 +247,9 @@ func (g *Generator) emitFuncBody(decl *ast.FuncDecl) {
 	g.walkStmts(decl.Body.List)
 	if !endsWithReturn(decl.Body.List) {
 		g.emitDeferredCalls()
+		if isMainFunc(decl) {
+			fmt.Fprintf(w, "%sreturn 0;\n", g.indent())
+		}
 	}
 	g.state.indent--
 	fmt.Fprintf(w, "}\n")

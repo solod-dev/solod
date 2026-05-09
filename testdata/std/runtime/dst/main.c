@@ -25,4 +25,5 @@ int main(void) {
             so_panic("Unexpected GOARCH");
         }
     }
+    return 0;
 }

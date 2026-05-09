@@ -43,4 +43,5 @@ static void labeledBreak(void) {
 int main(void) {
     regularGoto();
     labeledBreak();
+    return 0;
 }

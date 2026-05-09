@@ -78,4 +78,5 @@ int main(void) {
     if (state != 0) {
         so_panic("unexpected state");
     }
+    return 0;
 }

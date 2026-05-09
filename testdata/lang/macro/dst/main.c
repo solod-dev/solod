@@ -61,4 +61,5 @@ int main(void) {
         so_println("%s", " - ok");
     }
     so_println("%s", "lang/macro - ok");
+    return 0;
 }

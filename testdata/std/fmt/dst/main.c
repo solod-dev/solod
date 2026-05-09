@@ -108,4 +108,5 @@ int main(void) {
             so_panic("Fscanf: wrong values");
         }
     }
+    return 0;
 }

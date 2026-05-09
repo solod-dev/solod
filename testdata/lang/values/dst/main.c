@@ -81,4 +81,5 @@ int main(void) {
         so_rune r = (so_rune)(p0 & mask2);
         (void)r;
     }
+    return 0;
 }

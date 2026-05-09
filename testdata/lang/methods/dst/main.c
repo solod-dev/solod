@@ -136,4 +136,5 @@ int main(void) {
             so_panic("unexpected perimeter");
         }
     }
+    return 0;
 }

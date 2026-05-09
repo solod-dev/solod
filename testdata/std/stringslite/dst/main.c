@@ -85,4 +85,5 @@ int main(void) {
             so_panic("TrimSuffix failed");
         }
     }
+    return 0;
 }

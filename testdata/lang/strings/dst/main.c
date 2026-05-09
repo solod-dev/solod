@@ -124,4 +124,5 @@ int main(void) {
             so_panic("want string(r) == 世");
         }
     }
+    return 0;
 }

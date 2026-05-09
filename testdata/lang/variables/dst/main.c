@@ -205,4 +205,5 @@ int main(void) {
             so_panic("multiple assignment failed");
         }
     }
+    return 0;
 }

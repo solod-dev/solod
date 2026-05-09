@@ -307,4 +307,5 @@ int main(void) {
             so_panic("Trunc(-1.2345) != -1");
         }
     }
+    return 0;
 }

@@ -83,4 +83,5 @@ int main(void) {
             so_panic("LastIndexByteString failed");
         }
     }
+    return 0;
 }

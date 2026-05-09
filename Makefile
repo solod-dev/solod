@@ -7,6 +7,7 @@ GCC_DOCKER = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 RISCV64 = docker run --rm --platform linux/riscv64 -v "$(shell pwd)":/src -w /src solod/riscv64
 I386 = docker run --rm --platform linux/i386 -v "$(shell pwd)":/src -w /src solod/i386
 WASM = emcc
+ZIG = zig cc
 
 compiler =
 OUT_NAME = main
@@ -22,6 +23,12 @@ else ifeq ($(compiler), docker)
     CC = $(GCC_DOCKER) gcc
 	CFLAGS += -fanalyzer -D_FORTIFY_SOURCE=2
     RUN_CMD = $(GCC_DOCKER) ./build/main
+else ifeq ($(compiler), bare)
+	CC = $(ZIG)
+	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow --target=wasm32-freestanding -nostdlib -Wl,--no-entry -Wl,--export=main
+	LDLIBS =
+	OUT_NAME = main.wasm
+	RUN_CMD = wasmtime --invoke main ./build/main.wasm 0 0
 else ifeq ($(compiler), riscv64)
 	CC = $(RISCV64) gcc
 	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow

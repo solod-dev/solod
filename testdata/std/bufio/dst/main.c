@@ -94,4 +94,5 @@ int main(void) {
         }
         bufio_Scanner_Free(&s);
     }
+    return 0;
 }

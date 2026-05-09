@@ -74,4 +74,5 @@ int main(void) {
             so_panic("want match");
         }
     }
+    return 0;
 }

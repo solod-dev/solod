@@ -1,6 +1,19 @@
-#include <stdio.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include "so/builtin/builtin.h"
+
+#if __STDC_HOSTED__ == 0
+static inline int printf(const char* format, ...) {
+    (void)format;
+    return 0;
+}
+
+static inline int vprintf(const char* format, va_list args) {
+    (void)format;
+    (void)args;
+    return 0;
+}
+#endif
 
 typedef struct Account Account;
 

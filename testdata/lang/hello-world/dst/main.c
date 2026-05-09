@@ -4,4 +4,5 @@
 
 int main(void) {
     so_println("%s", "hello world");
+    return 0;
 }

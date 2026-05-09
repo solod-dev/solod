@@ -50,4 +50,5 @@ int main(void) {
             so_panic("wrong sum");
         }
     }
+    return 0;
 }

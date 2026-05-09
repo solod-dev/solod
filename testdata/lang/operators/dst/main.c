@@ -89,4 +89,5 @@ int main(void) {
         bool e2 = ((so_string_lte(s1, s2)) && (so_string_gte(s1, s3))) || (so_string_ne(s1, s3));
         (void)e2;
     }
+    return 0;
 }

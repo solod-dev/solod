@@ -114,4 +114,5 @@ int main(void) {
             so_panic("want s2 == s1");
         }
     }
+    return 0;
 }

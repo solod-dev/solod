@@ -40,4 +40,5 @@ int main(void) {
             so_panic("expected p2.x == 3 && p2.y == 4");
         }
     }
+    return 0;
 }

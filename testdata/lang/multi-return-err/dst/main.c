@@ -129,4 +129,5 @@ int main(void) {
             so_panic("Custom struct failed");
         }
     }
+    return 0;
 }

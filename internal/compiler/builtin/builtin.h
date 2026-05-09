@@ -1,5 +1,7 @@
 #pragma once
 
+#if __STDC_HOSTED__
+
 #ifdef _WIN32
 #include <malloc.h>
 #else
@@ -14,6 +16,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#else
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdalign.h>
+#include <stddef.h>
+
+#define alloca __builtin_alloca
+#define memcmp __builtin_memcmp
+#define memcpy __builtin_memcpy
+#define memmove __builtin_memmove
+#define memset __builtin_memset
+
+#define PRId64 "lld"
+#define PRIu64 "llu"
+
+#define assert(cond)                   \
+    do {                               \
+        if (!(cond)) __builtin_trap(); \
+    } while (0)
+
+#endif  // __STDC_HOSTED__
 
 // --- Build metadata ---
 
@@ -415,12 +440,20 @@ static inline const char* errors_cstr(so_Error err) {
 }
 
 // panic aborts the program with the given message.
+#if __STDC_HOSTED__
 #define so_panic(msg)                                     \
     do {                                                  \
         fprintf(stderr, "panic: %s\n  %s:%d (func %s)\n", \
                 msg, __FILE__, __LINE__, __func__);       \
         exit(1);                                          \
     } while (0)
+#else
+#define so_panic(msg)     \
+    do {                  \
+        (void)msg;        \
+        __builtin_trap(); \
+    } while (0)
+#endif
 
 // --- Result types ---
 
@@ -516,6 +549,7 @@ static inline void* unsafe_SliceData(so_Slice s) {
 // Command-line arguments, populated by main().
 extern so_Slice os_Args;
 
+#if __STDC_HOSTED__
 // so_args_init populates os_Args from C argc/argv.
 // buf must be a so_String array of at least argc elements (VLA on main's stack).
 static inline void so_args_init(int argc, char* argv[], so_String* buf) {
@@ -524,6 +558,7 @@ static inline void so_args_init(int argc, char* argv[], so_String* buf) {
     }
     os_Args = (so_Slice){buf, (so_int)argc, (so_int)argc};
 }
+#endif
 
 // --- Map type ---
 

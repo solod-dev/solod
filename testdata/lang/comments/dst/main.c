@@ -34,4 +34,5 @@ int main(void) {
     main_Point_Scale(&p, main_MaxCoord);
     p = offset(p, 1, 1);
     (void)p;
+    return 0;
 }
