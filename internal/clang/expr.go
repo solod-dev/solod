@@ -518,6 +518,13 @@ func (g *Generator) emitIndexExpr(n *ast.IndexExpr) {
 // emitUnaryExpr emits a unary expression.
 func (g *Generator) emitUnaryExpr(n *ast.UnaryExpr) {
 	w := g.state.writer
+	
+	// Handle channel receive: <-ch
+	if n.Op == token.ARROW {
+		g.emitChanRecv(n)
+		return
+	}
+	
 	if n.Op == token.AND {
 		// &arrayParam: C array params decay to pointers, so &param
 		// gives T** instead of T(*)[N]. Emit a cast instead.

@@ -22,6 +22,8 @@ Solod (So) is a strict subset of Go that transpiles to regular C. This document 
 [Errors](#errors) •
 [Panic](#panic) •
 [Defer](#defer) •
+[Goroutines](#goroutines) •
+[Channels](#channels) •
 [C interop](#c-interop) •
 [Generics](#generics) •
 [Embeds](#embeds) •
@@ -916,6 +918,227 @@ func example() {
 Deferred calls are emitted inline (before returns, panics, and scope end) in LIFO order.
 
 Defer is not supported inside other scopes like `for` or `if`.
+
+## Goroutines
+
+Goroutines are lightweight concurrent execution units. Launch a goroutine with the `go` keyword:
+
+```go
+func worker(id int, msg string) {
+    println(id, msg)
+}
+
+func main() {
+    go worker(1, "hello")
+    go worker(2, "world")
+}
+```
+
+The `go` statement starts executing the function call concurrently. Arguments are evaluated in the calling goroutine before the new goroutine starts:
+
+```go
+func main() {
+    x := 10
+    go compute(x, 20)  // x evaluated as 10 before goroutine starts
+    x = 999            // changing x doesn't affect the goroutine
+}
+```
+
+**Restrictions:**
+- Only named functions can be launched as goroutines
+- Anonymous functions and closures are not supported
+- Return values from goroutines are discarded
+
+**Translation to C:**
+
+Uses libmill's coroutine implementation. Functions launched as goroutines are marked with the `coroutine` specifier in generated C code:
+
+```go
+// Go
+go worker(42)
+
+// C
+coroutine void worker(int arg);  // in header
+go(worker(42));                   // libmill macro in implementation
+```
+
+## Channels
+
+Channels provide type-safe communication between goroutines following Go's CSP model.
+
+### Creating channels
+
+Use `make()` to create channels:
+
+```go
+ch := make(chan int)       // unbuffered channel
+ch := make(chan int, 10)   // buffered channel with capacity 10
+```
+
+Channels can hold any type:
+
+```go
+chan int
+chan string
+chan *MyStruct
+chan error
+chan chan int  // channel of channels
+```
+
+### Sending and receiving
+
+Send values with `<-`:
+
+```go
+ch <- 42        // send 42 to channel
+ch <- value     // send value
+```
+
+Receive values with `<-`:
+
+```go
+value := <-ch           // receive and assign
+value, ok := <-ch       // receive with closed-channel detection
+```
+
+The two-value receive form returns:
+- `value`: received value (or zero value if channel closed)
+- `ok`: `true` if value received, `false` if channel closed
+
+### Closing channels
+
+Close a channel with `close()`:
+
+```go
+close(ch)
+```
+
+After closing:
+- Sends panic: `panic: send on closed channel`
+- Receives return zero value immediately
+- Multiple closes panic: `panic: close of closed channel`
+
+### Channel behavior table
+
+| Operation | nil channel | open channel | closed channel |
+|-----------|-------------|--------------|----------------|
+| send      | block forever | block or succeed | **panic** |
+| receive   | block forever | block or receive | zero value + false |
+| close     | **panic** | succeed | **panic** |
+
+### Select statement
+
+Select chooses which channel operation to perform:
+
+```go
+select {
+case v := <-ch1:
+    println("received from ch1:", v)
+case ch2 <- value:
+    println("sent to ch2")
+case v, ok := <-ch3:
+    if ok {
+        println("received from ch3:", v)
+    } else {
+        println("ch3 closed")
+    }
+default:
+    println("no channel ready")
+}
+```
+
+**Behavior:**
+- If multiple cases ready: one is chosen via uniform pseudo-random selection
+- If no cases ready and `default` present: execute default
+- If no cases ready and no `default`: block until a case becomes ready
+
+**Translation to C:**
+
+Uses libmill's `choose` statement with `in`, `out`, `otherwise`, and `end` clauses:
+
+```go
+// Go
+select {
+case v := <-ch:
+    process(v)
+case ch2 <- val:
+    println("sent")
+default:
+    println("not ready")
+}
+
+// C
+choose {
+in(ch, int, v):
+    process(v);
+out(ch2, int, val):
+    so_println("%s", "sent");
+otherwise:
+    so_println("%s", "not ready");
+end
+}
+```
+
+### Example patterns
+
+**Producer-Consumer:**
+
+```go
+func producer(ch chan int) {
+    for i := 0; i < 10; i++ {
+        ch <- i
+    }
+    close(ch)
+}
+
+func consumer(ch chan int) {
+    for {
+        v, ok := <-ch
+        if !ok {
+            break
+        }
+        println("received:", v)
+    }
+}
+
+func main() {
+    ch := make(chan int)
+    go producer(ch)
+    consumer(ch)
+}
+```
+
+**Fan-out:**
+
+```go
+func worker(id int, jobs chan int, results chan int) {
+    for job := <-jobs {
+        results <- job * 2
+    }
+}
+
+func main() {
+    jobs := make(chan int, 100)
+    results := make(chan int, 100)
+    
+    // Start workers
+    for i := 1; i <= 3; i++ {
+        go worker(i, jobs, results)
+    }
+    
+    // Send jobs
+    for j := 1; j <= 9; j++ {
+        jobs <- j
+    }
+    close(jobs)
+    
+    // Collect results
+    for i := 1; i <= 9; i++ {
+        r := <-results
+        println("result:", r)
+    }
+}
+```
 
 ## C interop
 

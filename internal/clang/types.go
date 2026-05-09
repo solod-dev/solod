@@ -62,6 +62,9 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 	case *types.Map:
 		return "so_Map*"
 
+	case *types.Chan:
+		return "so_Chan"
+
 	case *types.Interface:
 		// Special case: empty interface (any or interface{}) maps to void*.
 		// Named interfaces are caught by the *types.Named case below.
@@ -190,6 +193,11 @@ func (g *Generator) zeroValue(node ast.Node, typ types.Type) string {
 		return "NULL"
 	}
 
+	// Channels.
+	if _, ok := typ.Underlying().(*types.Chan); ok {
+		return "NULL"
+	}
+
 	// Structs.
 	if _, ok := typ.Underlying().(*types.Struct); ok {
 		return "{0}"
@@ -278,4 +286,12 @@ func isErrorType(typ types.Type) bool {
 func isNilType(t types.Type) bool {
 	basic, ok := t.(*types.Basic)
 	return ok && basic.Kind() == types.UntypedNil
+}
+
+// chanElemType returns the element type of a channel.
+func chanElemType(typ types.Type) types.Type {
+	if ch, ok := typ.Underlying().(*types.Chan); ok {
+		return ch.Elem()
+	}
+	return nil
 }

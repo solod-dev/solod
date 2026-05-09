@@ -13,9 +13,19 @@ import (
 // without a terminator. Returns the function's type signature for callers that need it.
 func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signature {
 	// Specifier: static inline for so:inline, static for unexported,
-	// empty for exported and main.
+	// coroutine for functions launched as goroutines, empty for exported and main.
 	dirs := g.funcDirs[decl]
 	spec := ""
+	
+	// Check if this function is a coroutine
+	name := g.symbolName(g.types.Defs[decl.Name])
+	if decl.Recv != nil {
+		name = g.symbolName(g.recvTypeObj(decl.Recv.List[0])) + "_" + decl.Name.Name
+	}
+	if g.isCoroutine(name) {
+		spec = "coroutine "
+	}
+	
 	if dirs.inline {
 		spec = "static inline "
 	} else if decl.Name.Name != "main" {
@@ -40,12 +50,6 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 		retType = "int"
 	} else if decl.Type.Results != nil && len(decl.Type.Results.List) > 0 {
 		retType = g.returnType(decl, sig)
-	}
-
-	// Name: methods use RecvType_Method, functions use symbolName.
-	name := g.symbolName(g.types.Defs[decl.Name])
-	if decl.Recv != nil {
-		name = g.symbolName(g.recvTypeObj(decl.Recv.List[0])) + "_" + decl.Name.Name
 	}
 
 	// Parameters: methods prepend receiver

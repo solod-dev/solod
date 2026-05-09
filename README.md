@@ -10,7 +10,7 @@ Highlights:
 - Native C interop. Call C from So and So from C — no CGO, no overhead.
 - Go tooling works out of the box. Syntax highlighting, LSP, linting and "go test".
 
-So supports structs, methods, interfaces, slices, maps, multiple returns, and defer. Everything is stack-allocated by default; heap is opt-in through the standard library. To keep things simple, there are no channels, goroutines, closures, or generics.
+So supports structs, methods, interfaces, slices, maps, multiple returns, defer, goroutines, and channels. Everything is stack-allocated by default; heap is opt-in through the standard library. To keep things simple, there are no closures or generics. Goroutines use named functions only (no anonymous functions).
 
 So is for Go developers who want systems-level control without learning a new language. And for C programmers who like Go's safety, structure, and tooling.
 
@@ -220,7 +220,7 @@ Supported platforms: amd64, arm64, riscv64, and i386.
 
 ⬜ Networking (v0.2).
 
-⬜ Concurrency (v0.3).
+✅ Concurrency (v0.2): Goroutines and channels with libmill backend.
 
 🤔 32-bit targets.
 

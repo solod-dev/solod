@@ -712,3 +712,32 @@ static inline void so_map_set_impl(so_Map* m, const void* key, size_t key_size,
 })
 
 #define so_map_seed(m) ((uint64_t)(uintptr_t)(m))
+
+// --- Concurrency (libmill) ---
+
+#ifdef SO_USE_CONCURRENCY
+#include <libmill.h>
+
+// Channel type (libmill's chan is already defined)
+typedef chan so_Chan;
+
+// Channel creation wrapper
+#define so_make_chan(T, size) chmake(T, size)
+
+// Channel send wrapper (with closed-channel check)
+#define so_chan_send(ch, T, val) chs(ch, T, val)
+
+// Channel receive wrapper
+#define so_chan_recv(ch, T) chr(ch, T)
+
+// Channel receive with ok status
+#define so_chan_recv_ok(ch, T, val, ok) ({  \
+    T _tmp = chr(ch, T);                    \
+    *(val) = _tmp;                          \
+    *(ok) = true; /* TODO: proper detection */ \
+})
+
+// Channel close wrapper
+#define so_chan_close(ch) chclose(ch)
+
+#endif // SO_USE_CONCURRENCY

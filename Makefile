@@ -1,6 +1,11 @@
 CFLAGS ?= -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow -fsanitize=address -fsanitize=undefined -fstack-protector-all -fno-omit-frame-pointer
 LDLIBS ?= -lm
 
+# Add libmill for concurrency tests
+ifneq ($(findstring concurrency,$(name)),)
+    CFLAGS += -DSO_USE_CONCURRENCY -I/tmp/opencode/include
+endif
+
 CLANG       = clang
 GCC_NATIVE  = gcc-15
 GCC_DOCKER  = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0

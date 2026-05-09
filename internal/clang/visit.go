@@ -61,6 +61,9 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 	case *ast.GenDecl:
 		g.emitGenDecl(n)
 		return nil
+	case *ast.GoStmt:
+		g.emitGoStmt(n)
+		return nil
 	case *ast.Ident:
 		// Package name or other identifiers
 		// visited during file walk.
@@ -79,6 +82,12 @@ func (g *Generator) Visit(node ast.Node) ast.Visitor {
 		return nil
 	case *ast.ReturnStmt:
 		g.emitReturnStmt(n)
+		return nil
+	case *ast.SelectStmt:
+		g.emitSelectStmt(n)
+		return nil
+	case *ast.SendStmt:
+		g.emitSendStmt(n)
 		return nil
 	case *ast.SwitchStmt:
 		g.emitSwitchStmt(n)

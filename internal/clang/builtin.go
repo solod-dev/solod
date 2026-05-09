@@ -20,7 +20,18 @@ func (g *Generator) emitBuiltin(call *ast.CallExpr, ident *ast.Ident, bi *types.
 	case "clear":
 		g.emitClearCall(call)
 		return true
-	case "close", "complex", "delete", "imag", "real", "recover":
+	case "close":
+		// Check if this is close() on a channel
+		if len(call.Args) == 1 {
+			argType := g.types.TypeOf(call.Args[0])
+			if _, ok := argType.Underlying().(*types.Chan); ok {
+				g.emitCloseChan(call)
+				return true
+			}
+		}
+		g.fail(call, "%s() is not supported", bi.Name())
+		return true
+	case "complex", "delete", "imag", "real", "recover":
 		g.fail(call, "%s() is not supported", bi.Name())
 		return true
 	case "copy":
@@ -137,7 +148,7 @@ func (g *Generator) emitCopyCall(call *ast.CallExpr) {
 	fmt.Fprintf(w, ")")
 }
 
-// emitMakeCall emits a make() builtin call for slices or maps.
+// emitMakeCall emits a make() builtin call for slices, maps, or channels.
 func (g *Generator) emitMakeCall(call *ast.CallExpr) {
 	w := g.state.writer
 	typ := g.types.Types[call.Args[0]].Type.Underlying()
@@ -162,6 +173,9 @@ func (g *Generator) emitMakeCall(call *ast.CallExpr) {
 		fmt.Fprintf(w, "so_make_map(%s, %s, ", keyType, valType)
 		g.emitExpr(call.Args[1])
 		fmt.Fprintf(w, ")")
+
+	case *types.Chan:
+		g.emitMakeChan(call, t)
 
 	default:
 		g.fail(call, "make() unsupported type: %s", typ)
