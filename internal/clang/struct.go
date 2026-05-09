@@ -218,6 +218,16 @@ func (g *Generator) emitMethodCall(sel *ast.SelectorExpr, call *ast.CallExpr) {
 		named = recv.(*types.Named)
 	}
 
+	// Error interface: err.Error() → errors_Error(err).
+	// so_Error is a plain pointer (struct so_Error_*) without a vtable,
+	// so it can't be dispatched through the generic interface path.
+	if isErrorType(named) && sel.Sel.Name == "Error" {
+		fmt.Fprintf(w, "errors_Error(")
+		g.emitExpr(sel.X)
+		fmt.Fprintf(w, ")")
+		return
+	}
+
 	// Interface method dispatch: s.Perim(2) → s.Perim(s.self, 2)
 	if isInterfaceType(named) {
 		g.emitExpr(sel.X)
