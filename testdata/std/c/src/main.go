@@ -2,9 +2,6 @@ package main
 
 import "solod.dev/so/c"
 
-//so:include <math.h>
-//so:include.c <ctype.h>
-
 //so:embed main.h
 var main_h string
 

@@ -6,7 +6,7 @@ GCC_NATIVE = gcc-15
 GCC_DOCKER = docker run --rm -v "$(shell pwd)":/src -w /src gcc:15.2.0
 RISCV64 = docker run --rm --platform linux/riscv64 -v "$(shell pwd)":/src -w /src solod/riscv64
 I386 = docker run --rm --platform linux/i386 -v "$(shell pwd)":/src -w /src solod/i386
-WASM = emcc
+EMCC = emcc
 ZIG = zig cc
 
 compiler =
@@ -38,7 +38,7 @@ else ifeq ($(compiler), i386)
 	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow
 	RUN_CMD = $(I386) ./build/main
 else ifeq ($(compiler), wasm)
-	CC = $(WASM)
+	CC = $(EMCC)
 	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow -sSTANDALONE_WASM
 	OUT_NAME = main.wasm
 	RUN_CMD = wasmtime ./build/main.wasm
@@ -82,6 +82,9 @@ update-dst:
 
 run-cases:
 	@make run-cases-by pattern="testdata/lang/*/ testdata/std/*/"
+
+run-cases-bare:
+	@make run-cases-by compiler=bare pattern="testdata/lang/*/ std/bufio std/bytealg std/bytes std/c std/cmp std/encoding-binary std/io std/maps std/math-bits std/math-rand std/mem std/path std/runtime std/slices std/strconv std/strings std/stringslite std/unicode std/unicode-utf8 std/unsafe"
 
 run-cases-windows:
 	@make run-cases-by CFLAGS="-g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow -lm" pattern="testdata/lang/*/"

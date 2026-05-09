@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "so/builtin/builtin.h"
 
-#if __STDC_HOSTED__ == 0
+#if !__STDC_HOSTED__
 static inline int printf(const char* format, ...) {
     (void)format;
     return 0;

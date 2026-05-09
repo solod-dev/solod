@@ -1,5 +1,17 @@
 #include "so/builtin/builtin.h"
 
+#if !__STDC_HOSTED__
+static inline void* memchr(const void* s, int c, size_t n) {
+    const unsigned char* p = s;
+    unsigned char target = (unsigned char)c;
+    while (n--) {
+        if (*p == target) return (void*)p;
+        p++;
+    }
+    return NULL;
+}
+#endif
+
 static inline so_int bytealg_Compare(so_Slice a, so_Slice b) {
     so_int n = a.len;
     if (b.len < n) n = b.len;

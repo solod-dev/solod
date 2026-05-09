@@ -1,3 +1,7 @@
+#if !__STDC_HOSTED__
+#error "so/time requires a hosted environment"
+#endif
+
 #include "so/builtin/builtin.h"
 #include <time.h>
 

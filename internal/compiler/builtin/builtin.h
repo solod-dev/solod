@@ -220,6 +220,14 @@ so_int so_utf8_encode(so_rune r, char* buf);
 // Returns the decoded rune, or 0xFFFD for invalid UTF-8.
 so_rune so_utf8_decode(so_String s, so_int i, so_int* w);
 
+#if !__STDC_HOSTED__
+static inline size_t strlen(const char* s) {
+    const char* p = s;
+    while (*p) p++;
+    return p - s;
+}
+#endif
+
 // --- Arrays ---
 
 // array_eq returns true if two arrays are equal.

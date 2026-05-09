@@ -14,7 +14,7 @@ int main(void) {
     {
         // GOOS.
         so_String os = runtime_GOOS;
-        if (so_string_ne(os, so_str("darwin")) && so_string_ne(os, so_str("linux")) && so_string_ne(os, so_str("windows")) && so_string_ne(os, so_str("wasip1"))) {
+        if (so_string_ne(os, so_str("bare")) && so_string_ne(os, so_str("darwin")) && so_string_ne(os, so_str("linux")) && so_string_ne(os, so_str("windows")) && so_string_ne(os, so_str("wasip1"))) {
             so_panic("Unexpected GOOS");
         }
     }

@@ -1,3 +1,7 @@
+#if !__STDC_HOSTED__
+#error "so/fmt requires a hosted environment"
+#endif
+
 #include <stdarg.h>
 #include "so/builtin/builtin.h"
 #include "so/io/io.h"

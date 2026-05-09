@@ -1,4 +1,6 @@
-#include <time.h>
+#include "so/builtin/builtin.h"
+
+#if __STDC_HOSTED__
 
 #if defined(so_build_darwin) || defined(so_build_netbsd) || defined(so_build_openbsd)
 #include <stdlib.h>
@@ -7,8 +9,6 @@
 #elif defined(so_build_wasm)
 #include <unistd.h>
 #endif
-
-#include "so/builtin/builtin.h"
 
 // Seed returns a random 64-bit seed.
 static inline uint64_t runtime_Seed(void) {
@@ -30,9 +30,24 @@ static inline uint64_t runtime_Seed(void) {
     return seed;
 }
 
+#else
+
+// Deterministic xorshift64 fallback for freestanding environments.
+static inline uint64_t runtime_Seed(void) {
+    static uint64_t rng_state = 0xdeadbeefcafebabeULL;
+    uint64_t x = rng_state;
+    x ^= x << 13; x ^= x >> 7; x ^= x << 17;
+    rng_state = x;
+    return x;
+}
+
+#endif  // __STDC_HOSTED__
+
 #define runtime_buildVersion so_str(so_version)
 
-#if defined(so_build_darwin)
+#if !__STDC_HOSTED__
+#define runtime_GOOS so_str("bare")
+#elif defined(so_build_darwin)
 #define runtime_GOOS so_str("darwin")
 #elif defined(so_build_linux)
 #define runtime_GOOS so_str("linux")

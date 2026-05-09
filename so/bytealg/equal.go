@@ -4,8 +4,6 @@
 
 package bytealg
 
-//so:include.c <string.h>
-
 // Equal reports whether a and b
 // are the same length and contain the same bytes.
 // A nil argument is equivalent to an empty slice.

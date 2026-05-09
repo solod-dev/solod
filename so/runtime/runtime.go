@@ -19,6 +19,11 @@ const GOARCH string = "unknown"
 
 // Recognized GOOS/GOARCH pairs are:
 // GOOS		GOARCH
+// bare		amd64
+// bare		arm64
+// bare		386
+// bare		riscv64
+// bare		wasm
 // darwin	amd64
 // darwin	arm64
 // linux	amd64
