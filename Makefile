@@ -25,7 +25,7 @@ else ifeq ($(compiler), docker)
     RUN_CMD = $(GCC_DOCKER) ./build/main
 else ifeq ($(compiler), bare)
 	CC = $(ZIG)
-	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow --target=wasm32-freestanding -nostdlib -Wl,--no-entry -Wl,--export=main
+	CFLAGS = -O1 -g -std=gnu11 -Wall -Wextra -Werror -Wno-shadow --target=wasm32-freestanding -nostdlib -Wl,--no-entry -Wl,--export=main -DSO_HEAP_SIZE=65536
 	LDLIBS =
 	OUT_NAME = main.wasm
 	RUN_CMD = wasmtime --invoke main ./build/main.wasm 0 0

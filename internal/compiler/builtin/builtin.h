@@ -107,13 +107,13 @@ typedef uint64_t so_uint;
 
 // MaxAllocaSize is the maximum size that can be
 // allocated with alloca (64 KB by default).
-#ifndef so_MaxAllocaSize
-#define so_MaxAllocaSize (64 << 10)
+#ifndef SO_MAX_ALLOCA_SIZE
+#define SO_MAX_ALLOCA_SIZE (64 << 10)  // in bytes
 #endif
 
 #define so_alloca(size) ({                                \
     size_t _size = (size_t)(size);                        \
-    if (_size > so_MaxAllocaSize)                         \
+    if (_size > SO_MAX_ALLOCA_SIZE)                       \
         so_panic("alloca: size exceeds maximum allowed"); \
     _size ? alloca(_size) : NULL;                         \
 })

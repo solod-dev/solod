@@ -23,10 +23,13 @@ static inline void mem_SwapByte(void* a, void* b, so_int n) {
 // Bump allocator over a static buffer for freestanding environments.
 // Memory is never reclaimed: free is a no-op, realloc copies into a new bump.
 // Suitable for short-lived programs that don't need much memory.
+// The heap is off by default, enable with -DSO_HEAP_SIZE=N.
 
 #ifndef SO_HEAP_SIZE
-#define SO_HEAP_SIZE (1 << 20)  // 1 MiB
+#define SO_HEAP_SIZE (0)  // in bytes
 #endif
+
+#if SO_HEAP_SIZE > 0
 
 static char so_heap[SO_HEAP_SIZE];
 static size_t so_heap_offset = 0;
@@ -61,8 +64,29 @@ static inline void* realloc(void* ptr, size_t new_size) {
     return new_ptr;
 }
 
+#else
+
+static inline void* malloc(size_t size) {
+    (void)size;
+    return NULL;
+}
+
+static inline void* calloc(size_t num, size_t size) {
+    (void)num;
+    (void)size;
+    return NULL;
+}
+
+static inline void* realloc(void* ptr, size_t new_size) {
+    (void)ptr;
+    (void)new_size;
+    return NULL;
+}
+
+#endif  // SO_HEAP_SIZE > 0
+
 static inline void free(void* ptr) {
     (void)ptr;
 }
 
-#endif
+#endif  // !__STDC_HOSTED__

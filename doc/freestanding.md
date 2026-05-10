@@ -29,13 +29,11 @@ zig cc -Oz \
 
 ### Bump allocator
 
-In freestanding mode, `mem.System` is implemented as a simple bump allocator backed by a static buffer:
+In freestanding mode, `mem.System` is implemented as a simple bump allocator backed by a static buffer. It's off by default, but you can enable it by setting the heap size with `-DSO_HEAP_SIZE=<bytes>` at compile time.
 
-- Default heap size: 1 MB. Override with `-DSO_HEAP_SIZE=<bytes>` at compile time.
-- `free` is a no-op; memory is never reclaimed.
-- `realloc` allocates a new bump region and copies data from the old one; the old region is not freed.
+In this implementation `free` is a no-op; memory is never reclaimed. `realloc` allocates a new bump region and copies data from the old one; the old region is not freed.
 
-This works well for short-lived programs that don't need much memory. Programs that use a lot of dynamic memory will run out of heap space.
+It's best not to use `mem.System` in freestanding mode. Instead, use `mem.Arena` so you can control the heap size and reset it when needed.
 
 ### Deterministic random
 
