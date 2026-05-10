@@ -47,9 +47,7 @@ Packages that depend on `runtime.Seed` (like `math/rand`) work but produce repea
 
 ## Stdlib packages
 
-### Available
-
-These packages work in freestanding mode without restrictions:
+These packages work in freestanding mode with no restrictions:
 
 ```text
 bufio  bytes  bytealg  c  cmp  encoding/binary
@@ -58,16 +56,13 @@ path  runtime  slices  strconv  strings  unicode
 unicode/utf8  unsafe
 ```
 
-### Not available
+The `time` package works with these restrictions:
+
+- `Now`, `Since`, and `Until` are not available.
+- `Time.Format` and `Time.Parse` only support named layouts (such as `RFC3339` or `DateOnly`), not custom layouts.
 
 These packages require a hosted environment and will produce a compile-time error if imported:
 
 ```text
-crypto/crand  fmt  math  os  time
-```
-
-Packages that transitively depend on the above are also unavailable:
-
-```text
-flag  log/slog  testing
+crypto/crand  flag  fmt  log/slog  math  os  testing
 ```
