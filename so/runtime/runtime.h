@@ -47,9 +47,7 @@ static inline uint64_t runtime_Seed(void) {
 
 #define runtime_buildVersion so_str(so_version)
 
-#ifndef so_build_hosted
-#define runtime_GOOS so_str("bare")
-#elif defined(so_build_darwin)
+#if defined(so_build_darwin)
 #define runtime_GOOS so_str("darwin")
 #elif defined(so_build_linux)
 #define runtime_GOOS so_str("linux")
@@ -66,7 +64,7 @@ static inline uint64_t runtime_Seed(void) {
 #elif defined(so_build_windows)
 #define runtime_GOOS so_str("windows")
 #else
-#define runtime_GOOS so_str("unknown")
+#define runtime_GOOS so_str("bare")
 #endif
 
 #if defined(so_build_amd64)

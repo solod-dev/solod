@@ -9,7 +9,7 @@ var runtime_h string
 // one of darwin, linux, windows, and so on.
 //
 //so:extern
-const GOOS string = "unknown"
+const GOOS string = "bare"
 
 // GOARCH is the running program's architecture target:
 // one of amd64, arm64, and so on.
@@ -19,11 +19,7 @@ const GOARCH string = "unknown"
 
 // Recognized GOOS/GOARCH pairs are:
 // GOOS		GOARCH
-// bare		amd64
-// bare		arm64
-// bare		386
-// bare		riscv64
-// bare		wasm
+// bare		*
 // darwin	amd64
 // darwin	arm64
 // linux	amd64
