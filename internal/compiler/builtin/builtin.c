@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include "builtin.h"
 
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 #include <stdio.h>
 #endif
 
@@ -98,7 +98,7 @@ so_String so_runes_string_impl(so_Slice rs, char* buf) {
     return (so_String){buf, pos};
 }
 
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 
 // print writes the formatted string to stdout.
 // Returns the number of bytes written.
@@ -132,4 +132,4 @@ int so_println(const char* format, ...) {
     return 0;
 }
 
-#endif  // __STDC_HOSTED__
+#endif  // so_build_hosted

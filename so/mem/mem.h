@@ -18,7 +18,7 @@ static inline void mem_SwapByte(void* a, void* b, so_int n) {
     memcpy(b, tmp, size);
 }
 
-#if !__STDC_HOSTED__
+#ifndef so_build_hosted
 
 // Bump allocator over a static buffer for freestanding environments.
 // Memory is never reclaimed: free is a no-op, realloc copies into a new bump.
@@ -89,4 +89,4 @@ static inline void free(void* ptr) {
     (void)ptr;
 }
 
-#endif  // !__STDC_HOSTED__
+#endif  // so_build_hosted

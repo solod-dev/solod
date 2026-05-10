@@ -1,4 +1,4 @@
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 
 #include <ctype.h>
 #include <math.h>
@@ -19,7 +19,7 @@ static inline double sqrt(double x) {
     return guess;
 }
 
-#endif // __STDC_HOSTED__
+#endif  // so_build_hosted
 
 static inline const char* get_cstring(const char* s) {
     return s;

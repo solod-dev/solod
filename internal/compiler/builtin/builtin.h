@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define so_build_hosted
+
 #else
 
 #include <stdbool.h>
@@ -220,7 +222,7 @@ so_int so_utf8_encode(so_rune r, char* buf);
 // Returns the decoded rune, or 0xFFFD for invalid UTF-8.
 so_rune so_utf8_decode(so_String s, so_int i, so_int* w);
 
-#if !__STDC_HOSTED__
+#ifndef so_build_hosted
 static inline size_t strlen(const char* s) {
     const char* p = s;
     while (*p) p++;
@@ -454,7 +456,7 @@ static inline so_String errors_Error(so_Error err) {
 }
 
 // panic aborts the program with the given message.
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 #define so_panic(msg)                                     \
     do {                                                  \
         fprintf(stderr, "panic: %s\n  %s:%d (func %s)\n", \
@@ -563,7 +565,7 @@ static inline void* unsafe_SliceData(so_Slice s) {
 // Command-line arguments, populated by main().
 extern so_Slice os_Args;
 
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 // so_args_init populates os_Args from C argc/argv.
 // buf must be a so_String array of at least argc elements (VLA on main's stack).
 static inline void so_args_init(int argc, char* argv[], so_String* buf) {

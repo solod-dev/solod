@@ -1,6 +1,6 @@
 #include "so/builtin/builtin.h"
 
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 
 #if defined(so_build_darwin) || defined(so_build_netbsd) || defined(so_build_openbsd)
 #include <stdlib.h>
@@ -36,16 +36,18 @@ static inline uint64_t runtime_Seed(void) {
 static inline uint64_t runtime_Seed(void) {
     static uint64_t rng_state = 0xdeadbeefcafebabeULL;
     uint64_t x = rng_state;
-    x ^= x << 13; x ^= x >> 7; x ^= x << 17;
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
     rng_state = x;
     return x;
 }
 
-#endif  // __STDC_HOSTED__
+#endif  // so_build_hosted
 
 #define runtime_buildVersion so_str(so_version)
 
-#if !__STDC_HOSTED__
+#ifndef so_build_hosted
 #define runtime_GOOS so_str("bare")
 #elif defined(so_build_darwin)
 #define runtime_GOOS so_str("darwin")

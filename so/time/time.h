@@ -1,6 +1,6 @@
 #include "so/builtin/builtin.h"
 
-#if __STDC_HOSTED__
+#ifdef so_build_hosted
 #include <time.h>
 
 #define time_tm struct tm
@@ -63,4 +63,4 @@ static inline int64_t time_mono() {
     return 0;
 }
 
-#endif  // __STDC_HOSTED__
+#endif  // so_build_hosted

@@ -1,8 +1,8 @@
-#if !__STDC_HOSTED__
+#include "so/builtin/builtin.h"
+
+#ifndef so_build_hosted
 #error "crypto/crand: hosted environment required"
 #endif
-
-#include "so/builtin/builtin.h"
 
 // read fills buf with size cryptographically secure random bytes.
 static inline void crand_read(uint8_t* buf, so_int size) {

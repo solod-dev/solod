@@ -1,10 +1,10 @@
-#if !__STDC_HOSTED__
-#error "fmt: hosted environment required"
-#endif
-
 #include <stdarg.h>
 #include "so/builtin/builtin.h"
 #include "so/io/io.h"
+
+#ifndef so_build_hosted
+#error "fmt: hosted environment required"
+#endif
 
 // BufSize is the size of the internal formatting buffer in bytes.
 #define fmt_BufSize 1024
