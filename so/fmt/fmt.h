@@ -1,5 +1,5 @@
 #if !__STDC_HOSTED__
-#error "so/fmt requires a hosted environment"
+#error "fmt: hosted environment required"
 #endif
 
 #include <stdarg.h>

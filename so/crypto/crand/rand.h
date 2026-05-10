@@ -1,5 +1,5 @@
 #if !__STDC_HOSTED__
-#error "so/crypto/crand requires a hosted environment"
+#error "crypto/crand: hosted environment required"
 #endif
 
 #include "so/builtin/builtin.h"

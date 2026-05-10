@@ -1,3 +1,3 @@
 #if !__STDC_HOSTED__
-#error "so/os requires a hosted environment"
+#error "os: hosted environment required"
 #endif
