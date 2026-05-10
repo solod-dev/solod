@@ -71,6 +71,7 @@ func main() {
 		// Printing errors.
 		err := makeTea(42)
 		println("err =", err)
+		println("err text =", err.Error())
 		var nilErr error
 		println("err =", nilErr)
 	}

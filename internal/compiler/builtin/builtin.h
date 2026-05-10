@@ -447,6 +447,12 @@ static inline const char* errors_cstr(so_Error err) {
     return err ? err->msg : "<nil>";
 }
 
+// errors_Error returns the error message as a so_String. Backs err.Error().
+static inline so_String errors_Error(so_Error err) {
+    const char* s = errors_cstr(err);
+    return (so_String){s, (so_int)strlen(s)};
+}
+
 // panic aborts the program with the given message.
 #if __STDC_HOSTED__
 #define so_panic(msg)                                     \
