@@ -20,4 +20,5 @@ int main(void) {
             so_panic("unexpected map size");
         }
     }
+    return 0;
 }

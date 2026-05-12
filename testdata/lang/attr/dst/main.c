@@ -72,4 +72,5 @@ int main(void) {
     (void)m;
     main_Work();
     helper();
+    return 0;
 }

@@ -34,4 +34,5 @@ int main(void) {
     if (false) {
         panicError();
     }
+    return 0;
 }

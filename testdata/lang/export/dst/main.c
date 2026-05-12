@@ -22,4 +22,5 @@ bool main_SomeFunc(so_int x, so_int y) {
 int main(void) {
     (void)someFunc(1, 2);
     main_SomeFunc(3, 4);
+    return 0;
 }

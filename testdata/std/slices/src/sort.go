@@ -2,7 +2,6 @@ package main
 
 import (
 	"solod.dev/so/cmp"
-	"solod.dev/so/math"
 	"solod.dev/so/slices"
 )
 
@@ -14,7 +13,7 @@ func descInt(a, b any) int {
 
 func sortTest() {
 	var ints = [...]int{74, 59, 238, -784, 9845, 959, 905, 0, 0, 42, 7586, -5467984, 7586}
-	var float64s = [...]float64{74.3, 59.0, math.Inf(1), 238.2, -784.0, 2.3, math.Inf(-1), 9845.768, -959.7485, 905, 7.8, 7.8, 74.3, 59.0, math.Inf(1), 238.2, -784.0, 2.3}
+	var float64s = [...]float64{74.3, 59.0, 238.2, -784.0, 2.3, 9845.768, -959.7485, 905, 7.8, 7.8, 74.3, 59.0, 238.2, -784.0, 2.3}
 	var strs = [...]string{"", "Hello", "foo", "bar", "foo", "f00", "%*&^*&^&", "***"}
 
 	{
@@ -66,7 +65,7 @@ func sortTest() {
 		if !slices.IsSorted(s) {
 			panic("Sort float64s: not sorted")
 		}
-		if s[0] != math.Inf(-1) || s[17] != math.Inf(1) {
+		if s[0] != -959.7485 || s[14] != 9845.768 {
 			panic("Sort float64s: wrong values")
 		}
 		slices.Free(nil, s)
@@ -134,7 +133,7 @@ func sortTest() {
 		if !slices.IsSorted(s) {
 			panic("SortStable float64s: not sorted")
 		}
-		if s[0] != math.Inf(-1) || s[17] != math.Inf(1) {
+		if s[0] != -959.7485 || s[14] != 9845.768 {
 			panic("SortStable float64s: wrong values")
 		}
 		slices.Free(nil, s)

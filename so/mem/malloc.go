@@ -59,6 +59,8 @@ func realloc(ptr any, newSize uintptr) any {
 	return newPtr
 }
 
+// void free(void *ptr);
+//
 //so:extern
 func free(ptr any) {
 	if ptr != nil {

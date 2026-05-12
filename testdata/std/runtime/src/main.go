@@ -14,7 +14,7 @@ func main() {
 	{
 		// GOOS.
 		os := runtime.GOOS
-		if os != "darwin" && os != "linux" && os != "windows" && os != "wasip1" {
+		if os != "bare" && os != "darwin" && os != "linux" && os != "windows" && os != "wasip1" {
 			panic("Unexpected GOOS")
 		}
 	}

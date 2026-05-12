@@ -25,4 +25,5 @@ typedef struct upet {
 // -- Implementation --
 
 int main(void) {
+    return 0;
 }

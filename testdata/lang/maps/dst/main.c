@@ -586,4 +586,5 @@ int main(void) {
             so_panic("increment");
         }
     }
+    return 0;
 }

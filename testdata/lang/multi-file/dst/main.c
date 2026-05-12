@@ -18,4 +18,5 @@ static so_int add(so_int a, so_int b) {
 
 int main(void) {
     so_println("%" PRIdINT, add(1, 2));
+    return 0;
 }

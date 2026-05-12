@@ -1,6 +1,9 @@
 #include <stdarg.h>
-#include <stdio.h>
 #include "builtin.h"
+
+#ifdef so_build_hosted
+#include <stdio.h>
+#endif
 
 // Command-line arguments, populated by main().
 so_Slice os_Args = {0};
@@ -95,6 +98,8 @@ so_String so_runes_string_impl(so_Slice rs, char* buf) {
     return (so_String){buf, pos};
 }
 
+#ifdef so_build_hosted
+
 // print writes the formatted string to stdout.
 // Returns the number of bytes written.
 int so_print(const char* format, ...) {
@@ -115,3 +120,16 @@ int so_println(const char* format, ...) {
     putchar('\n');
     return n + 1;
 }
+
+#else
+
+int so_print(const char* format, ...) {
+    (void)format;
+    return 0;
+}
+int so_println(const char* format, ...) {
+    (void)format;
+    return 0;
+}
+
+#endif  // so_build_hosted

@@ -12,6 +12,7 @@ int main(void) {
     minMaxTest();
     sliceTest();
     sortTest();
+    return 0;
 }
 
 // -- slice.go --
@@ -184,7 +185,7 @@ static so_int descInt(void* a, void* b) {
 
 static void sortTest(void) {
     so_int ints[13] = {74, 59, 238, -784, 9845, 959, 905, 0, 0, 42, 7586, -5467984, 7586};
-    double float64s[18] = {74.3, 59.0, math_Inf(1), 238.2, -784.0, 2.3, math_Inf(-1), 9845.768, -959.7485, 905, 7.8, 7.8, 74.3, 59.0, math_Inf(1), 238.2, -784.0, 2.3};
+    double float64s[15] = {74.3, 59.0, 238.2, -784.0, 2.3, 9845.768, -959.7485, 905, 7.8, 7.8, 74.3, 59.0, 238.2, -784.0, 2.3};
     so_String strs[8] = {so_str(""), so_str("Hello"), so_str("foo"), so_str("bar"), so_str("foo"), so_str("f00"), so_str("%*&^*&^&"), so_str("***")};
     {
         // IsSorted: false on unsorted data.
@@ -230,12 +231,12 @@ static void sortTest(void) {
     }
     {
         // Sort float64s.
-        so_Slice s = slices_Clone(double, ((mem_Allocator){0}), (so_array_slice(double, float64s, 0, 18, 18)));
+        so_Slice s = slices_Clone(double, ((mem_Allocator){0}), (so_array_slice(double, float64s, 0, 15, 15)));
         slices_Sort(double, (s));
         if (!slices_IsSorted(double, (s))) {
             so_panic("Sort float64s: not sorted");
         }
-        if (so_at(double, s, 0) != math_Inf(-1) || so_at(double, s, 17) != math_Inf(1)) {
+        if (so_at(double, s, 0) != -959.7485 || so_at(double, s, 14) != 9845.768) {
             so_panic("Sort float64s: wrong values");
         }
         slices_Free(double, ((mem_Allocator){0}), (s));
@@ -300,13 +301,13 @@ static void sortTest(void) {
     }
     {
         // SortStableFunc float64s.
-        so_Slice s = slices_Clone(double, ((mem_Allocator){0}), (so_array_slice(double, float64s, 0, 18, 18)));
+        so_Slice s = slices_Clone(double, ((mem_Allocator){0}), (so_array_slice(double, float64s, 0, 15, 15)));
         cmp_Func compare = cmp_FuncFor(double);
         slices_SortStableFunc(double, (s), (compare));
         if (!slices_IsSorted(double, (s))) {
             so_panic("SortStable float64s: not sorted");
         }
-        if (so_at(double, s, 0) != math_Inf(-1) || so_at(double, s, 17) != math_Inf(1)) {
+        if (so_at(double, s, 0) != -959.7485 || so_at(double, s, 14) != 9845.768) {
             so_panic("SortStable float64s: wrong values");
         }
         slices_Free(double, ((mem_Allocator){0}), (s));

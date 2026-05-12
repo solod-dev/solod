@@ -23,4 +23,5 @@ int main(void) {
     if (cSecret != main_GoSecret) {
         so_panic("secret mismatch");
     }
+    return 0;
 }

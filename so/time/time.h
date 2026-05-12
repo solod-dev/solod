@@ -1,4 +1,6 @@
 #include "so/builtin/builtin.h"
+
+#ifdef so_build_hosted
 #include <time.h>
 
 #define time_tm struct tm
@@ -20,3 +22,45 @@ static inline int64_t time_mono() {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
 }
+
+#else
+
+typedef struct {
+    int tm_sec;    // seconds after the minute [0-60]
+    int tm_min;    // minutes after the hour [0-59]
+    int tm_hour;   // hours since midnight [0-23]
+    int tm_mday;   // day of the month [1-31]
+    int tm_mon;    // months since January [0-11]
+    int tm_year;   // years since 1900
+    int tm_wday;   // days since Sunday [0-6]
+    int tm_yday;   // days since January 1 [0-365]
+    int tm_isdst;  // Daylight Saving Time flag
+} time_tm;
+
+static inline size_t strftime(char* str, size_t count, const char* format, time_tm* tm) {
+    (void)str;
+    (void)count;
+    (void)format;
+    (void)tm;
+    so_panic("time: formatting requires a hosted environment");
+    return 0;
+}
+
+static inline char* strptime(const char* str, const char* format, time_tm* tm) {
+    (void)str;
+    (void)format;
+    (void)tm;
+    so_panic("time: parsing requires a hosted environment");
+    return NULL;
+}
+
+static inline so_R_i64_i32 time_wall() {
+    so_panic("time: wall clock time requires a hosted environment");
+    return (so_R_i64_i32){0};
+}
+
+static inline int64_t time_mono() {
+    return 0;
+}
+
+#endif  // so_build_hosted

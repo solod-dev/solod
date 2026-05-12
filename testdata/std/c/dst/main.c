@@ -1,5 +1,4 @@
 #include "main.h"
-#include <ctype.h>
 
 // -- Implementation --
 
@@ -39,4 +38,5 @@ int main(void) {
             so_panic("b != 7");
         }
     }
+    return 0;
 }

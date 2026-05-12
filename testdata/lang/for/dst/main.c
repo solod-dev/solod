@@ -34,4 +34,5 @@ int main(void) {
         }
         so_println("%" PRIdINT, n);
     }
+    return 0;
 }

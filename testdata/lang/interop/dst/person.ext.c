@@ -1,5 +1,3 @@
-#include <inttypes.h>
-#include <stdarg.h>
 #include "person.ext.h"
 
 int64_t account_inc_balance(Account* a, int64_t amount) {

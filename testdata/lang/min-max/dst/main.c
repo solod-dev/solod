@@ -48,4 +48,5 @@ int main(void) {
             so_panic("string args: max failed");
         }
     }
+    return 0;
 }

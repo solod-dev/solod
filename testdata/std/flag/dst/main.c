@@ -28,4 +28,5 @@ int main(void) {
     if (so_string_ne(s, so_str("hello"))) {
         so_panic("s != hello");
     }
+    return 0;
 }

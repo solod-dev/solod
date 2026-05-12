@@ -14,4 +14,5 @@ int main(void) {
     so_println("%.*s %s %" PRIdINT " %s", p.Name.len, p.Name.ptr, "is now", p.Age, "years old.");
     p.Nums[0] = 42;
     so_println("%s %" PRIdINT, "1st lucky number is", p.Nums[0]);
+    return 0;
 }

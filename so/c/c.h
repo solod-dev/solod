@@ -1,5 +1,3 @@
-#include <assert.h>
-#include <string.h>
 #include "so/builtin/builtin.h"
 
 #define so_const_char const char

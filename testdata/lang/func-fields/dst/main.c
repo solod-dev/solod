@@ -71,4 +71,5 @@ int main(void) {
             so_panic("unexpected r6");
         }
     }
+    return 0;
 }

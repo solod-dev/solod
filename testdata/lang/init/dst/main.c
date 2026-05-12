@@ -37,6 +37,7 @@ int main(void) {
             so_panic("v.x != 123");
         }
     }
+    return 0;
 }
 
 static void __attribute__((constructor)) main_init() {

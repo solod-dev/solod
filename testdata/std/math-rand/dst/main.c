@@ -49,4 +49,5 @@ int main(void) {
         }
         so_println("%" PRIdINT " %" PRIdINT, n1, n2);
     }
+    return 0;
 }

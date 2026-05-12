@@ -776,4 +776,5 @@ int main(void) {
             so_panic("want len preserved after clear");
         }
     }
+    return 0;
 }

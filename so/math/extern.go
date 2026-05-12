@@ -3,6 +3,9 @@ package math
 
 import "math" // for testing
 
+//so:embed math.h
+var math_h string
+
 //so:include.c <float.h>
 //so:include.c <limits.h>
 //so:include.c <math.h>

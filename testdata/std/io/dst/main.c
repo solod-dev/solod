@@ -124,4 +124,5 @@ int main(void) {
             so_panic("LimitReader failed");
         }
     }
+    return 0;
 }

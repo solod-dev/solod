@@ -1,5 +1,7 @@
 #pragma once
 
+#if __STDC_HOSTED__
+
 #ifdef _WIN32
 #include <malloc.h>
 #else
@@ -14,6 +16,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define so_build_hosted
+
+#else
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdalign.h>
+#include <stddef.h>
+
+#define alloca __builtin_alloca
+#define memcmp __builtin_memcmp
+#define memcpy __builtin_memcpy
+#define memmove __builtin_memmove
+#define memset __builtin_memset
+
+#define PRId64 "lld"
+#define PRIu64 "llu"
+
+#define assert(cond)                   \
+    do {                               \
+        if (!(cond)) __builtin_trap(); \
+    } while (0)
+
+#endif  // __STDC_HOSTED__
 
 // --- Build metadata ---
 
@@ -82,13 +109,13 @@ typedef uint64_t so_uint;
 
 // MaxAllocaSize is the maximum size that can be
 // allocated with alloca (64 KB by default).
-#ifndef so_MaxAllocaSize
-#define so_MaxAllocaSize (64 << 10)
+#ifndef SO_MAX_ALLOCA_SIZE
+#define SO_MAX_ALLOCA_SIZE (64 << 10)  // in bytes
 #endif
 
 #define so_alloca(size) ({                                \
     size_t _size = (size_t)(size);                        \
-    if (_size > so_MaxAllocaSize)                         \
+    if (_size > SO_MAX_ALLOCA_SIZE)                       \
         so_panic("alloca: size exceeds maximum allowed"); \
     _size ? alloca(_size) : NULL;                         \
 })
@@ -194,6 +221,14 @@ so_int so_utf8_encode(so_rune r, char* buf);
 // Stores the byte width in *w.
 // Returns the decoded rune, or 0xFFFD for invalid UTF-8.
 so_rune so_utf8_decode(so_String s, so_int i, so_int* w);
+
+#ifndef so_build_hosted
+static inline size_t strlen(const char* s) {
+    const char* p = s;
+    while (*p) p++;
+    return p - s;
+}
+#endif
 
 // --- Arrays ---
 
@@ -421,12 +456,20 @@ static inline so_String errors_Error(so_Error err) {
 }
 
 // panic aborts the program with the given message.
+#ifdef so_build_hosted
 #define so_panic(msg)                                     \
     do {                                                  \
         fprintf(stderr, "panic: %s\n  %s:%d (func %s)\n", \
                 msg, __FILE__, __LINE__, __func__);       \
         exit(1);                                          \
     } while (0)
+#else
+#define so_panic(msg)     \
+    do {                  \
+        (void)msg;        \
+        __builtin_trap(); \
+    } while (0)
+#endif
 
 // --- Result types ---
 
@@ -522,6 +565,7 @@ static inline void* unsafe_SliceData(so_Slice s) {
 // Command-line arguments, populated by main().
 extern so_Slice os_Args;
 
+#ifdef so_build_hosted
 // so_args_init populates os_Args from C argc/argv.
 // buf must be a so_String array of at least argc elements (VLA on main's stack).
 static inline void so_args_init(int argc, char* argv[], so_String* buf) {
@@ -530,6 +574,7 @@ static inline void so_args_init(int argc, char* argv[], so_String* buf) {
     }
     os_Args = (so_Slice){buf, (so_int)argc, (so_int)argc};
 }
+#endif
 
 // --- Map type ---
 

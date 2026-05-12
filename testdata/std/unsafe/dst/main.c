@@ -96,4 +96,5 @@ int main(void) {
             so_panic("want *(int*)p == 42");
         }
     }
+    return 0;
 }

@@ -45,4 +45,5 @@ int main(void) {
             so_panic("want nums[3] = 4");
         }
     }
+    return 0;
 }

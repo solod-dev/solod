@@ -14,4 +14,5 @@ int main(void) {
     (void)main_Rect_Area(r);
     main_Rect_Scale(&r, 2);
     (void)add(1, 2);
+    return 0;
 }

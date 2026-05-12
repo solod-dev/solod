@@ -153,4 +153,5 @@ int main(void) {
             so_panic("s.Area() != 50");
         }
     }
+    return 0;
 }

@@ -161,4 +161,5 @@ int main(void) {
             so_panic("Reader failed");
         }
     }
+    return 0;
 }

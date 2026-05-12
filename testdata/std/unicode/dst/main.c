@@ -39,4 +39,5 @@ int main(void) {
             so_panic("To failed");
         }
     }
+    return 0;
 }

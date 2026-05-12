@@ -24,4 +24,5 @@ int main(void) {
     so_print("");
     so_print("%s", "b");
     so_println("");
+    return 0;
 }

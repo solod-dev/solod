@@ -69,4 +69,5 @@ int main(void) {
             so_panic("Less failed");
         }
     }
+    return 0;
 }

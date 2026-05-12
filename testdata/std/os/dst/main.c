@@ -659,6 +659,7 @@ int main(int argc, char* argv[]) {
     seekTest();
     statTest();
     tempTest();
+    return 0;
 }
 
 // -- proc.go --

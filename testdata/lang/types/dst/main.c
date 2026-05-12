@@ -90,4 +90,5 @@ int main(void) {
             so_panic("b4.loop.n != 0");
         }
     }
+    return 0;
 }

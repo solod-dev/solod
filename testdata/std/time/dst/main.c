@@ -68,6 +68,7 @@ int main(void) {
     times();
     format();
     parse();
+    return 0;
 }
 
 // -- parse.go --

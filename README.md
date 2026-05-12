@@ -197,6 +197,8 @@ Supported operating systems: Linux, macOS, and Windows (core language only).
 
 Supported platforms: amd64, arm64, riscv64, i386, and wasm32.
 
+So can also target [freestanding](doc/freestanding.md) environments.
+
 ## Design principles and FAQ
 
 **[Principles](doc/design.md)**. So is highly opinionated. Simplicity is key. Heap allocations are explicit. Strictly Go syntax.

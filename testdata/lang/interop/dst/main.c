@@ -52,4 +52,5 @@ int main(void) {
         s.Write = Discard;
         s.Write("Hello, %s!", "world");
     }
+    return 0;
 }
