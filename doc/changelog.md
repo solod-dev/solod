@@ -9,5 +9,11 @@ New directives: `so:volatile`, `so:thread_local`, `so:attr`.<br>
 [deac815](https://github.com/solod-dev/solod/commit/deac815a5100f119765ffcf8b5961ef579c7a766)
 [de30cde](https://github.com/solod-dev/solod/commit/de30cdec169be0f7f8835853ccde5f78e3e4c233)
 
-WebAssembly support.<br>
+WebAssembly support (WASI).<br>
 [3d0791b](https://github.com/solod-dev/solod/commit/3d0791b69e8fd5053fd508dbbb8c9cebfb0b3ff7)
+
+Freestanding mode (no libc dependency).<br>
+[1cfc8c7](https://github.com/solod-dev/solod/commit/1cfc8c7cd602a379332e6c128ebd2bde007c9a63)
+
+Implement `error` as a regular interface (it was special-cased before).<br>
+[6c8f0bd](https://github.com/solod-dev/solod/commit/6c8f0bd68e4ba8693d22be59f763676889270070)
