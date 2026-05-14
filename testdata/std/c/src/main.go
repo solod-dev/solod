@@ -49,4 +49,10 @@ func main() {
 			panic("b != 7")
 		}
 	}
+	{
+		// Go string to C string conversion.
+		s := "hello"
+		p := (*c.ConstChar)(c.CString(s))
+		_ = p
+	}
 }

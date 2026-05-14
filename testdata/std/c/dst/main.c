@@ -38,5 +38,11 @@ int main(void) {
             so_panic("b != 7");
         }
     }
+    {
+        // Go string to C string conversion.
+        so_String s = so_str("hello");
+        so_const_char* p = (so_const_char*)(so_cstr(s));
+        (void)p;
+    }
     return 0;
 }

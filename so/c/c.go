@@ -66,7 +66,7 @@ func Bytes(ptr *byte, n int) []byte {
 // CString converts a So string to a null-terminated C string.
 // Allocates memory on the stack using alloca until the calling function returns.
 //
-//so:extern so_cstr
+//so:extern so_cstr nodecay
 func CString(s string) *Char {
 	return (*Char)(unsafe.StringData(s))
 }
