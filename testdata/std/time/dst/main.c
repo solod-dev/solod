@@ -80,7 +80,7 @@ static void parse(void) {
         time_TimeResult _res1 = time_Parse(time_RFC3339, so_str("2024-03-15T14:30:45Z"), 0);
         time_Time t = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse RFC3339 error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -97,7 +97,7 @@ static void parse(void) {
         time_TimeResult _res2 = time_Parse(time_RFC3339Nano, so_str("2024-03-15T14:30:45.123456789Z"), 0);
         time_Time t = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse RFC3339Nano error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -118,7 +118,7 @@ static void parse(void) {
         time_TimeResult _res3 = time_Parse(time_RFC3339, so_str("2024-03-15T14:30:45+05:00"), 0);
         time_Time t = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse RFC3339+offset error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -136,7 +136,7 @@ static void parse(void) {
         time_TimeResult _res4 = time_Parse(time_RFC3339, so_str("2024-03-15T14:30:45-03:00"), 0);
         time_Time t = _res4.val;
         so_Error err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse RFC3339-offset error");
         }
         time_CalClock clock = time_Time_Clock(t, time_UTC);
@@ -150,7 +150,7 @@ static void parse(void) {
         time_TimeResult _res5 = time_Parse(time_RFC3339Nano, so_str("2024-03-15T14:30:45.123456789+05:30"), 0);
         time_Time t = _res5.val;
         so_Error err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse RFC3339Nano+offset error");
         }
         time_CalClock clock = time_Time_Clock(t, time_UTC);
@@ -166,7 +166,7 @@ static void parse(void) {
         time_TimeResult _res6 = time_Parse(time_DateTime, so_str("2024-03-15 14:30:45"), time_UTC);
         time_Time t = _res6.val;
         so_Error err = _res6.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse DateTime error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -186,7 +186,7 @@ static void parse(void) {
         time_TimeResult _res7 = time_Parse(time_DateTime, so_str("2024-03-15 14:30:45"), offset);
         time_Time t = _res7.val;
         so_Error err = _res7.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse DateTime+offset error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -203,7 +203,7 @@ static void parse(void) {
         time_TimeResult _res8 = time_Parse(time_DateOnly, so_str("2024-03-15"), time_UTC);
         time_Time t = _res8.val;
         so_Error err = _res8.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse DateOnly error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -220,7 +220,7 @@ static void parse(void) {
         time_TimeResult _res9 = time_Parse(time_TimeOnly, so_str("14:30:45"), time_UTC);
         time_Time t = _res9.val;
         so_Error err = _res9.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse TimeOnly error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -237,7 +237,7 @@ static void parse(void) {
         time_TimeResult _res10 = time_Parse(so_str("%d.%m.%Y"), so_str("15.03.2024"), time_UTC);
         time_Time t = _res10.val;
         so_Error err = _res10.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected Parse custom error");
         }
         time_CalDate date = time_Time_Date(t, time_UTC);
@@ -253,7 +253,7 @@ static void parse(void) {
         // time.Parse error.
         time_TimeResult _res11 = time_Parse(so_str("%Y-%m-%d"), so_str("not-a-date"), time_UTC);
         so_Error err = _res11.err;
-        if (err == NULL) {
+        if (err.self == NULL) {
             so_panic("expected Parse error");
         }
     }

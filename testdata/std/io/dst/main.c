@@ -26,13 +26,13 @@ static so_R_int_err reader_Read(void* self, so_Slice p) {
     }
     so_int n = so_copy(so_byte, p, r->b);
     r->b = so_slice(so_byte, r->b, n, r->b.len);
-    return (so_R_int_err){.val = n, .err = NULL};
+    return (so_R_int_err){.val = n, .err = (so_Error){0}};
 }
 
 static so_R_int_err writer_Write(void* self, so_Slice p) {
     writer* w = self;
     w->b = so_extend(so_byte, w->b, (p));
-    return (so_R_int_err){.val = so_len(p), .err = NULL};
+    return (so_R_int_err){.val = so_len(p), .err = (so_Error){0}};
 }
 
 int main(void) {
@@ -43,7 +43,7 @@ int main(void) {
         {
             so_R_i64_err _res1 = io_Copy((io_Writer){.self = &w, .Write = writer_Write}, (io_Reader){.self = &r, .Read = reader_Read});
             so_Error err = _res1.err;
-            if (err != NULL) {
+            if (err.self != NULL) {
                 so_panic("Copy failed");
             }
         }
@@ -58,7 +58,7 @@ int main(void) {
         {
             so_R_i64_err _res2 = io_CopyN((io_Writer){.self = &w, .Write = writer_Write}, (io_Reader){.self = &r, .Read = reader_Read}, 5);
             so_Error err = _res2.err;
-            if (err != NULL) {
+            if (err.self != NULL) {
                 so_panic("CopyN failed");
             }
         }
@@ -72,7 +72,7 @@ int main(void) {
         so_R_slice_err _res3 = io_ReadAll((mem_Allocator){0}, (io_Reader){.self = &r, .Read = reader_Read});
         so_Slice buf = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("ReadAll failed");
         }
         if (so_string_ne(so_bytes_string(buf), so_str("hello world"))) {
@@ -87,7 +87,7 @@ int main(void) {
         {
             so_R_int_err _res4 = io_ReadFull((io_Reader){.self = &r, .Read = reader_Read}, buf);
             so_Error err = _res4.err;
-            if (err != NULL) {
+            if (err.self != NULL) {
                 so_panic("ReadFull failed");
             }
         }
@@ -101,7 +101,7 @@ int main(void) {
         so_R_int_err _res5 = io_WriteString((io_Writer){.self = &w, .Write = writer_Write}, so_str("hello world"));
         so_int n = _res5.val;
         so_Error err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("WriteString failed");
         }
         if (n != 11 || so_string_ne(so_bytes_string(w.b), so_str("hello world"))) {
@@ -116,7 +116,7 @@ int main(void) {
         {
             so_R_int_err _res6 = io_LimitedReader_Read(&lr, buf);
             so_Error err = _res6.err;
-            if (err != NULL) {
+            if (err.self != NULL) {
                 so_panic("LimitReader failed");
             }
         }

@@ -13,39 +13,39 @@ static so_Error makeTea(so_int arg) {
     if (arg == 42) {
         return main_ErrOutOfTea;
     }
-    return NULL;
+    return (so_Error){0};
 }
 
 static so_R_int_err work(so_int n) {
     if (n == 42) {
         return (so_R_int_err){.val = 0, .err = main_ErrOutOfTea};
     }
-    return (so_R_int_err){.val = n, .err = NULL};
+    return (so_R_int_err){.val = n, .err = (so_Error){0}};
 }
 
 int main(void) {
     {
         // Nil and non-nil errors.
         so_Error err = makeTea(7);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("err != nil");
         }
         err = makeTea(42);
-        if (err == NULL) {
+        if (err.self == NULL) {
             so_panic("err == nil");
         }
-        if (err != main_ErrOutOfTea) {
+        if (err.self != main_ErrOutOfTea.self) {
             so_panic("err != ErrOutOfTea");
         }
     }
     {
         // Variable of type error.
-        so_Error err = NULL;
-        if (err != NULL) {
+        so_Error err = {0};
+        if (err.self != NULL) {
             so_panic("err != nil");
         }
         err = makeTea(42);
-        if (err == NULL) {
+        if (err.self == NULL) {
             so_panic("err == nil");
         }
     }
@@ -57,7 +57,7 @@ int main(void) {
         if (r1 != 11) {
             so_panic("unexpected result");
         }
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("unexpected error");
         }
         (void)r1;
@@ -67,7 +67,7 @@ int main(void) {
         if (r2 != 0) {
             so_panic("unexpected result");
         }
-        if (err != main_ErrOutOfTea) {
+        if (err.self != main_ErrOutOfTea.self) {
             so_panic("expected ErrOutOfTea");
         }
         (void)r2;
@@ -75,10 +75,10 @@ int main(void) {
     {
         // Printing errors.
         so_Error err = makeTea(42);
-        so_println("%s %s", "err =", errors_cstr(err));
-        so_println("%s %.*s", "err text =", errors_Error(err).len, errors_Error(err).ptr);
-        so_Error nilErr = NULL;
-        so_println("%s %s", "err =", errors_cstr(nilErr));
+        so_println("%s %s", "err =", so_error_cstr(err));
+        so_println("%s %.*s", "err text =", err.Error(err.self).len, err.Error(err.self).ptr);
+        so_Error nilErr = {0};
+        so_println("%s %s", "err =", so_error_cstr(nilErr));
     }
     return 0;
 }

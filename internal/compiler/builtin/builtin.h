@@ -435,25 +435,36 @@ static inline so_String so_string_max(so_String a, so_String b) {
 
 // Error is a pointer to an error message string, or NULL for no error.
 // Errors are immutable and compared by pointer equality.
-struct so_Error_ {
-    const char* msg;
-};
-typedef struct so_Error_* so_Error;
+typedef struct {
+    void* self;
+    so_String (*Error)(void* self);
+} so_Error;
 
 // errors_New creates a new error with the given message string.
 // so_Error errors_New(const char* s)
-#define errors_New(s) (&(struct so_Error_){s})
+#define errors_New(s) ((so_Error){.self = s, .Error = so_error_error})
 
-// errors_cstr returns the error message C string, or "<nil>" for no error.
-static inline const char* errors_cstr(so_Error err) {
-    return err ? err->msg : "<nil>";
+// so_error_error implements the Error method for errors
+// created with errors_New (.self is a C string pointer).
+// Returns the error message as a string, or "<nil>" for nil errors.
+static inline so_String so_error_error(void* self) {
+    if (!self) return so_str("<nil>");
+    return (so_String){self, (so_int)strlen(self)};
 }
 
-// errors_Error returns the error message as a so_String. Backs err.Error().
-static inline so_String errors_Error(so_Error err) {
-    const char* s = errors_cstr(err);
-    return (so_String){s, (so_int)strlen(s)};
-}
+// so_error_cstr returns the error message as a C string.
+#define so_error_cstr(err) ({                      \
+    so_Error _err = (err);                         \
+    const char* _err_str;                          \
+    if (!_err.self) {                              \
+        _err_str = "<nil>";                        \
+    } else if (_err.Error == so_error_error) {     \
+        _err_str = (const char*)_err.self;         \
+    } else {                                       \
+        _err_str = so_cstr(_err.Error(_err.self)); \
+    }                                              \
+    _err_str;                                      \
+})
 
 // panic aborts the program with the given message.
 #ifdef so_build_hosted

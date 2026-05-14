@@ -7,7 +7,7 @@ so_Error fmt_ErrSize = errors_New("buffer size exceeded");
 
 so_R_int_err fmt_print(int newline, ...) {
     int total = 0;
-    so_Error err = NULL;
+    so_Error err = {0};
     va_list args;
 
     va_start(args, newline);
@@ -38,7 +38,7 @@ so_R_int_err fmt_Printf(const char* format, ...) {
     va_start(args, format);
     int n = vprintf(format, args);
     va_end(args);
-    so_Error err = n < 0 ? fmt_ErrPrint : NULL;
+    so_Error err = n < 0 ? fmt_ErrPrint : (so_Error){0};
     return (so_R_int_err){.val = n, .err = err};
 }
 
@@ -79,7 +79,7 @@ so_R_int_err fmt_Scanf(const char* format, ...) {
     va_start(args, format);
     int n = vscanf(format, args);
     va_end(args);
-    so_Error err = n < 0 ? fmt_ErrScan : NULL;
+    so_Error err = n < 0 ? fmt_ErrScan : (so_Error){0};
     return (so_R_int_err){.val = n, .err = err};
 }
 
@@ -88,7 +88,7 @@ so_R_int_err fmt_Sscanf(const char* str, const char* format, ...) {
     va_start(args, format);
     int n = vsscanf(str, format, args);
     va_end(args);
-    so_Error err = n < 0 ? fmt_ErrScan : NULL;
+    so_Error err = n < 0 ? fmt_ErrScan : (so_Error){0};
     return (so_R_int_err){.val = n, .err = err};
 }
 
@@ -97,7 +97,7 @@ so_R_int_err fmt_Fscanf(io_Reader r, const char* format, ...) {
     so_int len = sizeof(buf) - 1;  // leave space for null terminator
     so_Slice slice = {.ptr = buf, .len = len, .cap = len};
     so_R_int_err res = r.Read(r.self, slice);
-    if (res.err) {
+    if (res.err.self) {
         return (so_R_int_err){.err = res.err};
     }
     buf[res.val] = '\0';
@@ -107,6 +107,6 @@ so_R_int_err fmt_Fscanf(io_Reader r, const char* format, ...) {
     int n = vsscanf(buf, format, args);
     va_end(args);
 
-    so_Error err = n < 0 ? fmt_ErrScan : NULL;
+    so_Error err = n < 0 ? fmt_ErrScan : (so_Error){0};
     return (so_R_int_err){.val = n, .err = err};
 }

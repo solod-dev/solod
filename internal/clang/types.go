@@ -197,7 +197,7 @@ func (g *Generator) zeroValue(node ast.Node, typ types.Type) string {
 
 	// Error type.
 	if isErrorType(typ) {
-		return "NULL"
+		return "{0}"
 	}
 
 	// Interfaces.

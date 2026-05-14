@@ -16,11 +16,11 @@ static so_int main_SliceHolder_get(main_SliceHolder h, so_int i);
 static so_R_i64_err lenInt64(so_Slice buf) {
     so_R_i64_err _res1 = lenInt64Impl(buf);
     int64_t n = _res1.val;
-    return (so_R_i64_err){.val = n, .err = NULL};
+    return (so_R_i64_err){.val = n, .err = (so_Error){0}};
 }
 
 static so_R_i64_err lenInt64Impl(so_Slice buf) {
-    return (so_R_i64_err){.val = (int64_t)(so_len(buf)), .err = NULL};
+    return (so_R_i64_err){.val = (int64_t)(so_len(buf)), .err = (so_Error){0}};
 }
 
 static so_int sumSlice(so_Slice s) {

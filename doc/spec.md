@@ -834,7 +834,9 @@ const main_Day main_Tuesday = 2;
 
 ## Errors
 
-Errors use the `so_Error` type (a pointer). So only supports sentinel errors, which are defined at the package level using `errors.New`:
+The `error` type is a regular interface with an `Error() string` method. In C, it is represented as `so_Error` — an interface struct with a `void* self` pointer and an `Error` function pointer, following the same pattern as other named interfaces.
+
+Use `errors.New` to create sentinel errors at the package level:
 
 ```go
 import "solod.dev/so/errors"
@@ -852,20 +854,22 @@ func makeTea(arg int) error {
     return nil
 }
 
-err := makeTea(42)
-if err != nil {
-    println("got error")
-}
-if err == ErrOutOfTea {
-    println("out of tea")
+func main() {
+    err := makeTea(42)
+    if err != nil {
+        println("got error")
+    }
+    if err == ErrOutOfTea {
+        println("out of tea")
+    }
 }
 ```
 
-Errors are compared using `==`. This is an O(1) operation (compares pointers, not strings).
+Errors are compared using `==`. This is an O(1) operation (compares `.self` pointers, not strings).
 
 Dynamic errors (`fmt.Errorf`), local error variables (`errors.New` inside functions), and error wrapping are not supported.
 
-The zero value of `error` is `nil` (`NULL` in C).
+The zero value of `error` is `nil` (`{0}` in C).
 
 ## Panic
 

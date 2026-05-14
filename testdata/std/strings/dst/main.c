@@ -157,7 +157,7 @@ int main(void) {
         so_R_int_err _res4 = strings_Reader_Read(&r, buf);
         so_int n = _res4.val;
         so_Error err = _res4.err;
-        if (err != NULL || n != 5 || so_string_ne(so_bytes_string(buf), so_str("hello"))) {
+        if (err.self != NULL || n != 5 || so_string_ne(so_bytes_string(buf), so_str("hello"))) {
             so_panic("Reader failed");
         }
     }

@@ -18,7 +18,7 @@ int main(void) {
         so_R_str_err _res1 = bufio_Reader_ReadString(&r, '\n');
         so_String line = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("ReadString failed");
         }
         if (so_string_ne(line, so_str("Hello, World!\n"))) {
@@ -35,17 +35,17 @@ int main(void) {
         so_R_byte_err _res2 = bufio_Reader_ReadByte(&r);
         so_byte b = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL || b != 'a') {
+        if (err.self != NULL || b != 'a') {
             so_panic("ReadByte failed");
         }
         err = bufio_Reader_UnreadByte(&r);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("UnreadByte failed");
         }
         so_R_byte_err _res3 = bufio_Reader_ReadByte(&r);
         b = _res3.val;
         err = _res3.err;
-        if (err != NULL || b != 'a') {
+        if (err.self != NULL || b != 'a') {
             so_panic("UnreadByte re-read failed");
         }
         bufio_Reader_Free(&r);
@@ -57,7 +57,7 @@ int main(void) {
         so_R_slice_err _res4 = bufio_Reader_Peek(&r, 3);
         so_Slice p = _res4.val;
         so_Error err = _res4.err;
-        if (err != NULL || so_string_ne(so_bytes_string(p), so_str("hel"))) {
+        if (err.self != NULL || so_string_ne(so_bytes_string(p), so_str("hel"))) {
             so_panic("Peek failed");
         }
         bufio_Reader_Free(&r);

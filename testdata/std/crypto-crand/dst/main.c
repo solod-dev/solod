@@ -9,7 +9,7 @@ int main(void) {
         so_R_int_err _res1 = crand_Read(buf);
         so_int n = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("failed to read random data");
         }
         if (n != so_len(buf)) {
@@ -22,7 +22,7 @@ int main(void) {
         so_R_int_err _res2 = crand_Read(buf);
         so_int n = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("failed to read random data");
         }
         if (n != 0) {
@@ -35,7 +35,7 @@ int main(void) {
         so_R_int_err _res3 = crand_Reader.Read(crand_Reader.self, buf);
         so_int n = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("failed to read random data");
         }
         if (n != so_len(buf)) {

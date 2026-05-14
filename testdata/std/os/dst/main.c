@@ -32,13 +32,13 @@ static void basicTest(void) {
         so_String name = so_str("test_rw.txt");
         so_Slice data = so_string_bytes(so_str("hello world"));
         so_Error err = os_WriteFile(name, data, 0666);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("WriteFile failed");
         }
         so_R_slice_err _res1 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res1.val;
         err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile failed");
         }
@@ -56,14 +56,14 @@ static void basicTest(void) {
         os_FileResult _res2 = os_Create(name);
         os_File f = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Create failed");
         }
         // Write.
         so_R_int_err _res3 = os_File_Write(&f, so_string_bytes(so_str("abcdef")));
         so_int n = _res3.val;
         err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Write failed");
         }
@@ -73,7 +73,7 @@ static void basicTest(void) {
         }
         // Close.
         err = os_File_Close(&f);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Close failed");
         }
@@ -84,14 +84,14 @@ static void basicTest(void) {
         so_String name = so_str("test_file.txt");
         so_Slice data = so_string_bytes(so_str("abcdef"));
         so_Error err = os_WriteFile(name, data, 0666);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("WriteFile failed");
         }
         // Open.
         os_FileResult _res4 = os_Open(name);
         os_File f = _res4.val;
         err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Open failed");
         }
@@ -100,7 +100,7 @@ static void basicTest(void) {
         so_R_int_err _res5 = os_File_Read(&f, buf);
         so_int n = _res5.val;
         err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Read failed");
         }
@@ -114,7 +114,7 @@ static void basicTest(void) {
         }
         // Close.
         err = os_File_Close(&f);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Close failed");
         }
@@ -126,13 +126,13 @@ static void basicTest(void) {
         os_FileResult _res6 = os_Create(name);
         os_File f = _res6.val;
         so_Error err = _res6.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Create failed");
         }
         so_R_int_err _res7 = os_File_WriteString(&f, so_str("hello"));
         so_int n = _res7.val;
         err = _res7.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("WriteString failed");
         }
@@ -144,7 +144,7 @@ static void basicTest(void) {
         so_R_slice_err _res8 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res8.val;
         err = _res8.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile failed");
         }
@@ -161,7 +161,7 @@ static void basicTest(void) {
         so_R_int_err _res9 = os_File_WriteString(os_Stdout, so_str("hello"));
         so_int n = _res9.val;
         so_Error err = _res9.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Stdout failed");
         }
         if (n != 5) {
@@ -170,7 +170,7 @@ static void basicTest(void) {
         so_R_int_err _res10 = os_File_WriteString(os_Stderr, so_str("goodbye"));
         n = _res10.val;
         err = _res10.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Stderr failed");
         }
         if (n != 7) {
@@ -193,7 +193,7 @@ static void dirTest(void) {
         so_R_slice_err _res1 = os_ReadDir((mem_Allocator){0}, dirName);
         so_Slice entries = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(so_string_add(dirName, so_str("/subdir")));
             os_Remove(so_string_add(dirName, so_str("/bbb.txt")));
             os_Remove(so_string_add(dirName, so_str("/aaa.txt")));
@@ -254,7 +254,7 @@ static void dirTest(void) {
         // ReadDir on nonexistent directory.
         so_R_slice_err _res2 = os_ReadDir((mem_Allocator){0}, so_str("nonexistent_dir_xyz"));
         so_Error err = _res2.err;
-        if (err != os_ErrNotExist) {
+        if (err.self != os_ErrNotExist.self) {
             so_panic("ReadDir nonexistent: wrong error");
         }
     }
@@ -266,7 +266,7 @@ static void envTest(void) {
     {
         // Setenv, Getenv.
         so_Error err = os_Setenv(so_str("SO_TEST_KEY"), so_str("test_value"));
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Setenv failed");
         }
         so_String val = os_Getenv(so_str("SO_TEST_KEY"));
@@ -299,7 +299,7 @@ static void envTest(void) {
         // Unsetenv.
         os_Setenv(so_str("SO_TEST_UNSET"), so_str("bye"));
         so_Error err = os_Unsetenv(so_str("SO_TEST_UNSET"));
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Unsetenv failed");
         }
         so_String val = os_Getenv(so_str("SO_TEST_UNSET"));
@@ -325,7 +325,7 @@ static void fileTest(void) {
         os_FileResult _res1 = os_OpenFile(name, ((O_CREAT | O_WRONLY) | O_TRUNC), 0644);
         os_File f = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("OpenFile create failed");
         }
         os_File_Write(&f, so_string_bytes(so_str("openfile")));
@@ -333,7 +333,7 @@ static void fileTest(void) {
         so_R_slice_err _res2 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res2.val;
         err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile after OpenFile failed");
         }
@@ -352,7 +352,7 @@ static void fileTest(void) {
         os_FileResult _res3 = os_OpenFile(name, O_RDONLY, 0);
         os_File f = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("OpenFile rdonly failed");
         }
@@ -360,7 +360,7 @@ static void fileTest(void) {
         so_R_int_err _res4 = os_File_Read(&f, buf);
         so_int n = _res4.val;
         err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Read from rdonly failed");
         }
@@ -377,7 +377,7 @@ static void fileTest(void) {
         os_FileResult _res5 = os_Create(name);
         os_File f = _res5.val;
         so_Error err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Create failed");
         }
         if (so_string_ne(os_File_Name(&f), name)) {
@@ -394,14 +394,14 @@ static void fileTest(void) {
         // Hard link.
         so_String hard = so_str("test_hard_link.txt");
         so_Error err = os_Link(target, hard);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(target);
             so_panic("Link failed");
         }
         so_R_slice_err _res6 = os_ReadFile((mem_Allocator){0}, hard);
         so_Slice b = _res6.val;
         err = _res6.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(hard);
             os_Remove(target);
             so_panic("ReadFile hard link failed");
@@ -422,7 +422,7 @@ static void fileTest(void) {
         os_WriteFile(target, so_string_bytes(so_str("sym")), 0666);
         so_String link = so_str("test_sym_link");
         so_Error err = os_Symlink(target, link);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(target);
             so_panic("Symlink failed");
         }
@@ -430,7 +430,7 @@ static void fileTest(void) {
         so_R_str_err _res7 = os_Readlink(so_array_slice(so_byte, rlBuf, 0, 4096, 4096), link);
         so_String dest = _res7.val;
         err = _res7.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(link);
             os_Remove(target);
             so_panic("Readlink failed");
@@ -447,7 +447,7 @@ static void fileTest(void) {
         // Mkdir and Chdir.
         so_String dir = so_str("test_mkdir_dir");
         so_Error err = os_Mkdir(dir, 0755);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Mkdir failed");
         }
         // Get current dir.
@@ -455,13 +455,13 @@ static void fileTest(void) {
         so_R_str_err _res8 = os_Getwd(so_array_slice(so_byte, wdBuf, 0, 4096, 4096));
         so_String origWd = _res8.val;
         err = _res8.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(dir);
             so_panic("Getwd failed");
         }
         // Change to new dir.
         err = os_Chdir(dir);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(dir);
             so_panic("Chdir failed");
         }
@@ -470,7 +470,7 @@ static void fileTest(void) {
         so_R_str_err _res9 = os_Getwd(so_array_slice(so_byte, wdBuf2, 0, 4096, 4096));
         so_String newWd = _res9.val;
         err = _res9.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(dir);
             so_panic("Getwd after Chdir failed");
         }
@@ -487,14 +487,14 @@ static void fileTest(void) {
         so_String name = so_str("test_truncate.txt");
         os_WriteFile(name, so_string_bytes(so_str("abcdef")), 0666);
         so_Error err = os_Truncate(name, 3);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Truncate failed");
         }
         so_R_slice_err _res10 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res10.val;
         err = _res10.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile after Truncate failed");
         }
@@ -513,7 +513,7 @@ static void fileTest(void) {
         os_FileResult _res11 = os_OpenFile(name, (O_WRONLY | O_APPEND), 0);
         os_File f = _res11.val;
         so_Error err = _res11.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("OpenFile append failed");
         }
@@ -522,7 +522,7 @@ static void fileTest(void) {
         so_R_slice_err _res12 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res12.val;
         err = _res12.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile after append failed");
         }
@@ -541,13 +541,13 @@ static void fileTest(void) {
         os_FileInfoResult _res13 = os_Stat(name);
         os_FileInfo fi = _res13.val;
         so_Error err = _res13.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat for Chtimes failed");
         }
         time_Time mt = os_FileInfo_ModTime(&fi);
         err = os_Chtimes(name, mt, mt);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Chtimes failed");
         }
@@ -558,7 +558,7 @@ static void fileTest(void) {
         so_String name = so_str("test_chown.txt");
         os_WriteFile(name, so_string_bytes(so_str("chown")), 0666);
         so_Error err = os_Chown(name, -1, -1);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Chown failed");
         }
@@ -569,7 +569,7 @@ static void fileTest(void) {
         so_String name = so_str("test_lchown.txt");
         os_WriteFile(name, so_string_bytes(so_str("lchown")), 0666);
         so_Error err = os_Lchown(name, -1, -1);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Lchown failed");
         }
@@ -579,16 +579,16 @@ static void fileTest(void) {
         // Remove.
         so_String name = so_str("test_remove.txt");
         so_Error err = os_WriteFile(name, so_string_bytes(so_str("tmp")), 0666);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("WriteFile failed");
         }
         err = os_Remove(name);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Remove failed");
         }
         os_FileResult _res14 = os_Open(name);
         err = _res14.err;
-        if (err == NULL) {
+        if (err.self == NULL) {
             so_panic("Open after Remove should fail");
         }
     }
@@ -598,13 +598,13 @@ static void fileTest(void) {
         so_String newName = so_str("test_new.txt");
         os_WriteFile(oldName, so_string_bytes(so_str("renamed")), 0666);
         so_Error err = os_Rename(oldName, newName);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Rename failed");
         }
         so_R_slice_err _res15 = os_ReadFile((mem_Allocator){0}, newName);
         so_Slice b = _res15.val;
         err = _res15.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(newName);
             so_panic("ReadFile after Rename failed");
         }
@@ -621,7 +621,7 @@ static void fileTest(void) {
         so_String name = so_str("test_exist_dir");
         os_Mkdir(name, 0755);
         so_Error err = os_Mkdir(name, 0755);
-        if (err != os_ErrExist) {
+        if (err.self != os_ErrExist.self) {
             os_Remove(name);
             so_panic("Mkdir existing: wrong error");
         }
@@ -631,7 +631,7 @@ static void fileTest(void) {
         // ErrNotExist.
         os_FileResult _res16 = os_Open(so_str("nonexistent_file.txt"));
         so_Error err = _res16.err;
-        if (err != os_ErrNotExist) {
+        if (err.self != os_ErrNotExist.self) {
             so_panic("Open nonexistent: wrong error");
         }
     }
@@ -639,7 +639,7 @@ static void fileTest(void) {
         // Verify OpenFile nonexistent returns ErrNotExist.
         os_FileResult _res17 = os_OpenFile(so_str("nonexistent_open.txt"), O_RDONLY, 0);
         so_Error err = _res17.err;
-        if (err != os_ErrNotExist) {
+        if (err.self != os_ErrNotExist.self) {
             so_panic("OpenFile nonexistent: wrong error");
         }
     }
@@ -713,7 +713,7 @@ static void procTest(void) {
         so_R_str_err _res1 = os_Getwd(so_array_slice(so_byte, wdBuf, 0, 4096, 4096));
         so_String wd = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Getwd failed");
         }
         if (so_len(wd) == 0) {
@@ -730,7 +730,7 @@ static void procTest(void) {
         so_R_str_err _res2 = os_Hostname(so_array_slice(so_byte, hostBuf, 0, 256, 256));
         so_String name = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Hostname failed");
         }
         if (so_len(name) == 0) {
@@ -748,14 +748,14 @@ static void seekTest(void) {
         os_FileResult _res1 = os_Create(name);
         os_File f = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Create failed");
         }
         os_File_Write(&f, so_string_bytes(so_str("abcdef")));
         so_R_i64_err _res2 = os_File_Seek(&f, 0, io_SeekStart);
         int64_t pos = _res2.val;
         err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Seek failed");
         }
@@ -767,7 +767,7 @@ static void seekTest(void) {
         so_R_int_err _res3 = os_File_Read(&f, buf);
         so_int n = _res3.val;
         err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Read after Seek failed");
         }
@@ -782,13 +782,13 @@ static void seekTest(void) {
         // ReadAt.
         so_String name = so_str("test_readat.txt");
         so_Error err = os_WriteFile(name, so_string_bytes(so_str("hello world")), 0666);
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("WriteFile failed");
         }
         os_FileResult _res4 = os_Open(name);
         os_File f = _res4.val;
         err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Open failed");
         }
@@ -796,7 +796,7 @@ static void seekTest(void) {
         so_R_int_err _res5 = os_File_ReadAt(&f, buf, 6);
         so_int n = _res5.val;
         err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadAt failed");
         }
@@ -817,13 +817,13 @@ static void seekTest(void) {
         os_FileResult _res6 = os_Create(name);
         os_File f = _res6.val;
         so_Error err = _res6.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Create failed");
         }
         os_File_Write(&f, so_string_bytes(so_str("hello world")));
         so_R_int_err _res7 = os_File_WriteAt(&f, so_string_bytes(so_str("WORLD")), 6);
         err = _res7.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("WriteAt failed");
         }
@@ -831,7 +831,7 @@ static void seekTest(void) {
         so_R_slice_err _res8 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res8.val;
         err = _res8.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("ReadFile failed");
         }
@@ -855,7 +855,7 @@ static void statTest(void) {
         os_FileInfoResult _res1 = os_Stat(name);
         os_FileInfo fi = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat failed");
         }
@@ -884,7 +884,7 @@ static void statTest(void) {
         os_FileInfoResult _res2 = os_Stat(name);
         os_FileInfo fi = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat dir failed");
         }
@@ -912,7 +912,7 @@ static void statTest(void) {
         os_FileInfoResult _res3 = os_Lstat(link);
         os_FileInfo fi = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(link);
             os_Remove(target);
             so_panic("Lstat failed");
@@ -931,7 +931,7 @@ static void statTest(void) {
         os_FileInfoResult _res4 = os_Stat(link);
         os_FileInfo fi2 = _res4.val;
         err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(link);
             os_Remove(target);
             so_panic("Stat through link failed");
@@ -956,14 +956,14 @@ static void statTest(void) {
         os_FileInfoResult _res5 = os_Stat(name);
         os_FileInfo fi1 = _res5.val;
         so_Error err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat 1 failed");
         }
         os_FileInfoResult _res6 = os_Stat(name);
         os_FileInfo fi2 = _res6.val;
         err = _res6.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat 2 failed");
         }
@@ -976,7 +976,7 @@ static void statTest(void) {
         os_FileInfoResult _res7 = os_Stat(name2);
         os_FileInfo fi3 = _res7.val;
         err = _res7.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name2);
             os_Remove(name);
             so_panic("Stat 3 failed");
@@ -993,7 +993,7 @@ static void statTest(void) {
         // Stat on nonexistent file.
         os_FileInfoResult _res8 = os_Stat(so_str("nonexistent_stat.txt"));
         so_Error err = _res8.err;
-        if (err != os_ErrNotExist) {
+        if (err.self != os_ErrNotExist.self) {
             so_panic("Stat nonexistent: wrong error");
         }
     }
@@ -1002,14 +1002,14 @@ static void statTest(void) {
         so_String name = so_str("test_chmod.txt");
         os_WriteFile(name, so_string_bytes(so_str("chmod")), 0666);
         so_Error err = os_Chmod(name, 0644);
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Chmod failed");
         }
         os_FileInfoResult _res9 = os_Stat(name);
         os_FileInfo fi = _res9.val;
         err = _res9.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             os_Remove(name);
             so_panic("Stat after Chmod failed");
         }
@@ -1037,7 +1037,7 @@ static void tempTest(void) {
         os_FileResult _res1 = os_CreateTemp(buf, so_str(""), so_str("sotest"));
         os_File f = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("CreateTemp failed");
         }
         so_String name = os_File_Name(&f);
@@ -1054,7 +1054,7 @@ static void tempTest(void) {
         so_R_slice_err _res2 = os_ReadFile((mem_Allocator){0}, name);
         so_Slice b = _res2.val;
         err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("ReadFile temp failed");
         }
         if (so_string_ne(so_bytes_string(b), so_str("temp data"))) {
@@ -1069,7 +1069,7 @@ static void tempTest(void) {
         os_FileResult _res3 = os_CreateTemp(buf, td, so_str("myprefix"));
         os_File f = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("CreateTemp dir failed");
         }
         so_String name = os_File_Name(&f);
@@ -1087,7 +1087,7 @@ static void tempTest(void) {
         so_R_str_err _res4 = os_MkdirTemp(buf, so_str(""), so_str("sotest"));
         so_String dir = _res4.val;
         so_Error err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("MkdirTemp failed");
         }
         if (so_len(dir) == 0) {
@@ -1100,7 +1100,7 @@ static void tempTest(void) {
         os_FileInfoResult _res5 = os_Stat(dir);
         os_FileInfo fi = _res5.val;
         err = _res5.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Stat MkdirTemp failed");
         }
         if (!os_FileInfo_IsDir(&fi)) {

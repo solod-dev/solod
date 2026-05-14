@@ -52,7 +52,7 @@ int main(void) {
         so_R_ptr_err _res1 = work(so_int, (&v));
         so_int* res = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("err != nil");
         }
         if (*res != 42) {

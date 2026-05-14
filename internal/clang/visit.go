@@ -556,29 +556,36 @@ func (g *Generator) emitReturnStmt(stmt *ast.ReturnStmt) {
 // Handles single-return and multi-return compound literals.
 func (g *Generator) emitReturnExpr(stmt *ast.ReturnStmt) {
 	w := g.state.writer
-	if len(stmt.Results) > 1 {
-		info := g.multiReturnFields(stmt, g.state.funcSig)
-		if info.resultType != "" {
-			fmt.Fprintf(w, "(%s){.val = ", info.resultType)
-			g.emitExpr(stmt.Results[0])
-			fmt.Fprintf(w, ", .err = ")
-			g.emitExpr(stmt.Results[1])
-			fmt.Fprintf(w, "}")
-			return
-		}
-		fmt.Fprintf(w, "(%s){.val = ", info.typeName())
+
+	// Single return value: emit directly.
+	if len(stmt.Results) == 1 {
+		retType := g.state.funcSig.Results().At(0).Type()
+		g.emitExprAsType(stmt, stmt.Results[0], retType)
+		return
+	}
+
+	// Multi-return: emit compound literal with per-signature result fields.
+	info := g.multiReturnFields(stmt, g.state.funcSig)
+	if info.resultType != "" {
+		fmt.Fprintf(w, "(%s){.val = ", info.resultType)
 		g.emitExpr(stmt.Results[0])
-		if info.hasError {
-			fmt.Fprintf(w, ", .err = ")
-		} else {
-			fmt.Fprintf(w, ", .val2 = ")
-		}
-		g.emitExpr(stmt.Results[1])
+		fmt.Fprintf(w, ", .err = ")
+		errType := g.state.funcSig.Results().At(1).Type()
+		g.emitExprAsType(stmt, stmt.Results[1], errType)
 		fmt.Fprintf(w, "}")
 		return
 	}
-	retType := g.state.funcSig.Results().At(0).Type()
-	g.emitExprAsType(stmt, stmt.Results[0], retType)
+	fmt.Fprintf(w, "(%s){.val = ", info.typeName())
+	g.emitExpr(stmt.Results[0])
+	if info.hasError {
+		fmt.Fprintf(w, ", .err = ")
+		errType := g.state.funcSig.Results().At(1).Type()
+		g.emitExprAsType(stmt, stmt.Results[1], errType)
+	} else {
+		fmt.Fprintf(w, ", .val2 = ")
+		g.emitExpr(stmt.Results[1])
+	}
+	fmt.Fprintf(w, "}")
 }
 
 // emitComments looks up comments for the given nodes from the CommentMap,

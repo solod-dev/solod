@@ -13,8 +13,8 @@ int main(void) {
     so_String s = so_str("");
     flag_FlagSet_StringVar(&flags, &s, so_str("s"), so_str("default"), so_str("a string flag"));
     so_Error err = flag_FlagSet_Parse(&flags, (so_Slice){(so_String[7]){so_str("-b"), so_str("-n"), so_str("42"), so_str("-f"), so_str("3.14"), so_str("-s"), so_str("hello")}, 7, 7});
-    if (err != NULL) {
-        so_panic(errors_cstr(err));
+    if (err.self != NULL) {
+        so_panic(so_error_cstr(err));
     }
     if (!b) {
         so_panic("b != true");

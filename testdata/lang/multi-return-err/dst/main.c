@@ -17,27 +17,27 @@ static main_FileResult create(so_int size);
 so_R_int_err main_File_Read(void* self, so_int buf) {
     main_File* f = self;
     (void)buf;
-    return (so_R_int_err){.val = f->size, .err = NULL};
+    return (so_R_int_err){.val = f->size, .err = (so_Error){0}};
 }
 
 static so_R_int_err divide(so_int a, so_int b) {
-    return (so_R_int_err){.val = a / b, .err = NULL};
+    return (so_R_int_err){.val = a / b, .err = (so_Error){0}};
 }
 
 static so_R_rune_err returnRune(void) {
-    return (so_R_rune_err){.val = U'x', .err = NULL};
+    return (so_R_rune_err){.val = U'x', .err = (so_Error){0}};
 }
 
 static so_R_str_err returnString(void) {
-    return (so_R_str_err){.val = so_str("hello"), .err = NULL};
+    return (so_R_str_err){.val = so_str("hello"), .err = (so_Error){0}};
 }
 
 static so_R_slice_err returnSlice(void) {
-    return (so_R_slice_err){.val = (so_Slice){(so_int[3]){1, 2, 3}, 3, 3}, .err = NULL};
+    return (so_R_slice_err){.val = (so_Slice){(so_int[3]){1, 2, 3}, 3, 3}, .err = (so_Error){0}};
 }
 
 static so_R_ptr_err returnPtr(void) {
-    return (so_R_ptr_err){.val = &file, .err = NULL};
+    return (so_R_ptr_err){.val = &file, .err = (so_Error){0}};
 }
 
 static so_R_int_err forwardCall(void) {
@@ -45,7 +45,7 @@ static so_R_int_err forwardCall(void) {
 }
 
 static main_FileResult create(so_int size) {
-    return (main_FileResult){.val = (main_File){.size = size}, .err = NULL};
+    return (main_FileResult){.val = (main_File){.size = size}, .err = (so_Error){0}};
 }
 
 int main(void) {
@@ -70,7 +70,7 @@ int main(void) {
         (void)r4;
         // Assign to existing variables.
         q = 0;
-        err = NULL;
+        err = (so_Error){0};
         so_R_int_err _res5 = divide(20, 7);
         q = _res5.val;
         err = _res5.err;
@@ -82,14 +82,14 @@ int main(void) {
             so_R_int_err _res6 = main_File_Read(&f, 64);
             so_int n = _res6.val;
             so_Error err = _res6.err;
-            if (err != NULL) {
+            if (err.self != NULL) {
                 (void)n;
             }
         }
     }
     {
         // Various return types.
-        so_Error err = NULL;
+        so_Error err = {0};
         (void)err;
         so_R_rune_err _res7 = returnRune();
         so_rune run = _res7.val;
@@ -125,7 +125,7 @@ int main(void) {
         main_FileResult _res12 = create(42);
         main_File f = _res12.val;
         so_Error err = _res12.err;
-        if (f.size != 42 || err != NULL) {
+        if (f.size != 42 || err.self != NULL) {
             so_panic("Custom struct failed");
         }
     }

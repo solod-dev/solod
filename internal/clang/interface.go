@@ -167,12 +167,8 @@ func (g *Generator) emitAnyValue(node ast.Node, expr ast.Expr) {
 	fmt.Fprintf(g.state.writer, "}")
 }
 
-// isNamedNonEmptyInterface reports whether t is a named non-empty interface
-// (excluding error, which is implemented as a pointer in C).
+// isNamedNonEmptyInterface reports whether t is a named non-empty interface.
 func isNamedNonEmptyInterface(t types.Type) bool {
-	if isErrorType(t) {
-		return false
-	}
 	iface, ok := t.Underlying().(*types.Interface)
 	if !ok || iface.Empty() {
 		return false

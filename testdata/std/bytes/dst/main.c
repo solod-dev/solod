@@ -227,7 +227,7 @@ int main(void) {
         so_R_int_err _res1 = bytes_Buffer_Read(&buf, rdbuf);
         so_int n = _res1.val;
         so_Error err = _res1.err;
-        if (n != 5 || so_string_ne(so_bytes_string(rdbuf), so_str("hello")) || err != NULL) {
+        if (n != 5 || so_string_ne(so_bytes_string(rdbuf), so_str("hello")) || err.self != NULL) {
             so_panic("Buffer Read failed");
         }
         if (so_string_ne(bytes_Buffer_String(&buf), so_str(" world"))) {
@@ -250,7 +250,7 @@ int main(void) {
         so_R_int_err _res2 = bytes_Buffer_Read(&buf, rdbuf);
         so_int n = _res2.val;
         so_Error err = _res2.err;
-        if (n != 5 || so_string_ne(so_bytes_string(rdbuf), so_str("hello")) || err != NULL) {
+        if (n != 5 || so_string_ne(so_bytes_string(rdbuf), so_str("hello")) || err.self != NULL) {
             so_panic("Buffer Read failed");
         }
         if (so_string_ne(bytes_Buffer_String(&buf), so_str(" world"))) {
@@ -268,8 +268,8 @@ int main(void) {
         so_R_slice_err _res3 = io_ReadAll((mem_Allocator){0}, (io_Reader){.self = &r, .Read = bytes_Reader_Read});
         so_Slice b = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
-            so_panic(errors_cstr(err));
+        if (err.self != NULL) {
+            so_panic(so_error_cstr(err));
         }
         if (so_string_ne(so_bytes_string(b), s)) {
             so_panic("Reader Read failed");

@@ -24,7 +24,7 @@ static void allocTest(void) {
         so_R_ptr_err _res1 = mem_TryAlloc(main_Point, (mem_System));
         main_Point* p = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("Alloc: allocation failed");
         }
         p->x = 11;
@@ -39,7 +39,7 @@ static void allocTest(void) {
         so_R_slice_err _res2 = mem_TryAllocSlice(so_int, (mem_System), (3), (3));
         so_Slice slice = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("AllocSlice: allocation failed");
         }
         so_at(so_int, slice, 0) = 11;
@@ -76,7 +76,7 @@ static void allocTest(void) {
         so_R_slice_err _res3 = mem_TryAllocSlice(so_int, (mem_System), (3), (3));
         so_Slice slice = _res3.val;
         so_Error err = _res3.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("ReallocSlice: initial allocation failed");
         }
         so_at(so_int, slice, 0) = 11;
@@ -85,7 +85,7 @@ static void allocTest(void) {
         so_R_slice_err _res4 = mem_TryReallocSlice(so_int, (mem_System), (slice), (3), (6));
         slice = _res4.val;
         err = _res4.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("ReallocSlice: reallocation failed");
         }
         if (so_len(slice) != 3 || so_cap(slice) != 6) {
@@ -171,7 +171,7 @@ static void arenaTest(void) {
         so_R_ptr_err _res1 = mem_TryAlloc(main_Point, (a));
         main_Point* p = _res1.val;
         so_Error err = _res1.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("initial allocation failed");
         }
         p->x = 11;
@@ -186,7 +186,7 @@ static void arenaTest(void) {
         so_R_ptr_err _res2 = mem_TryAlloc(main_Point, (a));
         main_Point* p2 = _res2.val;
         err = _res2.err;
-        if (err != NULL) {
+        if (err.self != NULL) {
             so_panic("allocation after reset failed");
         }
         // Memory should be zeroed.

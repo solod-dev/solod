@@ -97,11 +97,19 @@ func (g *Generator) emitBinaryExpr(n *ast.BinaryExpr) {
 		return
 	}
 
-	// Interface nil comparisons: emit iface.self == NULL / != NULL.
+	// Interface comparisons: emit iface.self == NULL for nil,
+	// or iface.self == other.self for non-nil.
 	if n.Op == token.EQL || n.Op == token.NEQ {
-		if isNamedNonEmptyInterface(g.types.TypeOf(n.X)) && isNilType(g.types.TypeOf(n.Y)) {
+		if isNamedNonEmptyInterface(g.types.TypeOf(n.X)) {
+			if isNilType(g.types.TypeOf(n.Y)) {
+				g.emitExpr(n.X)
+				fmt.Fprintf(w, ".self %s NULL", n.Op.String())
+				return
+			}
 			g.emitExpr(n.X)
-			fmt.Fprintf(w, ".self %s NULL", n.Op.String())
+			fmt.Fprintf(w, ".self %s ", n.Op.String())
+			g.emitExpr(n.Y)
+			fmt.Fprintf(w, ".self")
 			return
 		}
 	}

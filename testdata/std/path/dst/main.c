@@ -67,8 +67,8 @@ int main(void) {
         so_R_bool_err _res2 = path_Match(so_str("/opt/*/*.js?n"), so_str("/opt/app/config.json"));
         bool ok = _res2.val;
         so_Error err = _res2.err;
-        if (err != NULL) {
-            so_panic(errors_cstr(err));
+        if (err.self != NULL) {
+            so_panic(so_error_cstr(err));
         }
         if (!ok) {
             so_panic("want match");
