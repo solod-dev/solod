@@ -17,3 +17,6 @@ Freestanding mode (no libc dependency).<br>
 
 Implement `error` as a regular interface (it was special-cased before).<br>
 [6c8f0bd](https://github.com/solod-dev/solod/commit/6c8f0bd68e4ba8693d22be59f763676889270070)
+
+⚠️ Auto-generate result types for `(T, error)` multi-return values where `T` is a custom struct type. This is a breaking change: previously, you had to manually define a `T{Result}` type for any such `T`.<br>
+[745b174](https://github.com/solod-dev/solod/commit/745b174e11c08bee91cdaeaf8a8b2aa083863b61)
