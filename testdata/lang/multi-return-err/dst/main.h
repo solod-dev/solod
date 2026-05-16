@@ -1,10 +1,10 @@
 #pragma once
 #include "so/builtin/builtin.h"
+#include "sub/sub.h"
 
 // -- Types --
 
 typedef struct main_File main_File;
-typedef struct main_FileResult main_FileResult;
 
 typedef struct main_Reader {
     void* self;
@@ -14,6 +14,8 @@ typedef struct main_Reader {
 typedef struct main_File {
     so_int size;
 } main_File;
+
+// -- Result types --
 
 typedef struct main_FileResult {
     main_File val;

@@ -63,6 +63,8 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 		}
 	}
 
+	g.emitResultTypes(w, true)
+
 	// Phase 2: exported const/var declarations from collected symbols.
 	var varSyms []symbol
 	for _, sym := range g.symbols {

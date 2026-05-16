@@ -1,23 +1,57 @@
 #include "main.h"
 
+// -- Types --
+
+typedef struct point point;
+
+typedef struct point {
+    so_int x;
+    so_int y;
+} point;
+
+// -- Result types --
+
+typedef struct pointResult {
+    point val;
+    so_Error err;
+} pointResult;
+
 // -- Variables and constants --
 static main_File file = {0};
 
 // -- Forward declarations --
+static main_FileResult makeFile(so_int size);
+static so_R_ptr_err returnPtr(void);
+static pointResult makePoint(so_int x, so_int y);
+static sub_PointResult makeSubPoint(so_int x, so_int y);
 static so_R_int_err divide(so_int a, so_int b);
 static so_R_rune_err returnRune(void);
 static so_R_str_err returnString(void);
 static so_R_slice_err returnSlice(void);
-static so_R_ptr_err returnPtr(void);
 static so_R_int_err forwardCall(void);
-static main_FileResult create(so_int size);
 
 // -- Implementation --
+
+static main_FileResult makeFile(so_int size) {
+    return (main_FileResult){.val = (main_File){.size = size}, .err = (so_Error){0}};
+}
 
 so_R_int_err main_File_Read(void* self, so_int buf) {
     main_File* f = self;
     (void)buf;
     return (so_R_int_err){.val = f->size, .err = (so_Error){0}};
+}
+
+static so_R_ptr_err returnPtr(void) {
+    return (so_R_ptr_err){.val = &file, .err = (so_Error){0}};
+}
+
+static pointResult makePoint(so_int x, so_int y) {
+    return (pointResult){.val = (point){.x = x, .y = y}, .err = (so_Error){0}};
+}
+
+static sub_PointResult makeSubPoint(so_int x, so_int y) {
+    return (sub_PointResult){.val = (sub_Point){.X = x, .Y = y}, .err = (so_Error){0}};
 }
 
 static so_R_int_err divide(so_int a, so_int b) {
@@ -36,16 +70,8 @@ static so_R_slice_err returnSlice(void) {
     return (so_R_slice_err){.val = (so_Slice){(so_int[3]){1, 2, 3}, 3, 3}, .err = (so_Error){0}};
 }
 
-static so_R_ptr_err returnPtr(void) {
-    return (so_R_ptr_err){.val = &file, .err = (so_Error){0}};
-}
-
 static so_R_int_err forwardCall(void) {
     return divide(10, 3);
-}
-
-static main_FileResult create(so_int size) {
-    return (main_FileResult){.val = (main_File){.size = size}, .err = (so_Error){0}};
 }
 
 int main(void) {
@@ -121,12 +147,36 @@ int main(void) {
         (void)err;
     }
     {
-        // Custom struct + error.
-        main_FileResult _res12 = create(42);
+        // Custom exported struct + error.
+        main_FileResult _res12 = makeFile(42);
         main_File f = _res12.val;
         so_Error err = _res12.err;
         if (f.size != 42 || err.self != NULL) {
-            so_panic("Custom struct failed");
+            so_panic("Custom exported struct failed");
+        }
+    }
+    {
+        // Custom unexported struct + error.
+        pointResult _res13 = makePoint(1, 2);
+        point p = _res13.val;
+        so_Error err = _res13.err;
+        if (p.x != 1 || p.y != 2 || err.self != NULL) {
+            so_panic("Custom unexported struct failed");
+        }
+    }
+    {
+        // Custom struct from another package + error.
+        sub_PointResult _res14 = makeSubPoint(1, 2);
+        sub_Point sp1 = _res14.val;
+        so_Error err = _res14.err;
+        if (sp1.X != 1 || sp1.Y != 2 || err.self != NULL) {
+            so_panic("Custom struct from another package failed");
+        }
+        sub_PointResult _res15 = sub_MakePoint(3, 4);
+        sub_Point sp2 = _res15.val;
+        err = _res15.err;
+        if (sp2.X != 3 || sp2.Y != 4 || err.self != NULL) {
+            so_panic("Custom struct from another package failed");
         }
     }
     return 0;

@@ -172,13 +172,6 @@ type Time struct {
 	ext  int64
 }
 
-// TimeResult is a helper struct for returning
-// a Time and an error from a function.
-type TimeResult struct {
-	val Time
-	err error
-}
-
 const (
 	hasMonotonic uint64 = 0x8000000000000000 // 1<<63
 	// maxWall      = wallToInternal + ((1 << 33) - 1) // year 2157

@@ -90,6 +90,8 @@ func (g *Generator) collect() {
 			g.fail(decl.Name, "exported function %s uses unexported types", decl.Name.Name)
 		}
 	}
+
+	g.collectResultTypes()
 }
 
 // collectGenDecl processes a GenDecl for externs, embeds, and symbol collection.

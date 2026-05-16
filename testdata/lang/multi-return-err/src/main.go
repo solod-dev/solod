@@ -1,5 +1,7 @@
 package main
 
+import "example/sub"
+
 type Reader interface {
 	Read(buf int) (int, error)
 }
@@ -8,11 +10,31 @@ type File struct {
 	size int
 }
 
-var file File
+func makeFile(size int) (File, error) {
+	return File{size: size}, nil
+}
 
 func (f *File) Read(buf int) (int, error) {
 	_ = buf
 	return f.size, nil
+}
+
+var file File
+
+func returnPtr() (*File, error) {
+	return &file, nil
+}
+
+type point struct {
+	x, y int
+}
+
+func makePoint(x, y int) (point, error) {
+	return point{x: x, y: y}, nil
+}
+
+func makeSubPoint(x, y int) (sub.Point, error) {
+	return sub.Point{X: x, Y: y}, nil
 }
 
 func divide(a, b int) (int, error) {
@@ -31,21 +53,8 @@ func returnSlice() ([]int, error) {
 	return []int{1, 2, 3}, nil
 }
 
-func returnPtr() (*File, error) {
-	return &file, nil
-}
-
 func forwardCall() (int, error) {
 	return divide(10, 3)
-}
-
-type FileResult struct {
-	val File
-	err error
-}
-
-func create(size int) (File, error) {
-	return File{size: size}, nil
 }
 
 func main() {
@@ -70,7 +79,6 @@ func main() {
 		err = nil
 		q, err = divide(20, 7)
 	}
-
 	{
 		// If-init with multi-return.
 		f := File{size: 42}
@@ -78,7 +86,6 @@ func main() {
 			_ = n
 		}
 	}
-
 	{
 		// Various return types.
 		var err error
@@ -96,19 +103,35 @@ func main() {
 		// iface, err := returnIface()
 		// _ = iface
 	}
-
 	{
 		// Forward call.
 		q, err := forwardCall()
 		_ = q
 		_ = err
 	}
-
 	{
-		// Custom struct + error.
-		f, err := create(42)
+		// Custom exported struct + error.
+		f, err := makeFile(42)
 		if f.size != 42 || err != nil {
-			panic("Custom struct failed")
+			panic("Custom exported struct failed")
+		}
+	}
+	{
+		// Custom unexported struct + error.
+		p, err := makePoint(1, 2)
+		if p.x != 1 || p.y != 2 || err != nil {
+			panic("Custom unexported struct failed")
+		}
+	}
+	{
+		// Custom struct from another package + error.
+		sp1, err := makeSubPoint(1, 2)
+		if sp1.X != 1 || sp1.Y != 2 || err != nil {
+			panic("Custom struct from another package failed")
+		}
+		sp2, err := sub.MakePoint(3, 4)
+		if sp2.X != 3 || sp2.Y != 4 || err != nil {
+			panic("Custom struct from another package failed")
 		}
 	}
 }

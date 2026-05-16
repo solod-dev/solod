@@ -45,13 +45,6 @@ func baseName(path string) string {
 	return path[i+1 : end]
 }
 
-// FileInfoResult is a helper struct for returning
-// a FileInfo and an error from a function.
-type FileInfoResult struct {
-	val FileInfo
-	err error
-}
-
 // Stat returns a [FileInfo] describing the named file.
 func Stat(name string) (FileInfo, error) {
 	r := os_stat(name)

@@ -4,7 +4,75 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"io"
 )
+
+// resultTypeInfo describes an auto-generated result struct for (T, error) returns.
+type resultTypeInfo struct {
+	cName    string // e.g. "main_FileResult"
+	valType  string // e.g. "main_File"
+	exported bool   // T's export status
+}
+
+// collectResultTypes collects result types for (T, error) returns.
+func (g *Generator) collectResultTypes() {
+	seen := make(map[string]bool)
+	for _, sym := range g.symbols {
+		if sym.kind != symbolFunc && sym.kind != symbolMethod {
+			continue
+		}
+		sig := g.types.ObjectOf(sym.funcDecl.Name).Type().(*types.Signature)
+		if sig.Results().Len() != 2 {
+			continue
+		}
+		first := sig.Results().At(0).Type()
+		second := sig.Results().At(1).Type()
+		if !isErrorType(second) {
+			continue
+		}
+		named, ok := types.Unalias(first).(*types.Named)
+		if !ok {
+			continue
+		}
+		if _, ok := named.Underlying().(*types.Struct); !ok {
+			continue
+		}
+		// Only handle types from the current package.
+		if named.Obj().Pkg() != g.pkg.Types {
+			continue
+		}
+		valType := g.mapType(sym.funcDecl, named)
+		cName := valType + "Result"
+		if seen[cName] {
+			continue
+		}
+		seen[cName] = true
+		g.resultTypes = append(g.resultTypes, resultTypeInfo{
+			cName:    cName,
+			valType:  valType,
+			exported: ast.IsExported(named.Obj().Name()),
+		})
+	}
+}
+
+// emitResultTypes writes auto-generated result type structs filtered by export status.
+func (g *Generator) emitResultTypes(w io.Writer, exported bool) {
+	var resTypes []resultTypeInfo
+	for _, typ := range g.resultTypes {
+		if typ.exported == exported {
+			resTypes = append(resTypes, typ)
+		}
+	}
+	if len(resTypes) == 0 {
+		return
+	}
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "// -- Result types --")
+	for _, typ := range resTypes {
+		const s = "\ntypedef struct %s {\n    %s val;\n    so_Error err;\n} %s;\n"
+		fmt.Fprintf(w, s, typ.cName, typ.valType, typ.cName)
+	}
+}
 
 // returnType returns the C return type for a function signature.
 // For multi-return (T, error) or (T, T), returns the per-signature result type.
@@ -112,11 +180,13 @@ func (g *Generator) multiReturnFields(node ast.Node, sig *types.Signature) multi
 		g.fail(node, "error must be the second return value")
 	}
 
-	// Check for custom result type: (NamedType, error).
+	// Check for named struct result type: (T, error).
 	if isErrorType(second) {
 		if named, ok := types.Unalias(first).(*types.Named); ok {
-			resultType := g.findResultType(node, named)
-			return multiReturn{resultType: resultType, hasError: true}
+			if _, ok := named.Underlying().(*types.Struct); ok {
+				resultType := g.mapType(node, named) + "Result"
+				return multiReturn{resultType: resultType, hasError: true}
+			}
 		}
 	}
 
@@ -126,16 +196,6 @@ func (g *Generator) multiReturnFields(node ast.Node, sig *types.Signature) multi
 	}
 	s2 := resultTypeSuffix(g, node, second)
 	return multiReturn{suffix1: s1, suffix2: s2}
-}
-
-// findResultType looks up the {TypeName}Result type in the package scope.
-func (g *Generator) findResultType(node ast.Node, named *types.Named) string {
-	resultName := named.Obj().Name() + "Result"
-	obj := named.Obj().Pkg().Scope().Lookup(resultName)
-	if obj == nil {
-		g.fail(node, "returning %s requires a %s type declaration", named.Obj().Name(), resultName)
-	}
-	return g.mapType(node, obj.Type())
 }
 
 // resultTypeSuffix maps a Go type to the corresponding result type suffix.

@@ -33,13 +33,6 @@ type File struct {
 	closed bool
 }
 
-// FileResult is a helper struct for returning
-// a File and an error from a function.
-type FileResult struct {
-	val File
-	err error
-}
-
 // Standard input, output, and error streams.
 var stdin_ File
 var Stdin *File

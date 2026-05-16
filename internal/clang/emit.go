@@ -79,17 +79,18 @@ type Includes struct {
 
 // Generator is responsible for generating C code from Go ASTs.
 type Generator struct {
-	pkg      *packages.Package
-	types    *types.Info
-	state    State
-	externs  map[types.Object]externInfo  // symbols provided by C headers
-	includes Includes                     // included headers from so:include
-	symbols  []symbol                     // pre-collected top-level declarations
-	embeds   Embeds                       // embedded C files from so:embed
-	comments ast.CommentMap               // all comments across all files
-	funcDirs map[*ast.FuncDecl]directives // parsed directives per function decl
-	initFunc *ast.FuncDecl                // package init() function, if any
-	panicked bool                         // true after first panic caught in Visit
+	pkg         *packages.Package
+	types       *types.Info
+	state       State
+	externs     map[types.Object]externInfo  // symbols provided by C headers
+	includes    Includes                     // included headers from so:include
+	embeds      Embeds                       // embedded C files from so:embed
+	symbols     []symbol                     // pre-collected top-level declarations
+	funcDirs    map[*ast.FuncDecl]directives // parsed directives per function decl
+	resultTypes []resultTypeInfo             // auto-generated result types for (T, error)
+	comments    ast.CommentMap               // all comments across all files
+	initFunc    *ast.FuncDecl                // package init() function, if any
+	panicked    bool                         // true after first panic caught in Visit
 }
 
 // newGenerator creates a new Generator instance.
@@ -125,6 +126,7 @@ func (g *Generator) emitImpl(w io.Writer) {
 
 	g.emitEmbeds(w, g.embeds.impl)
 	g.emitUnexportedTypes(w)
+	g.emitResultTypes(w, false)
 	g.emitPackageVars(w)
 	g.emitForwardFuncDecls(w)
 

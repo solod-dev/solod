@@ -574,16 +574,24 @@ int int64 rune
 string []T *T
 ```
 
-So also supports the `(T, error)` pattern, where `T` is a struct type. To use it, you need to define a struct type called `{T}Result` with two fields: `val T` and `err error`:
+So also supports the `(T, error)` pattern, where `T` is a custom struct type:
+
+```go
+func create(size int) (File, error) {
+    return File{size: size}, nil
+}
+```
+
+The compiler auto-generates `{T}Result` structs for these `T` types, so don't name your own types `{T}Result` if `T` is a struct type that's returned as `(T, error)`.
+
+Automatic `{T}Result` generation for a custom `T` only works if the function returning `(T, error)` is defined in the same package as `T`, or if there's at least one function in `T`'s package that also returns `(T, error)`.
+
+Otherwise, you'll have to manually define a struct type called `{T}Result` with two fields — `val T` and `err error`, like this:
 
 ```go
 type FileResult struct {
     val File
     err error
-}
-
-func create(size int) (File, error) {
-    return File{size: size}, nil
 }
 ```
 
