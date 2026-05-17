@@ -107,6 +107,32 @@ func (g *Generator) emitDefine(stmt *ast.AssignStmt) {
 		typ := def.Type()
 		ct := g.mapCType(stmt, typ)
 
+		// Shadowing in the initializer: `w := w.f()` where the RHS `w`
+		// refers to an outer variable of the same name. In Go the new
+		// variable is not in scope within its own initializer, but in C
+		// it would be, so emit the RHS into a temp (which still sees the
+		// outer binding) before declaring the new variable.
+		if g.identShadowedInExpr(ident, def, stmt.Rhs[i]) {
+			g.state.tempCount++
+			tmp := fmt.Sprintf("_shadow_%s_%d", ident.Name, g.state.tempCount)
+			if ct.IsArray() {
+				fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(tmp))
+				fmt.Fprintf(w, "%smemcpy(%s, ", g.indent(), tmp)
+				g.emitExpr(stmt.Rhs[i])
+				fmt.Fprintf(w, ", sizeof(%s));\n", tmp)
+				fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(ident.Name))
+				fmt.Fprintf(w, "%smemcpy(%s, %s, sizeof(%s));\n",
+					g.indent(), ident.Name, tmp, ident.Name)
+			} else {
+				fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(tmp))
+				g.emitExpr(stmt.Rhs[i])
+				fmt.Fprintf(w, ";\n")
+				fmt.Fprintf(w, "%s%s = %s;\n", g.indent(), ct.Decl(ident.Name), tmp)
+			}
+			i++
+			continue
+		}
+
 		if ct.IsArray() {
 			// Arrays can't be grouped with other variables.
 			if _, isLit := stmt.Rhs[i].(*ast.CompositeLit); isLit {
@@ -243,6 +269,25 @@ func (g *Generator) emitAssign(stmt *ast.AssignStmt) {
 
 // collectIdents returns the set of identifier names in the given expressions.
 // The blank identifier is excluded.
+// identShadowedInExpr reports whether expr references an object with the
+// same name as the newly-declared lhs, but distinct from def. This detects
+// `x := x...` style shadowing where the RHS uses the outer binding.
+func (g *Generator) identShadowedInExpr(lhs *ast.Ident, def types.Object, expr ast.Expr) bool {
+	found := false
+	ast.Inspect(expr, func(n ast.Node) bool {
+		id, ok := n.(*ast.Ident)
+		if !ok || id.Name != lhs.Name {
+			return true
+		}
+		if use := g.types.Uses[id]; use != nil && use != def {
+			found = true
+			return false
+		}
+		return true
+	})
+	return found
+}
+
 func collectIdents(exprs ...ast.Expr) map[string]bool {
 	names := map[string]bool{}
 	for _, expr := range exprs {

@@ -190,4 +190,23 @@ func main() {
 			panic("multiple assignment failed")
 		}
 	}
+	{
+		// Shadowing in the initializer: the RHS refers to the outer
+		// binding, not the variable being declared.
+		p := person{age: 42}
+		{
+			p := p.age + 1
+			if p != 43 {
+				panic("shadow scalar failed")
+			}
+		}
+		n := 7
+		{
+			n := n * 2
+			if n != 14 {
+				panic("shadow int failed")
+			}
+		}
+		_ = p
+	}
 }

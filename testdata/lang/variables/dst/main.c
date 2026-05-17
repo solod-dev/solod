@@ -205,5 +205,26 @@ int main(void) {
             so_panic("multiple assignment failed");
         }
     }
+    {
+        // Shadowing in the initializer: the RHS refers to the outer
+        // binding, not the variable being declared.
+        person p = (person){.age = 42};
+        {
+            so_int _shadow_p_1 = p.age + 1;
+            so_int p = _shadow_p_1;
+            if (p != 43) {
+                so_panic("shadow scalar failed");
+            }
+        }
+        so_int n = 7;
+        {
+            so_int _shadow_n_2 = n * 2;
+            so_int n = _shadow_n_2;
+            if (n != 14) {
+                so_panic("shadow int failed");
+            }
+        }
+        (void)p;
+    }
     return 0;
 }
