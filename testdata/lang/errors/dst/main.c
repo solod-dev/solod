@@ -1,11 +1,11 @@
 #include "main.h"
 
-// -- Variables and constants --
-so_Error main_ErrOutOfTea = errors_New("no more tea available");
-
 // -- Forward declarations --
 static so_Error makeTea(so_int arg);
 static so_R_int_err work(so_int n);
+
+// -- Variables and constants --
+so_Error main_ErrOutOfTea = errors_New("no more tea available");
 
 // -- Implementation --
 

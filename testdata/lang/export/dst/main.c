@@ -1,13 +1,13 @@
 #include "main.h"
 
+// -- Forward declarations --
+static bool someFunc(so_int x, so_int y);
+
 // -- Variables and constants --
 static const int64_t someConst = 7;
 const int64_t main_SomeConst = 7;
 static so_int someVar = 42;
 so_int main_SomeVar = 42;
-
-// -- Forward declarations --
-static bool someFunc(so_int x, so_int y);
 
 // -- Implementation --
 

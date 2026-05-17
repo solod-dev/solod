@@ -15,12 +15,12 @@ typedef struct arange {
     uint8_t hi;
 } arange;
 
-// -- Variables and constants --
-static arange aranges[16] = {[0] = (arange){0x10, 0x20}, [1] = (arange){0x30, 0x40}, [2] = (arange){0x50, 0x60}};
-
 // -- Forward declarations --
 static void change(so_int a[3]);
 static box newBox(void);
+
+// -- Variables and constants --
+static arange aranges[16] = {[0] = (arange){0x10, 0x20}, [1] = (arange){0x30, 0x40}, [2] = (arange){0x50, 0x60}};
 
 // -- Implementation --
 

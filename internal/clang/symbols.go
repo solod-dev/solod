@@ -240,8 +240,9 @@ func (g *Generator) collectFuncDecl(d *ast.FuncDecl) {
 }
 
 // emitPackageVars writes all package-level variable and constant
-// declarations at the top of the .c file, before forward declarations.
-// This ensures they are defined before any function that references them.
+// declarations at the top of the .c file, after forward func declarations
+// (so initializers can reference functions) but before any function body
+// (so functions can reference these vars).
 func (g *Generator) emitPackageVars(w io.Writer) {
 	var symbols []symbol
 	for _, sym := range g.symbols {

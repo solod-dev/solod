@@ -1,12 +1,12 @@
 #include "main.h"
 
-// -- Variables and constants --
-so_Error main_ErrNotFound = errors_New("not found");
-
 // -- Forward declarations --
 static void panicLiteral(void);
 static void panicString(void);
 static void panicError(void);
+
+// -- Variables and constants --
+so_Error main_ErrNotFound = errors_New("not found");
 
 // -- Implementation --
 

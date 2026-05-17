@@ -127,8 +127,11 @@ func (g *Generator) emitImpl(w io.Writer) {
 	g.emitEmbeds(w, g.embeds.impl)
 	g.emitUnexportedTypes(w)
 	g.emitResultTypes(w, false)
-	g.emitPackageVars(w)
+	// Forward func decls before package vars: a package-var initializer may
+	// reference a function (e.g. a func-typed struct field), and a function
+	// prototype never references a package var, so this order satisfies both.
 	g.emitForwardFuncDecls(w)
+	g.emitPackageVars(w)
 
 	multiFile := len(g.pkg.Syntax) > 1
 	if !multiFile {

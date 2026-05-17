@@ -1,12 +1,12 @@
 #include "main.h"
 
+// -- Forward declarations --
+static main_Point offset(main_Point p, so_int dx, so_int dy);
+
 // -- Variables and constants --
 
 // MaxCoord is the maximum coordinate value.
 const so_int main_MaxCoord = 1000;
-
-// -- Forward declarations --
-static main_Point offset(main_Point p, so_int dx, so_int dy);
 
 // -- Implementation --
 

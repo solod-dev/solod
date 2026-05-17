@@ -16,9 +16,6 @@ typedef struct pointResult {
     so_Error err;
 } pointResult;
 
-// -- Variables and constants --
-static main_File file = {0};
-
 // -- Forward declarations --
 static main_FileResult makeFile(so_int size);
 static so_R_ptr_err returnPtr(void);
@@ -29,6 +26,9 @@ static so_R_rune_err returnRune(void);
 static so_R_str_err returnString(void);
 static so_R_slice_err returnSlice(void);
 static so_R_int_err forwardCall(void);
+
+// -- Variables and constants --
+static main_File file = {0};
 
 // -- Implementation --
 

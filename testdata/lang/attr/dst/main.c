@@ -22,6 +22,9 @@ typedef struct __attribute__((packed, aligned(16))) aligned {
 //
 typedef __attribute__((aligned(8))) so_int myInt;
 
+// -- Forward declarations --
+static __attribute__((noinline)) void helper(void);
+
 // -- Variables and constants --
 
 // Unexported volatile variable.
@@ -43,9 +46,6 @@ _Thread_local so_int main_PerThread = 0;
 // Combined volatile + thread-local.
 //
 static _Thread_local volatile so_int flags = 0;
-
-// -- Forward declarations --
-static __attribute__((noinline)) void helper(void);
 
 // -- Implementation --
 

@@ -8,11 +8,11 @@ typedef struct value {
     so_int x;
 } value;
 
-// -- Variables and constants --
-static so_int state = 0;
-
 // -- Forward declarations --
 static void value_init(void* self, so_int x);
+
+// -- Variables and constants --
+static so_int state = 0;
 
 // -- Implementation --
 

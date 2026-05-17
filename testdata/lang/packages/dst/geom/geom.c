@@ -1,10 +1,10 @@
 #include "geom.h"
 
-// -- Variables and constants --
-const double geom_Pi = 3.14159;
-
 // -- Forward declarations --
 static double rectArea(double width, double height);
+
+// -- Variables and constants --
+const double geom_Pi = 3.14159;
 
 // -- Implementation --
 
