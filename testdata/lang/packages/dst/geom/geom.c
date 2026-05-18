@@ -3,8 +3,6 @@
 // -- Forward declarations --
 static double rectArea(double width, double height);
 
-// -- Variables and constants --
-
 // -- Implementation --
 
 static double rectArea(double width, double height) {

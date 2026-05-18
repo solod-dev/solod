@@ -3,10 +3,6 @@
 // -- Forward declarations --
 static main_Point offset(main_Point p, so_int dx, so_int dy);
 
-// -- Variables and constants --
-
-// MaxCoord is the maximum coordinate value.
-
 // -- Implementation --
 
 // NewPoint creates a new Point.

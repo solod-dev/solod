@@ -23,11 +23,16 @@ const (
 
 type symbol struct {
 	kind     symbolKind
-	exported bool
 	dirs     directives   // parsed so: directives
 	genDecl  *ast.GenDecl // parent GenDecl (for type symbols, enables comment lookup)
 	typeSpec *ast.TypeSpec
 	funcDecl *ast.FuncDecl
+
+	// var and const groups can contain both exported and unexported names,
+	// so they can have both exported == true and unexported == true.
+	// Other symbol kinds are either exported or unexported, never both.
+	exported   bool
+	unexported bool
 }
 
 // collect performs a single pass over all package files, collecting:
@@ -82,7 +87,7 @@ func (g *Generator) collect() {
 
 	// Validate that exported functions don't use unexported types.
 	for _, sym := range g.symbols {
-		if !sym.exported || (sym.kind != symbolFunc && sym.kind != symbolMethod) {
+		if (sym.kind != symbolFunc && sym.kind != symbolMethod) || !sym.exported {
 			continue
 		}
 		decl := sym.funcDecl
@@ -157,20 +162,24 @@ func (g *Generator) collectGenDecl(srcDir string, d *ast.GenDecl) {
 			if g.hasExtern(g.types.Defs[ts.Name]) {
 				continue
 			}
+			exported := ast.IsExported(ts.Name.Name)
 			g.symbols = append(g.symbols, symbol{
-				kind:     symbolType,
-				exported: ast.IsExported(ts.Name.Name),
-				dirs:     dirs,
-				genDecl:  d,
-				typeSpec: ts,
+				kind:       symbolType,
+				exported:   exported,
+				unexported: !exported,
+				dirs:       dirs,
+				genDecl:    d,
+				typeSpec:   ts,
 			})
 		}
 	case token.VAR:
+		exported, unexported := detectExported(d)
 		g.symbols = append(g.symbols, symbol{
-			kind:     symbolVar,
-			exported: hasExportedValueSpec(d),
-			dirs:     dirs,
-			genDecl:  d,
+			kind:       symbolVar,
+			exported:   exported,
+			unexported: unexported,
+			dirs:       dirs,
+			genDecl:    d,
 		})
 	case token.CONST:
 		if dirs.volatile {
@@ -179,11 +188,13 @@ func (g *Generator) collectGenDecl(srcDir string, d *ast.GenDecl) {
 		if dirs.threadLocal {
 			g.fail(d, "so:thread_local is not allowed on const declarations")
 		}
+		exported, unexported := detectExported(d)
 		g.symbols = append(g.symbols, symbol{
-			kind:     symbolConst,
-			exported: hasExportedValueSpec(d),
-			dirs:     dirs,
-			genDecl:  d,
+			kind:       symbolConst,
+			exported:   exported,
+			unexported: unexported,
+			dirs:       dirs,
+			genDecl:    d,
 		})
 	}
 }
@@ -232,10 +243,11 @@ func (g *Generator) collectFuncDecl(d *ast.FuncDecl) {
 		}
 	}
 	g.symbols = append(g.symbols, symbol{
-		kind:     kind,
-		exported: exported,
-		dirs:     dirs,
-		funcDecl: d,
+		kind:       kind,
+		exported:   exported,
+		unexported: !exported,
+		dirs:       dirs,
+		funcDecl:   d,
 	})
 }
 
@@ -247,6 +259,11 @@ func (g *Generator) emitPackageVars(w io.Writer) {
 	var symbols []symbol
 	for _, sym := range g.symbols {
 		if sym.kind != symbolVar && sym.kind != symbolConst {
+			continue
+		}
+		if sym.kind == symbolConst && !sym.unexported {
+			// All constants in the group are exported, skip the group.
+			// Exported package-level constants are emitted in the header.
 			continue
 		}
 		symbols = append(symbols, sym)
@@ -280,7 +297,7 @@ func (g *Generator) emitPackageVars(w io.Writer) {
 func (g *Generator) emitUnexportedTypes(w io.Writer) {
 	var typeSyms []symbol
 	for _, sym := range g.symbols {
-		if sym.exported || sym.kind != symbolType {
+		if sym.kind != symbolType || sym.exported {
 			continue
 		}
 		typeSyms = append(typeSyms, sym)
@@ -340,9 +357,9 @@ func (g *Generator) emitForwardFuncDecls(w io.Writer) {
 	}
 }
 
-// hasExportedValueSpec reports whether a GenDecl contains at least one
-// exported name in its value specs.
-func hasExportedValueSpec(d *ast.GenDecl) bool {
+// detectExported reports whether a GenDecl contains at least one
+// exported and at least one unexported name in its value specs.
+func detectExported(d *ast.GenDecl) (exported bool, unexported bool) {
 	for _, spec := range d.Specs {
 		vs, ok := spec.(*ast.ValueSpec)
 		if !ok {
@@ -350,9 +367,11 @@ func hasExportedValueSpec(d *ast.GenDecl) bool {
 		}
 		for _, name := range vs.Names {
 			if ast.IsExported(name.Name) {
-				return true
+				exported = true
+			} else {
+				unexported = true
 			}
 		}
 	}
-	return false
+	return exported, unexported
 }

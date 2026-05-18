@@ -6,8 +6,6 @@
 static const so_int fInt = 42;
 static const so_String fString = so_str("file");
 static const main_HttpStatus statusSecret = 999;
-
-// Using constants in other definitions.
 main_Point main_PointZero = (main_Point){.X = main_Zero, .Y = main_Zero};
 main_Point main_PointSubZero = (main_Point){.X = sub_Zero, .Y = sub_Zero};
 

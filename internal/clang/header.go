@@ -42,7 +42,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 	// Phase 1: exported types from collected symbols.
 	var typeSyms []symbol
 	for _, sym := range g.symbols {
-		if !sym.exported || sym.kind != symbolType {
+		if sym.kind != symbolType || !sym.exported {
 			continue
 		}
 		typeSyms = append(typeSyms, sym)
@@ -68,7 +68,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 	// Phase 2: exported const/var declarations from collected symbols.
 	var varSyms []symbol
 	for _, sym := range g.symbols {
-		if !sym.exported || (sym.kind != symbolVar && sym.kind != symbolConst) {
+		if (sym.kind != symbolVar && sym.kind != symbolConst) || !sym.exported {
 			continue
 		}
 		varSyms = append(varSyms, sym)
