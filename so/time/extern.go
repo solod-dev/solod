@@ -7,15 +7,15 @@ var time_h string
 
 //so:extern
 type time_tm struct {
-	tm_sec   int
-	tm_min   int
-	tm_hour  int
-	tm_mday  int
-	tm_mon   int
-	tm_year  int
-	tm_wday  int
-	tm_yday  int
-	tm_isdst int
+	tm_sec   c.Int
+	tm_min   c.Int
+	tm_hour  c.Int
+	tm_mday  c.Int
+	tm_mon   c.Int
+	tm_year  c.Int
+	tm_wday  c.Int
+	tm_yday  c.Int
+	tm_isdst c.Int
 }
 
 // size_t strftime(char* str, size_t count, const char* format, const struct tm* tp);

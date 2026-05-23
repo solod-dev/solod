@@ -82,5 +82,5 @@ func Hostname(buf []byte) (string, error) {
 // Exit causes the current program to exit with the given status code.
 // Conventionally, code zero indicates success, non-zero an error.
 func Exit(code int) {
-	exit(code)
+	exit(c.Int(code))
 }

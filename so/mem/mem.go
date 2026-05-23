@@ -268,7 +268,7 @@ func SwapByte(a any, b any, n int) {
 // void* memset(void *dest, int ch, size_t count);
 //
 //so:extern
-func memset(ptr any, ch int, count uintptr) any {
+func memset(ptr any, ch c.Int, count uintptr) any {
 	s := unsafe.Slice((*byte)(ptrVal(ptr)), int(count))
 	for i := range s {
 		s[i] = byte(ch)
@@ -279,12 +279,12 @@ func memset(ptr any, ch int, count uintptr) any {
 // int memcmp(const void *s1, const void *s2, size_t n);
 //
 //so:extern
-func memcmp(s1 any, s2 any, n uintptr) int {
+func memcmp(s1 any, s2 any, n uintptr) c.Int {
 	slice1 := unsafe.Slice((*byte)(ptrVal(s1)), int(n))
 	slice2 := unsafe.Slice((*byte)(ptrVal(s2)), int(n))
 	for i := range slice1 {
 		if slice1[i] != slice2[i] {
-			return int(slice1[i]) - int(slice2[i])
+			return c.Int(slice1[i]) - c.Int(slice2[i])
 		}
 	}
 	return 0

@@ -3,6 +3,7 @@ package os
 import (
 	"unsafe"
 
+	"solod.dev/so/c"
 	"solod.dev/so/io"
 	"solod.dev/so/mem"
 )
@@ -73,7 +74,7 @@ func Open(name string) (File, error) {
 // methods on the returned File can be used for I/O.
 func OpenFile(name string, flag int, perm FileMode) (File, error) {
 	pmode := makePosixMode(perm)
-	fd := posixOpen(name, flag, uint32(pmode))
+	fd := posixOpen(name, c.Int(flag), c.Int(pmode))
 	if fd < 0 {
 		return File{}, mapError()
 	}
@@ -129,7 +130,7 @@ func (f *File) Write(b []byte) (int, error) {
 // the start of the file, [io.SeekCurrent] means relative to the current
 // offset, and [io.SeekEnd] means relative to the end.
 func (f *File) Seek(offset int64, whence int) (int64, error) {
-	if fseeko(f.fd, offset, whence) != 0 {
+	if fseeko(f.fd, offset, c.Int(whence)) != 0 {
 		return 0, mapError()
 	}
 	pos := ftello(f.fd)

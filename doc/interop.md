@@ -217,3 +217,4 @@ Functions:
 Types:
 
 - `Char` and `ConstChar` represent a C `char` type.
+- `Int`, `UInt`, `Long`, `ULong`, etc. represent numeric C types.

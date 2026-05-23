@@ -1,7 +1,11 @@
 // Package math provides basic constants and mathematical functions.
 package math
 
-import "math" // for testing
+import (
+	"math" // for testing
+
+	"solod.dev/so/c"
+)
 
 //so:embed math.h
 var math_h string
@@ -203,14 +207,16 @@ func round(x float64) float64 { return math.Round(x) }
 // Floating-point manipulation functions.
 
 //so:extern
-func frexp(f float64, exp *int32) float64 {
+func frexp(f float64, exp *c.Int) float64 {
 	frac, e := math.Frexp(f)
-	*exp = int32(e)
+	*exp = c.Int(e)
 	return frac
 }
 
 //so:extern
-func ldexp(frac float64, exp int32) float64 { return math.Ldexp(frac, int(exp)) }
+func ldexp(frac float64, exp c.Int) float64 {
+	return math.Ldexp(frac, int(exp))
+}
 
 //so:extern
 func modf(f float64, intp *float64) float64 {
@@ -220,7 +226,7 @@ func modf(f float64, intp *float64) float64 {
 }
 
 //so:extern
-func ilogb(x float64) int { return math.Ilogb(x) }
+func ilogb(x float64) c.Int { return c.Int(math.Ilogb(x)) }
 
 //so:extern
 func logb(x float64) float64 { return math.Logb(x) }

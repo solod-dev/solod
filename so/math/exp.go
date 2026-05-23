@@ -95,5 +95,5 @@ func Logb(x float64) float64 {
 //	Ilogb(0) = MinInt32
 //	Ilogb(NaN) = MaxInt32
 func Ilogb(x float64) int {
-	return ilogb(x)
+	return int(ilogb(x))
 }

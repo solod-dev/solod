@@ -89,26 +89,26 @@ type os_readdirResult struct {
 	ok      bool
 }
 
-// int chdir(const char *path);
+// int chdir(const char* path);
 //
 //so:extern
-func chdir(path string) int {
+func chdir(path string) c.Int {
 	_ = path
 	return 0
 }
 
-// int chmod(const char *path, mode_t mode);
+// int chmod(const char* path, mode_t mode);
 //
 //so:extern
-func chmod(path string, mode mode_t) int {
+func chmod(path string, mode mode_t) c.Int {
 	_, _ = path, mode
 	return 0
 }
 
-// int chown(const char *path, uid_t owner, gid_t group);
+// int chown(const char* path, uid_t owner, gid_t group);
 //
 //so:extern
-func chown(path string, uid uid_t, gid gid_t) int {
+func chown(path string, uid uid_t, gid gid_t) c.Int {
 	_, _, _ = path, uid, gid
 	return 0
 }
@@ -116,7 +116,7 @@ func chown(path string, uid uid_t, gid gid_t) int {
 // int closedir(DIR *dirp);
 //
 //so:extern
-func closedir(dir *os_dir) int {
+func closedir(dir *os_dir) c.Int {
 	_ = dir
 	return 0
 }
@@ -124,15 +124,15 @@ func closedir(dir *os_dir) int {
 // int close(int fd);
 //
 //so:extern close
-func fdclose(fd int) int {
+func fdclose(fd c.Int) c.Int {
 	_ = fd
 	return 0
 }
 
-// FILE *fdopen(int fd, const char *mode);
+// FILE* fdopen(int fd, const char *mode);
 //
 //so:extern
-func fdopen(fd int, mode string) *os_file {
+func fdopen(fd c.Int, mode string) *os_file {
 	_, _ = fd, mode
 	return &os_file{}
 }
@@ -190,15 +190,15 @@ func getuid() uid_t {
 // int gethostname(char* name, size_t namelen);
 //
 //so:extern
-func gethostname(name *c.Char, namelen uintptr) int {
+func gethostname(name *c.Char, namelen uintptr) c.Int {
 	_, _ = name, namelen
 	return 0
 }
 
-// int lchown(const char *path, uid_t owner, gid_t group);
+// int lchown(const char* path, uid_t owner, gid_t group);
 //
 //so:extern
-func lchown(path string, uid uid_t, gid gid_t) int {
+func lchown(path string, uid uid_t, gid gid_t) c.Int {
 	_, _, _ = path, uid, gid
 	return 0
 }
@@ -206,13 +206,13 @@ func lchown(path string, uid uid_t, gid gid_t) int {
 // int link(const char *path1, const char *path2);
 //
 //so:extern
-func link(old, new string) int {
+func link(old, new string) c.Int {
 	_, _ = old, new
 	return 0
 }
 
 // lstat wrapper (fills os_statResult).
-// int lstat(const char* restrict path, struct stat* restrict buf);
+// int lstat(const char* path, struct stat* buf);
 //
 //so:extern
 func os_lstat(path string) os_statResult {
@@ -220,10 +220,10 @@ func os_lstat(path string) os_statResult {
 	return os_statResult{size: 42, mode: 0o777, ok: true}
 }
 
-// int mkdir(const char *path, mode_t mode);
+// int mkdir(const char* path, mode_t mode);
 //
 //so:extern
-func mkdir(path string, mode mode_t) int {
+func mkdir(path string, mode mode_t) c.Int {
 	_, _ = path, mode
 	return 0
 }
@@ -231,7 +231,7 @@ func mkdir(path string, mode mode_t) int {
 // int mkstemp(char *template);
 //
 //so:extern
-func mkstemp(tmpl *c.Char) int {
+func mkstemp(tmpl *c.Char) c.Int {
 	_ = tmpl
 	return 0
 }
@@ -245,7 +245,7 @@ func mkdtemp(tmpl *c.Char) *c.Char {
 	return (*c.Char)(&b[0])
 }
 
-// DIR *opendir(const char *name);
+// DIR* opendir(const char *name);
 //
 //so:extern
 func opendir(name string) *os_dir {
@@ -253,10 +253,10 @@ func opendir(name string) *os_dir {
 	return nil
 }
 
-// int open(const char *path, int oflag, ...);
+// int open(const char* path, int oflag, ...);
 //
 //so:extern open
-func posixOpen(path string, flags int, mode uint32) int {
+func posixOpen(path string, flags c.Int, mode c.Int) c.Int {
 	_, _, _ = path, flags, mode
 	return 42
 }
@@ -269,7 +269,7 @@ func os_readdir_next(dir *os_dir, buf *c.Char, bufsize uintptr) os_readdirResult
 	return os_readdirResult{}
 }
 
-// ssize_t readlink(const char* restrict path, char* restrict buf, size_t bufsize);
+// ssize_t readlink(const char* path, char* buf, size_t bufsize);
 //
 //so:extern
 func readlink(path string, buf *c.Char, bufsize uintptr) int {
@@ -278,7 +278,7 @@ func readlink(path string, buf *c.Char, bufsize uintptr) int {
 }
 
 // stat wrapper (fills os_statResult).
-// int stat(const char* restrict path, struct stat* restrict buf);
+// int stat(const char* path, struct stat* buf);
 //
 //so:extern
 func os_stat(path string) os_statResult {
@@ -289,15 +289,15 @@ func os_stat(path string) os_statResult {
 // int symlink(const char *path1, const char *path2);
 //
 //so:extern
-func symlink(old, new string) int {
+func symlink(old, new string) c.Int {
 	_, _ = old, new
 	return 0
 }
 
-// int truncate(const char *path, off_t length);
+// int truncate(const char* path, off_t length);
 //
 //so:extern
-func truncate(path string, size int64) int {
+func truncate(path string, size int64) c.Int {
 	_, _ = path, size
 	return 0
 }
@@ -305,7 +305,7 @@ func truncate(path string, size int64) int {
 // int setenv(const char *name, const char *value, int overwrite);
 //
 //so:extern
-func setenv(key, value string, overwrite int) int {
+func setenv(key, value string, overwrite c.Int) c.Int {
 	_, _, _ = key, value, overwrite
 	return 0
 }
@@ -313,7 +313,7 @@ func setenv(key, value string, overwrite int) int {
 // int unsetenv(const char *name);
 //
 //so:extern
-func unsetenv(key string) int {
+func unsetenv(key string) c.Int {
 	_ = key
 	return 0
 }
@@ -321,7 +321,7 @@ func unsetenv(key string) int {
 // utimensat wrapper (passes timespec values as separate arguments).
 //
 //so:extern
-func os_utimens(path string, asec, ansec, msec, mnsec int64) int {
+func os_utimens(path string, asec, ansec, msec, mnsec int64) c.Int {
 	_, _, _, _, _ = path, asec, ansec, msec, mnsec
 	return 0
 }

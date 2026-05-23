@@ -91,7 +91,8 @@ Functions:
 
 Types:
 
-- `Char` and `ConstChar` represent a C `char` type.
+- `Char`, and `ConstChar` represent a C `char` type.
+- `Int`, `UInt`, `Long`, `ULong`, etc. represent numeric C types.
 
 ## [so/cmp](https://pkg.go.dev/solod.dev/so/cmp)
 

@@ -38,7 +38,7 @@ var (
 	stderr *os_file
 )
 
-// FILE *fopen(const char *restrict filename, const char *restrict mode);
+// FILE* fopen(const char* filename, const char* mode);
 //
 //so:extern
 func fopen(path string, mode string) *os_file {
@@ -46,15 +46,15 @@ func fopen(path string, mode string) *os_file {
 	return &os_file{}
 }
 
-// int fclose(FILE *stream);
+// int fclose(FILE* stream);
 //
 //so:extern
-func fclose(stream *os_file) int {
+func fclose(stream *os_file) c.Int {
 	_ = stream
 	return 0
 }
 
-// size_t fread(void *restrict buffer, size_t size, size_t count, FILE *restrict stream);
+// size_t fread(void* buffer, size_t size, size_t count, FILE* stream);
 //
 //so:extern
 func fread(ptr any, size uintptr, count uintptr, stream *os_file) uintptr {
@@ -62,7 +62,7 @@ func fread(ptr any, size uintptr, count uintptr, stream *os_file) uintptr {
 	return 0
 }
 
-// size_t fwrite(const void* restrict buffer, size_t size, size_t count, FILE* restrict stream);
+// size_t fwrite(const void* buffer, size_t size, size_t count, FILE* stream);
 //
 //so:extern
 func fwrite(ptr any, size uintptr, count uintptr, stream *os_file) uintptr {
@@ -70,7 +70,7 @@ func fwrite(ptr any, size uintptr, count uintptr, stream *os_file) uintptr {
 	return count
 }
 
-// int ferror(FILE *stream);
+// int ferror(FILE* stream);
 //
 //so:extern
 func ferror(stream *os_file) bool {
@@ -78,15 +78,15 @@ func ferror(stream *os_file) bool {
 	return false
 }
 
-// int fseeko(FILE *stream, off_t offset, int whence);
+// int fseeko(FILE* stream, off_t offset, int whence);
 //
 //so:extern
-func fseeko(stream *os_file, offset int64, whence int) int {
+func fseeko(stream *os_file, offset int64, whence c.Int) c.Int {
 	_, _, _ = stream, offset, whence
 	return 0
 }
 
-// off_t ftello(FILE *stream);
+// off_t ftello(FILE* stream);
 //
 //so:extern
 func ftello(stream *os_file) int64 {
@@ -97,7 +97,7 @@ func ftello(stream *os_file) int64 {
 // int remove(const char* fname);
 //
 //so:extern
-func remove(path string) int {
+func remove(path string) c.Int {
 	_ = path
 	return 0
 }
@@ -105,7 +105,7 @@ func remove(path string) int {
 // int rename(const char* old_filename, const char* new_filename);
 //
 //so:extern
-func rename(oldpath string, newpath string) int {
+func rename(oldpath string, newpath string) c.Int {
 	_, _ = oldpath, newpath
 	return 0
 }
@@ -122,6 +122,6 @@ func getenv(name string) *c.Char {
 // void exit(int exit_code);
 //
 //so:extern
-func exit(status int) {
+func exit(status c.Int) {
 	_ = status
 }

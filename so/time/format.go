@@ -78,14 +78,14 @@ func (t Time) Format(buf []byte, layout string, offset Offset) string {
 	yday := absYday_yday(split.ayday, janFeb, leap)
 
 	var tm time_tm
-	tm.tm_year = date.Year - 1900
-	tm.tm_mon = int(date.Month) - 1
-	tm.tm_mday = date.Day
-	tm.tm_hour = clock.Hour
-	tm.tm_min = clock.Minute
-	tm.tm_sec = clock.Second
-	tm.tm_wday = int(wday)
-	tm.tm_yday = yday - 1
+	tm.tm_year = c.Int(date.Year - 1900)
+	tm.tm_mon = c.Int(int(date.Month) - 1)
+	tm.tm_mday = c.Int(date.Day)
+	tm.tm_hour = c.Int(clock.Hour)
+	tm.tm_min = c.Int(clock.Minute)
+	tm.tm_sec = c.Int(clock.Second)
+	tm.tm_wday = c.Int(wday)
+	tm.tm_yday = c.Int(yday - 1)
 	tm.tm_isdst = 0
 	n := strftime((*c.Char)(unsafe.SliceData(buf)), uintptr(len(buf)), layout, &tm)
 	return string(buf[:n])
