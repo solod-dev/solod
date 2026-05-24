@@ -327,6 +327,12 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 				fmt.Fprint(w, g.zeroValue(spec, typ))
 			}
 			i++
+			// Pointer types can't be grouped: in C, `T* a, b` declares
+			// a as T* but b as T.
+			if _, isPtr := typ.(*types.Pointer); isPtr {
+				fmt.Fprint(w, ";\n")
+				continue
+			}
 			for i < len(spec.Names) {
 				nextName := spec.Names[i]
 				if nextName.Name == "_" {

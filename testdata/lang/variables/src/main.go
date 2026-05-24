@@ -4,6 +4,8 @@ type person struct {
 	age int
 }
 
+type number *int
+
 func main() {
 	{
 		// Definition with var and explicit type.
@@ -124,6 +126,12 @@ func main() {
 		var p1, p2 person = person{age: 42}, person{age: 43}
 		_ = p1
 		_ = p2
+		var ptr1, ptr2 *person = &p1, &p2
+		_ = ptr1
+		_ = ptr2
+		var n1, n2 number = &p1.age, &p2.age
+		_ = n1
+		_ = n2
 	}
 	{
 		// Multiple untyped variable declaration.
@@ -138,6 +146,12 @@ func main() {
 		var vSlice, vStruct = []int{1, 2, 3}, person{age: 42}
 		_ = vSlice
 		_ = vStruct
+		var ptr1, ptr2 = &vStruct, &vStruct
+		_ = ptr1
+		_ = ptr2
+		var n1, n2 = number(&vStruct.age), number(&vStruct.age)
+		_ = n1
+		_ = n2
 	}
 	{
 		// Multiple variable declaration with short variable declaration.
@@ -152,6 +166,12 @@ func main() {
 		vSlice, vStruct := []int{1, 2, 3}, person{age: 42}
 		_ = vSlice
 		_ = vStruct
+		ptr1, ptr2 := &vStruct, &vStruct
+		_ = ptr1
+		_ = ptr2
+		n1, n2 := number(&vStruct.age), number(&vStruct.age)
+		_ = n1
+		_ = n2
 	}
 	{
 		// Discarding values with blank identifier.
@@ -189,6 +209,15 @@ func main() {
 		if a != 55 || b != 66 {
 			panic("multiple assignment failed")
 		}
+		p := person{age: 42}
+		var ptr1, ptr2 *person
+		ptr1, ptr2 = &p, &p
+		_ = ptr1
+		_ = ptr2
+		var n1, n2 number
+		n1, n2 = number(&p.age), number(&p.age)
+		_ = n1
+		_ = n2
 	}
 	{
 		// Variable shadowing.

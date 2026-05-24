@@ -7,6 +7,7 @@ typedef struct person person;
 typedef struct person {
     so_int age;
 } person;
+typedef so_int* number;
 
 // -- Implementation --
 
@@ -130,6 +131,13 @@ int main(void) {
         person p1 = (person){.age = 42}, p2 = (person){.age = 43};
         (void)p1;
         (void)p2;
+        person* ptr1 = &p1;
+        person* ptr2 = &p2;
+        (void)ptr1;
+        (void)ptr2;
+        number n1 = &p1.age, n2 = &p2.age;
+        (void)n1;
+        (void)n2;
     }
     {
         // Multiple untyped variable declaration.
@@ -148,6 +156,13 @@ int main(void) {
         person vStruct = (person){.age = 42};
         (void)vSlice;
         (void)vStruct;
+        person* ptr1 = &vStruct;
+        person* ptr2 = &vStruct;
+        (void)ptr1;
+        (void)ptr2;
+        number n1 = (number)(&vStruct.age), n2 = (number)(&vStruct.age);
+        (void)n1;
+        (void)n2;
     }
     {
         // Multiple variable declaration with short variable declaration.
@@ -166,6 +181,13 @@ int main(void) {
         person vStruct = (person){.age = 42};
         (void)vSlice;
         (void)vStruct;
+        person* ptr1 = &vStruct;
+        person* ptr2 = &vStruct;
+        (void)ptr1;
+        (void)ptr2;
+        number n1 = (number)(&vStruct.age), n2 = (number)(&vStruct.age);
+        (void)n1;
+        (void)n2;
     }
     {
         // Discarding values with blank identifier.
@@ -204,6 +226,18 @@ int main(void) {
         if (a != 55 || b != 66) {
             so_panic("multiple assignment failed");
         }
+        person p = (person){.age = 42};
+        person* ptr1 = NULL;
+        person* ptr2 = NULL;
+        ptr1 = &p;
+        ptr2 = &p;
+        (void)ptr1;
+        (void)ptr2;
+        number n1 = NULL, n2 = NULL;
+        n1 = (number)(&p.age);
+        n2 = (number)(&p.age);
+        (void)n1;
+        (void)n2;
     }
     {
         // Variable shadowing.
