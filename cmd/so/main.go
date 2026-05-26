@@ -63,6 +63,7 @@ Run 'so <command> -h' for details.
 func translate(args []string) error {
 	flags := flag.NewFlagSet("translate", flag.ContinueOnError)
 	outDir := flags.String("o", "", "output directory (default: current directory)")
+	checkNil := flags.Bool("check-nil", false, "check for nil pointer dereference")
 	trackSource := flags.Bool("track-source", false, "track source locations for panics")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -79,6 +80,7 @@ func translate(args []string) error {
 	}
 
 	opts := compiler.Options{
+		CheckNil:    *checkNil,
 		TrackSource: *trackSource,
 	}
 	return compiler.Translate(pkg, out, opts)
@@ -87,6 +89,7 @@ func translate(args []string) error {
 func build(args []string) error {
 	flags := flag.NewFlagSet("build", flag.ContinueOnError)
 	outFile := flags.String("o", "", "output file (default: basename of package directory)")
+	checkNil := flags.Bool("check-nil", false, "check for nil pointer dereference")
 	trackSource := flags.Bool("track-source", false, "track source locations for panics")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -107,6 +110,7 @@ func build(args []string) error {
 	}
 
 	opts := compiler.Options{
+		CheckNil:    *checkNil,
 		TrackSource: *trackSource,
 	}
 	return compiler.Build(pkg, out, opts)
@@ -114,6 +118,7 @@ func build(args []string) error {
 
 func run(args []string) error {
 	flags := flag.NewFlagSet("run", flag.ContinueOnError)
+	checkNil := flags.Bool("check-nil", false, "check for nil pointer dereference")
 	trackSource := flags.Bool("track-source", false, "track source locations for panics")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -127,6 +132,7 @@ func run(args []string) error {
 	}
 
 	opts := compiler.Options{
+		CheckNil:    *checkNil,
 		TrackSource: *trackSource,
 	}
 	return compiler.Run(pkg, runArgs, opts)

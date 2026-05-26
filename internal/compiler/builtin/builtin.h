@@ -125,6 +125,17 @@ typedef uint64_t so_uint;
     _size ? alloca(_size) : NULL;                         \
 })
 
+// --- Nil safety ---
+
+// so_notnil checks that a pointer is non-nil or panics otherwise.
+// Returns the pointer if non-nil.
+#define so_notnil(ptr) ({                    \
+    so_typeof(ptr) _p = (ptr);               \
+    if (!_p)                                 \
+        so_panic("nil pointer dereference"); \
+    _p;                                      \
+})
+
 // --- Comparison ---
 
 // mem_eq returns true if two memory blocks are equal.

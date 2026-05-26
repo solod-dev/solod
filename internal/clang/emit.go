@@ -16,6 +16,7 @@ import (
 type EmitOptions struct {
 	Pkg         *packages.Package
 	OutDir      string
+	CheckNil    bool // check for nil pointer dereference
 	TrackSource bool // track source locations for panics
 }
 

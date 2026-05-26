@@ -217,8 +217,7 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 	if isInterfaceType(named) {
 		g.emitExpr(w, sel.X)
 		fmt.Fprintf(w, ".%s(", sel.Sel.Name)
-		g.emitExpr(w, sel.X)
-		fmt.Fprint(w, ".self")
+		g.emitNotNil(w, sel.X, ".self")
 		g.emitMethodCallArgs(w, sel, call, sig, "", "")
 		fmt.Fprint(w, ")")
 		return
@@ -268,7 +267,7 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 		// Value receiver: pass value directly, or dereference pointer.
 		if isCallSitePtr {
 			fmt.Fprint(w, "*")
-			g.emitExpr(w, sel.X)
+			g.emitNotNil(w, sel.X)
 		} else {
 			g.emitExpr(w, sel.X)
 		}
