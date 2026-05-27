@@ -21,10 +21,6 @@ func (f *File) Read(buf int) (int, error) {
 
 var file File
 
-func returnPtr() (*File, error) {
-	return &file, nil
-}
-
 type point struct {
 	x, y int
 }
@@ -41,17 +37,16 @@ func divide(a, b int) (int, error) {
 	return a / b, nil
 }
 
-func returnRune() (rune, error) {
-	return 'x', nil
-}
+func returnInt16() (int16, error)   { return 42, nil }
+func returnUint16() (uint16, error) { return 42, nil }
+func returnRune() (rune, error)     { return 'x', nil }
+func returnString() (string, error) { return "hello", nil }
+func returnSlice() ([]int, error)   { return []int{1, 2, 3}, nil }
+func returnStruct() (File, error)   { return File{size: 42}, nil }
+func returnAny() (any, error)       { return &file, nil }
+func returnPtr() (*File, error)     { return &file, nil }
 
-func returnString() (string, error) {
-	return "hello", nil
-}
-
-func returnSlice() ([]int, error) {
-	return []int{1, 2, 3}, nil
-}
+// func returnIface() (Reader, error)  { return &file, nil }
 
 func forwardCall() (int, error) {
 	return divide(10, 3)
@@ -90,18 +85,24 @@ func main() {
 		// Various return types.
 		var err error
 		_ = err
+		i16, err := returnInt16()
+		_ = i16
+		u16, err := returnUint16()
+		_ = u16
 		run, err := returnRune()
 		_ = run
 		str, err := returnString()
 		_ = str
 		slice, err := returnSlice()
 		_ = slice
-		// struc, err := returnStruct()
-		// _ = struc
-		ptr, err := returnPtr()
-		_ = ptr
+		struc, err := returnStruct()
+		_ = struc
 		// iface, err := returnIface()
 		// _ = iface
+		a, err := returnAny()
+		_ = a
+		ptr, err := returnPtr()
+		_ = ptr
 	}
 	{
 		// Forward call.

@@ -513,18 +513,21 @@ static inline so_String so_error_error(void* self) {
 
 // Result types for (T, error):
 typedef struct { bool val; so_Error err; } so_R_bool_err;
-typedef struct { double val; so_Error err; } so_R_f64_err;
 typedef struct { float val; so_Error err; } so_R_f32_err;
+typedef struct { double val; so_Error err; } so_R_f64_err;
+typedef struct { so_int val; so_Error err; } so_R_int_err;
+typedef struct { int8_t val; so_Error err; } so_R_i8_err;
+typedef struct { int16_t val; so_Error err; } so_R_i16_err;
 typedef struct { int32_t val; so_Error err; } so_R_i32_err;
 typedef struct { int64_t val; so_Error err; } so_R_i64_err;
-typedef struct { so_byte val; so_Error err; } so_R_byte_err;
-typedef struct { so_int val; so_Error err; } so_R_int_err;
-typedef struct { so_rune val; so_Error err; } so_R_rune_err;
-typedef struct { so_Slice val; so_Error err; } so_R_slice_err;
-typedef struct { so_String val; so_Error err; } so_R_str_err;
 typedef struct { so_uint val; so_Error err; } so_R_uint_err;
+typedef struct { uint16_t val; so_Error err; } so_R_u16_err;
 typedef struct { uint32_t val; so_Error err; } so_R_u32_err;
 typedef struct { uint64_t val; so_Error err; } so_R_u64_err;
+typedef struct { so_byte val; so_Error err; } so_R_byte_err;
+typedef struct { so_rune val; so_Error err; } so_R_rune_err;
+typedef struct { so_String val; so_Error err; } so_R_str_err;
+typedef struct { so_Slice val; so_Error err; } so_R_slice_err;
 typedef struct { void* val; so_Error err; } so_R_ptr_err;
 
 // Result types for (T, T):

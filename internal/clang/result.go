@@ -227,6 +227,10 @@ func resultTypeSuffix(g *Generator, node ast.Node, typ types.Type) string {
 		return "f64"
 	case types.Int, types.UntypedInt:
 		return "int"
+	case types.Int8:
+		return "i8"
+	case types.Int16:
+		return "i16"
 	case types.Int32:
 		if basic.Name() == "rune" {
 			return "rune"
@@ -236,16 +240,18 @@ func resultTypeSuffix(g *Generator, node ast.Node, typ types.Type) string {
 		return "i64"
 	case types.Uint:
 		return "uint"
+	case types.Uint16:
+		return "u16"
 	case types.Uint32:
 		return "u32"
 	case types.Uint64:
 		return "u64"
+	case types.Uint8:
+		return "byte"
 	case types.UntypedRune:
 		return "rune"
 	case types.String, types.UntypedString:
 		return "str"
-	case types.Uint8:
-		return "byte"
 	default:
 		g.fail(node, "unsupported multi-return type: %s", typ)
 		panic("unreachable")
