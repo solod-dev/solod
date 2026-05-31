@@ -8,6 +8,22 @@ Here are some benchmarks that show how So performs on common tasks compared to G
 [Strings](#string-conversion) •
 [Time](#time)
 
+See the benchmarks for individual packages in the nested folders:
+
+[bufio](./bufio/README.md) •
+[bytes](./bytes/README.md) •
+[encoding/binary](./encoding-binary/README.md) •
+[encoding/hex](./encoding-hex/README.md) •
+[io](./io/README.md) •
+[log/slog](./log-slog/README.md) •
+[maps](./maps/README.md) •
+[math/rand](./math-rand/README.md) •
+[net/netip](./net-netip/README.md) •
+[path](./path/README.md) •
+[strconv](./strconv/README.md) •
+[strings](./strings/README.md) •
+[time](./time/README.md)
+
 ## Buffered I/O
 
 So is ~3x faster than Go for reading and writing, and ~4x faster for scanning.

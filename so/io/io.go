@@ -97,6 +97,16 @@ func Copy(dst Writer, src Reader) (int64, error) {
 	return copyBuffer(dst, src, buf)
 }
 
+// CopyBuffer is identical to Copy except that it stages through the
+// provided buffer rather than allocating a temporary one.
+// If buf is nil or has zero length, CopyBuffer panics.
+func CopyBuffer(dst Writer, src Reader, buf []byte) (int64, error) {
+	if len(buf) == 0 {
+		panic("io.CopyBuffer: empty buffer")
+	}
+	return copyBuffer(dst, src, buf)
+}
+
 // CopyN copies n bytes (or until an error) from src to dst.
 // It returns the number of bytes copied and the earliest
 // error encountered while copying.

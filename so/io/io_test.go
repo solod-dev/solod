@@ -47,6 +47,16 @@ func TestCopyNegative(t *testing.T) {
 	}
 }
 
+func TestCopyBuffer(t *testing.T) {
+	rb := new(Buffer)
+	wb := new(Buffer)
+	rb.WriteString("hello, world.")
+	CopyBuffer(wb, rb, make([]byte, 1)) // Tiny buffer to keep it honest.
+	if wb.String() != "hello, world." {
+		t.Errorf("CopyBuffer did not work properly")
+	}
+}
+
 func TestCopyReadFrom(t *testing.T) {
 	rb := new(Buffer)
 	wb := new(bytes.Buffer) // implements ReadFrom.

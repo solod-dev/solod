@@ -8,6 +8,7 @@ Solod provides a growing set of high-level packages similar to Go's stdlib, and 
 [cmp](#socmp) •
 [crypto/crand](#socryptocrand) •
 [encoding/binary](#soencodingbinary) •
+[encoding/hex](#soencodinghex) •
 [errors](#soerrors) •
 [flag](#soflag) •
 [fmt](#sofmt) •
@@ -127,6 +128,26 @@ Types:
 - `ByteOrder` specifies how to convert byte slices into unsigned integers.
 - `AppendByteOrder` specifies how to append unsigned integers into a byte slice.
 - `LittleEndian` and `BigEndian` implement `ByteOrder` and `AppendByteOrder`.
+
+## [so/encoding/hex](https://pkg.go.dev/solod.dev/so/encoding/hex)
+
+Hexadecimal encoding and decoding. Based on Go's `encoding/hex` package.
+
+Functions:
+
+- `EncodedLen` and `DecodedLen` return the encoded/decoded length for n bytes.
+- `Encode` and `Decode` encode to or decode from hexadecimal in place.
+- `AppendEncode` and `AppendDecode` append the encoded/decoded form to a slice.
+- `EncodeToString` and `DecodeString` convert between a byte slice and a hexadecimal string.
+- `Dump` returns a hex dump of data in `hexdump -C` format.
+- `NewEncoder` and `NewDecoder` wrap an `io.Writer`/`io.Reader` for streaming encoding/decoding.
+- `NewDumper` returns a writer that hex-dumps everything written to it.
+
+Types:
+
+- `Encoder` writes hexadecimal characters to an underlying `io.Writer`.
+- `Decoder` reads and decodes hexadecimal characters from an underlying `io.Reader`.
+- `Dumper` writes a hex dump of all data written to it.
 
 ## [so/errors](https://pkg.go.dev/solod.dev/so/errors)
 
