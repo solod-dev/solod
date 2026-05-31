@@ -28,7 +28,8 @@ Solod provides a growing set of high-level packages similar to Go's stdlib, and 
 [strings](#sostrings) •
 [time](#sotime) •
 [unicode](#sounicode) •
-[unicode/utf8](#sounicodeutf8)
+[unicode/utf8](#sounicodeutf8) •
+[uuid](#souuid)
 
 ## [so/bufio](https://pkg.go.dev/solod.dev/so/bufio)
 
@@ -442,3 +443,23 @@ Functions to convert between runes and UTF-8 byte sequences. Offers the same API
 - `EncodeRune` writes a UTF-8-encoded rune into a byte slice.
 - `RuneCount` and `RuneCountInString` return the number of runes in a byte slice or a string.
 - `ValidString` reports whether a string consists entirely of valid UTF-8-encoded runes.
+
+## [so/uuid](https://pkg.go.dev/solod.dev/so/uuid)
+
+Generating and manipulating universally unique identifiers (UUIDs), as specified in RFC 9562. Random components are generated with a cryptographically secure RNG.
+
+Constants:
+
+- `UUIDLen` - length of a canonical UUID string (36).
+
+Functions:
+
+- `New` returns a new UUID using an algorithm suitable for most purposes (currently `NewV4`).
+- `NewV4` returns a random version 4 UUID.
+- `NewV7` returns a time-ordered version 7 UUID.
+- `Nil` and `Max` return the Nil and Max UUIDs.
+- `Parse` and `MustParse` parse a UUID from a string.
+
+Types:
+
+- `UUID` is a 128-bit universally unique identifier.
