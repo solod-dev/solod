@@ -41,3 +41,12 @@ Report So source location (file and line number) instead of C source location wh
 
 Check for nil pointer dereference on struct pointer field access and interface method calls (`check-nil` flag, off by default).<br>
 [426961e](https://github.com/solod-dev/solod/commit/426961e0ef463cc2390e6d1a930555f2db581f7e)
+
+⚠️ Block-scoped `defer` is no longer supported. This is a breaking change.<br>
+[fb49cca](https://github.com/solod-dev/solod/commit/fb49ccab2316815308f690f2690e1c3bf19ee59b)
+
+`encoding/hex` package.<br>
+[42a5cf0](https://github.com/solod-dev/solod/commit/42a5cf0d7f6f08ba9e862bd5a738cf74448b2711)
+
+`uuid` package.<br>
+[fc8f2fa](https://github.com/solod-dev/solod/commit/fc8f2fabdac147f576fcede45bd178b313a7e25a)

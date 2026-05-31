@@ -223,6 +223,7 @@ So can also target [freestanding](doc/freestanding.md) environments.
 - ✅ 32-bit target support.
 - ✅ WebAssembly support (WASI).
 - ✅ Freestanding mode.
+- ✅ UUIDs and hex encoding.
 - ⏳ Networking dependencies.
 
 Future plans:
