@@ -609,27 +609,42 @@ func (g *Generator) emitNotNil(w io.Writer, expr ast.Expr, suffixes ...string) {
 		return
 	}
 	fmt.Fprint(w, "so_notnil(")
-	g.emitMacroArg(w, expr)
+	g.emitExpr(w, expr)
 	fmt.Fprint(w, suffix)
 	fmt.Fprint(w, ")")
 }
 
-// emitMacroArg emits an argument to a function-like macro, wrapping
-// it in parentheses when the expression is a composite literal.
+// emitMacroArg emits an argument to a function-like macro.
 //
-// All emitted macro calls must use emitMacroArg for their arguments
-// to avoid preprocessor parsing issues.
+// Composite literals reference stack-backed temporaries, so passing them to a
+// macro that indexes, slices, or stores them would create a use-after-scope
+// bug. Only a struct value literal is safe (it gets copied into the slot); it
+// is wrapped in parentheses so the preprocessor does not split it on the commas
+// of its braced initializer. Everything else fails.
+//
+// All emitted macro calls must use emitMacroArg for their arguments.
 func (g *Generator) emitMacroArg(w io.Writer, arg ast.Expr) {
-	if isCompositeLit(arg) {
-		// A composite literal emits a braced initializer (e.g. (so_Slice){p, n, n})
-		// whose commas would otherwise be misread by the preprocessor as macro
-		// argument separators.
-		fmt.Fprint(w, "(")
+	// &T{...}: a pointer to a block-scoped temporary that dangles once it escapes.
+	if u, ok := arg.(*ast.UnaryExpr); ok && u.Op == token.AND {
+		if _, ok := u.X.(*ast.CompositeLit); ok {
+			g.fail(arg, "cannot use composite literal here; assign it to a variable first")
+		}
+	}
+	lit, ok := arg.(*ast.CompositeLit)
+	if !ok {
+		// Not a composite literal, emit directly.
 		g.emitExpr(w, arg)
+		return
+	}
+	// Only struct value literals are safe; they are copied into the slot.
+	if _, ok := g.types.TypeOf(lit).Underlying().(*types.Struct); ok {
+		fmt.Fprint(w, "(")
+		g.emitExpr(w, lit)
 		fmt.Fprint(w, ")")
 		return
 	}
-	g.emitExpr(w, arg)
+	// Array, slice, or map literal: references stack-backed storage.
+	g.fail(arg, "cannot use composite literal here; assign it to a variable first")
 }
 
 // needsVoidParens reports whether expr needs parentheses in a (void) cast.
@@ -666,20 +681,6 @@ func (g *Generator) isArrayParam(ident *ast.Ident) bool {
 		if param == obj {
 			return true
 		}
-	}
-	return false
-}
-
-// isCompositeLit reports whether expr emits a braced composite-literal
-// initializer at the top level.
-func isCompositeLit(expr ast.Expr) bool {
-	switch e := expr.(type) {
-	case *ast.CompositeLit:
-		// E.g., Point{1, 2} or []int{1, 2, 3}.
-		return true
-	case *ast.UnaryExpr:
-		// E.g. &Point{1, 2} or &[]int{1, 2, 3}.
-		return isCompositeLit(e.X)
 	}
 	return false
 }
