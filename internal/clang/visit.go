@@ -334,7 +334,7 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 			// carries its dimension after the name (so_byte a[8]), and in C
 			// `T* a, b` would declare b as T rather than T*.
 			_, isPtr := typ.(*types.Pointer)
-			if ct.IsArray() || isPtr {
+			if ct.IsArray() || isPtr || ct.FuncPtr {
 				fmt.Fprint(w, ";\n")
 				continue
 			}

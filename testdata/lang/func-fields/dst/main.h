@@ -11,8 +11,7 @@ typedef struct main_Movie {
     void (*updateFn)(struct main_Movie* m);
 } main_Movie;
 
-// Must define a named function type to use it
-// as function argument or return value.
+// A named function type can be used as a function argument or return value.
 typedef so_int (*main_RatingFn)(main_Movie);
 
 typedef void (*main_UpdateFn)(main_Movie*);

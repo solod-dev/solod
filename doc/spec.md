@@ -501,14 +501,27 @@ func sumABC(a, b, c int) int {
 Named function types and function variables:
 
 ```go
-type SumFn func(int, int, int) int
+type CalcFunc func(int) int
+func calc(n int) int { return n*2 }
 
-fn1 := sumABC           // infer type
-var fn2 SumFn = sumABC  // explicit type
-s := fn2(7, 8, 9)
+fn1 := calc              // infer type by signature
+var fn2 CalcFunc = calc  // explicit type
+n := fn2(7)
 ```
 
-Function literals (anonymous functions / closures) are not supported. Use named types instead, like `SumFn` in the example above.
+Anonymous function types can be used as variable types and function parameters:
+
+```go
+// func parameter
+func apply(n int, f func(int) int) int { return f(n) }
+
+// func variable
+var fn func(int) int = calc
+```
+
+Anonymous function types are not supported as return types; use a named type
+like `CalcFunc` there. Function literals (anonymous functions / closures) are not
+supported either.
 
 Exported functions (capitalized) become public C symbols prefixed with the package name (`package_Func`). Unexported functions are `static`.
 

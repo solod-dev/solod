@@ -3,17 +3,28 @@ package clang
 import (
 	"go/ast"
 	"go/types"
+	"strings"
 )
 
 // CType represents a C type with optional array dimensions.
 type CType struct {
-	Base       string // e.g. "int", "so_int"
-	Dims       string // e.g. "[3]", "[2][3]", ""
-	PtrToArray bool   // pointer-to-array: so_int (*name)[3]
+	Base       string   // e.g. "int", "so_int"
+	Dims       string   // e.g. "[3]", "[2][3]", ""
+	PtrToArray bool     // pointer-to-array: so_int (*name)[3]
+	FuncPtr    bool     // function pointer: ret (*name)(params)
+	FuncRet    string   // return type for a FuncPtr
+	FuncParams []string // parameter types for a FuncPtr
 }
 
-// Decl formats a C declaration: "int name[3]".
+// Decl formats a C declaration:
+//   - regular variable: so_int count
+//   - array variable: so_int arr[3]
+//   - array pointer: so_int (*arr)[3]
+//   - func pointer: bool (*fn)(double)
 func (t CType) Decl(name string) string {
+	if t.FuncPtr {
+		return t.FuncRet + " (*" + name + ")(" + strings.Join(t.FuncParams, ", ") + ")"
+	}
 	if t.PtrToArray {
 		return t.Base + " (*" + name + ")" + t.Dims
 	}
@@ -27,6 +38,7 @@ func (t CType) IsArray() bool {
 
 // mapCType maps a Go type to a CType (base + array dims).
 func (g *Generator) mapCType(node ast.Node, typ types.Type) CType {
+	// Pointer to array.
 	if ptr, ok := types.Unalias(typ).(*types.Pointer); ok {
 		if _, ok := types.Unalias(ptr.Elem()).(*types.Array); ok {
 			return CType{
@@ -36,6 +48,19 @@ func (g *Generator) mapCType(node ast.Node, typ types.Type) CType {
 			}
 		}
 	}
+	// Anonymous function.
+	if sig, ok := types.Unalias(typ).(*types.Signature); ok {
+		var params []string
+		for p := range sig.Params().Variables() {
+			params = append(params, g.mapType(node, p.Type()))
+		}
+		return CType{
+			FuncPtr:    true,
+			FuncRet:    g.returnType(node, sig),
+			FuncParams: params,
+		}
+	}
+	// Regular type (including arrays and named function types).
 	return CType{
 		Base: g.mapType(node, typ),
 		Dims: arrayDims(typ),

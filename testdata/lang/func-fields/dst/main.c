@@ -3,7 +3,7 @@
 // -- Forward declarations --
 static so_int freshness(main_Movie m);
 static main_RatingFn getRatingFn(void);
-static so_int rateMovie(main_Movie m, main_RatingFn f);
+static so_int rateMovie(main_Movie m, so_int (*f)(main_Movie));
 
 // -- Implementation --
 
@@ -15,17 +15,14 @@ static main_RatingFn getRatingFn(void) {
     return freshness;
 }
 
-static so_int rateMovie(main_Movie m, main_RatingFn f) {
+// Anonymous function types can be passed as arguments.
+static so_int rateMovie(main_Movie m, so_int (*f)(main_Movie)) {
     return f(m);
 }
 
 // Returning anonymous function types is not supported.
 // func getRatingFn() func(m Movie) int {
 // 	return freshness
-// }
-// Passing anonymous function types is not supported.
-// func rateMovie(m Movie, f func(m Movie) int) int {
-// 	return f(m)
 // }
 int main(void) {
     {
@@ -43,7 +40,7 @@ int main(void) {
     }
     {
         // Function variable.
-        main_RatingFn fn1 = freshness;
+        so_int (*fn1)(main_Movie) = freshness;
         main_Movie m = (main_Movie){.year = 2020};
         so_int r3 = fn1(m);
         if (r3 != 50) {
@@ -53,6 +50,12 @@ int main(void) {
         so_int r4 = fn2(m);
         if (r4 != 50) {
             so_panic("unexpected r4");
+        }
+        // Anonymous function type variable.
+        so_int (*fn3)(main_Movie) = freshness;
+        so_int r4b = fn3(m);
+        if (r4b != 50) {
+            so_panic("unexpected r4b");
         }
     }
     {

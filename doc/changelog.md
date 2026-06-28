@@ -2,6 +2,18 @@
 
 This document outlines the main changes in different So versions.
 
+## v0.3 (in progress)
+
+You can now use anonymous functions as variable types and function parameters:
+
+```go
+// func parameter
+func apply(n int, f func(int) int) int { return f(n) }
+
+// func variable
+var fn func(int) int = calc
+```
+
 ## v0.2
 
 Networking, new targets, and friendlier interop.

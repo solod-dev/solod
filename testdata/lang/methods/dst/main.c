@@ -125,12 +125,12 @@ int main(void) {
     {
         // Method expression.
         circle c = (circle){.radius = 7};
-        circlePtrFunc areaFn = (circlePtrFunc)circle_area;
+        so_int (*areaFn)(circle*) = (circlePtrFunc)circle_area;
         so_int area = areaFn(&c);
         if (area != 147) {
             so_panic("unexpected area");
         }
-        circleValFunc perimFn = circle_perim;
+        so_int (*perimFn)(circle) = circle_perim;
         so_int perim = perimFn(c);
         if (perim != 42) {
             so_panic("unexpected perimeter");

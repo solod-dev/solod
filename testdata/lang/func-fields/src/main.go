@@ -10,8 +10,7 @@ func freshness(m Movie) int {
 	return m.year - 1970
 }
 
-// Must define a named function type to use it
-// as function argument or return value.
+// A named function type can be used as a function argument or return value.
 type RatingFn func(m Movie) int
 type UpdateFn func(m *Movie)
 
@@ -19,18 +18,14 @@ func getRatingFn() RatingFn {
 	return freshness
 }
 
-func rateMovie(m Movie, f RatingFn) int {
+// Anonymous function types can be passed as arguments.
+func rateMovie(m Movie, f func(m Movie) int) int {
 	return f(m)
 }
 
 // Returning anonymous function types is not supported.
 // func getRatingFn() func(m Movie) int {
 // 	return freshness
-// }
-
-// Passing anonymous function types is not supported.
-// func rateMovie(m Movie, f func(m Movie) int) int {
-// 	return f(m)
 // }
 
 func main() {
@@ -61,6 +56,13 @@ func main() {
 		r4 := fn2(m)
 		if r4 != 50 {
 			panic("unexpected r4")
+		}
+
+		// Anonymous function type variable.
+		var fn3 func(m Movie) int = freshness
+		r4b := fn3(m)
+		if r4b != 50 {
+			panic("unexpected r4b")
 		}
 	}
 	{
