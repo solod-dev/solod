@@ -4,6 +4,18 @@ This document outlines the main changes in different So versions.
 
 ## v0.3 (in progress)
 
+`conc` package: basic primitives for concurrent programming, backed by pthreads.
+
+- `Chan[T]` — a thread-safe FIFO channel (buffered) or rendezvous (unbuffered).
+- `Pool` — a bounded worker pool for fork-join parallelism.
+- `Thread` — an operating system thread.
+
+`sync` package: basic synchronization primitives, backed by pthreads.
+
+- `Cond` — a condition variable.
+- `Mutex` — a mutual exclusion lock.
+- `Once` — runs a function exactly once.
+
 You can now use anonymous functions as variable types and function parameters:
 
 ```go

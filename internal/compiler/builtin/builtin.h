@@ -553,6 +553,8 @@ typedef struct { uint32_t val; uint32_t val2; } so_R_u32_u32;
 typedef struct { uint64_t val; bool val2; } so_R_u64_bool;
 typedef struct { uint64_t val; so_int val2; } so_R_u64_int;
 typedef struct { uint64_t val; uint64_t val2; } so_R_u64_u64;
+typedef struct { void* val; bool val2; } so_R_ptr_bool;
+typedef struct { void* val; so_int val2; } so_R_ptr_int;
 
 // clang-format on
 

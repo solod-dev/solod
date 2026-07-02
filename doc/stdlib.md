@@ -6,6 +6,7 @@ Solod provides a growing set of high-level packages similar to Go's stdlib, and 
 [bytes](#sobytes) •
 [c](#soc) •
 [cmp](#socmp) •
+[conc](#soconc) •
 [crypto/crand](#socryptocrand) •
 [encoding/binary](#soencodingbinary) •
 [encoding/hex](#soencodinghex) •
@@ -27,6 +28,7 @@ Solod provides a growing set of high-level packages similar to Go's stdlib, and 
 [slices](#soslices) •
 [strconv](#sostrconv) •
 [strings](#sostrings) •
+[sync](#sosync) •
 [time](#sotime) •
 [unicode](#sounicode) •
 [unicode/utf8](#sounicodeutf8) •
@@ -112,6 +114,34 @@ Types:
 
 - `Func` is a comparison function `func(a, b any) int`.
 - `FuncFor` returns the appropriate comparison function for type T.
+
+## [so/conc](https://pkg.go.dev/solod.dev/so/conc)
+
+Basic primitives for concurrent programming, backed by pthreads.
+Meant to be used in place of language-level concurrency features.
+
+`Chan[T]` is a thread-safe FIFO channel, similar to Go's built-in `chan T`. It carries pointers (`*T`): a sender hands off ownership of an allocated value and a receiver takes it.
+
+- `NewChan[T]` creates a new channel, either buffered or unbuffered (rendezvous).
+- `Chan.Send` sends a pointer to the channel (blocks until delivered).
+- `Chan.Recv` receives a pointer from the channel (blocks until a value or close).
+- `Chan.SendTimeout` sends with a deadline, returning a status; a zero duration makes it non-blocking.
+- `Chan.RecvTimeout` receives with a deadline, returning the pointer and a status; a zero duration makes it non-blocking.
+- `Chan.Close` closes the channel.
+- `Chan.Free` releases the channel's resources.
+
+`Thread` is a handle to a single OS thread running a `func(any) any`:
+
+- `Go` launches a thread and returns a handle to it.
+- `Thread.Wait` blocks until the thread terminates.
+- `Thread.Detach` hands the thread's resources to the runtime.
+
+`Pool` is a bounded pool of worker threads for tasks of type `func(any)`:
+
+- `NewPool` creates a pool of workers and starts them.
+- `Pool.Go` submits a task for execution.
+- `Pool.Wait` blocks until all submitted tasks finish; the pool stays usable afterward.
+- `Pool.Free` drains queued tasks, joins the workers, and releases the pool.
 
 ## [so/crypto/crand](https://pkg.go.dev/solod.dev/so/crypto/crand)
 
@@ -423,6 +453,31 @@ Types:
 
 - `Builder` efficiently builds a string, minimizing memory copying.
 - `Reader` reads data from a string.
+
+## [so/sync](https://pkg.go.dev/solod.dev/so/sync)
+
+Basic synchronization primitives, backed by pthreads.
+
+`Mutex` is a mutual exclusion lock:
+
+- `Mutex.Init` prepares the mutex for use, leaving it unlocked.
+- `Mutex.Lock` and `Mutex.Unlock` acquire and release the lock.
+- `Mutex.TryLock` tries to acquire the lock and reports whether it succeeded.
+- `Mutex.Free` releases the mutex's resources.
+
+`Cond` is a condition variable tied to a `*Mutex`:
+
+- `Cond.Init` prepares the condition variable, guarded by the given mutex.
+- `Cond.Wait` atomically unlocks the mutex and blocks until signaled, then re-locks.
+- `Cond.WaitFor` waits like `Cond.Wait` but gives up after a given duration.
+- `Cond.Signal` and `Cond.Broadcast` wake one or all waiting threads.
+- `Cond.Free` releases the condition variable's resources.
+
+`Once` runs a function exactly once, even when called concurrently:
+
+- `Once.Init` prepares the once for use.
+- `Once.Do` runs the given function on the first call only.
+- `Once.Free` releases the once's resources.
 
 ## [so/time](https://pkg.go.dev/solod.dev/so/time)
 

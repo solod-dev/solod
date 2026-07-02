@@ -1,9 +1,8 @@
 // Package net provides basic TCP, UDP, and Unix domain socket networking.
 //
-// It is a small subset of Go's net package. TCP (networks "tcp", "tcp4",
-// "tcp6"), UDP (networks "udp", "udp4", "udp6"), and Unix domain sockets
-// ("unix" for streams and "unixgram" for datagrams) are supported;
-// there is no concurrent server support.
+// It is a small subset of Go's net package. Supports TCP (networks "tcp",
+// "tcp4", "tcp6"), UDP (networks "udp", "udp4", "udp6"), and Unix domain
+// sockets ("unix" for streams and "unixgram" for datagrams).
 //
 // TCP is served by [ResolveTCPAddr], [DialTCP] and [ListenTCP] functions,
 // and the associated [TCPConn] and [TCPListener] types.
@@ -21,6 +20,11 @@
 // [UDPConn.SetDeadline], [UnixConn.SetDeadline] and [UnixListener.SetDeadline]
 // make a pending call fail with ErrTimeout once the deadline passes. Without a
 // deadline, a blocked call waits indefinitely.
+//
+// Unlike in Go, none of the types in this package are safe for concurrent use:
+// a connection or listener must be used by one thread at a time. To serve
+// connections concurrently, hand each accepted connection to its own thread
+// (for example via conc.Pool).
 package net
 
 import (
