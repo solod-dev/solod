@@ -10,7 +10,7 @@ Highlights:
 - Native C interop. Call C from So and So from C — no CGO, no overhead.
 - Go tooling works out of the box. Syntax highlighting, LSP, linting and "go test".
 
-So supports structs, methods, interfaces, slices, maps, multiple returns, and defer. Everything is stack-allocated by default; heap is opt-in through the standard library. To keep things simple, there are no channels, goroutines, closures, or generics.
+So supports structs, methods, interfaces, slices, maps, multiple returns, and defer. Everything is stack-allocated by default; heap is opt-in through the standard library. There is limited support for generics, and concurrency is provided by the standard library instead of being built into the language.
 
 So is for Go developers who want systems-level control without learning a new language. And for C programmers who like Go's safety, structure, and tooling.
 
@@ -226,9 +226,16 @@ Networking and more targets:
 - WebAssembly support (WASI).
 - Freestanding mode.
 
+⏳ [v0.3](./doc/changelog.md) — Concurrency:
+
+- Bounded worker pool (instead of goroutines).
+- Channels.
+- Threads.
+- Synchronization primitives.
+- Atomics.
+
 Future plans:
 
-- Concurrency.
 - JSON.
 - HTTP.
 - SQL.

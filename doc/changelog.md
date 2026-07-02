@@ -16,6 +16,8 @@ This document outlines the main changes in different So versions.
 - `Mutex` — a mutual exclusion lock.
 - `Once` — runs a function exactly once.
 
+[22e7e78](https://github.com/solod-dev/solod/commit/22e7e782cb3edc56789c08306e08e6f71739fddf)
+
 You can now use anonymous functions as variable types and function parameters:
 
 ```go
@@ -25,6 +27,8 @@ func apply(n int, f func(int) int) int { return f(n) }
 // func variable
 var fn func(int) int = calc
 ```
+
+[d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
 
 ## v0.2
 
