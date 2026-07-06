@@ -11,8 +11,8 @@ func main() {
 	testing.RunBenchmarks(mem.System, []testing.Benchmark{
 		{Name: "BenchmarkReaderBuf_So", F: BenchmarkReaderBuf_So},
 		{Name: "BenchmarkReaderUnbuf_So", F: BenchmarkReaderUnbuf_So},
-		{Name: "BenchmarkScanner_So", F: BenchmarkScanner_So},
 		{Name: "BenchmarkWriterBuf_So", F: BenchmarkWriterBuf_So},
 		{Name: "BenchmarkWriterUnbuf_So", F: BenchmarkWriterUnbuf_So},
+		{Name: "BenchmarkScanner_So", F: BenchmarkScanner_So},
 	})
 }

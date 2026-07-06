@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -56,8 +55,8 @@ func (k kind) run(srcDir string, opts Options) error {
 	return Run(dir, nil, opts)
 }
 
-// find parses every non-generated .go file in dir and returns the sorted names
-// of functions matching the kind's `func <Prefix>Xxx(x *testing.<Param>)` shape.
+// find parses every non-generated .go file in dir and returns the names of
+// functions matching the kind's `func <Prefix>Xxx(x *testing.<Param>)` shape.
 func (k kind) find(dir string) ([]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -97,7 +96,6 @@ func (k kind) find(dir string) ([]string, error) {
 		}
 	}
 
-	sort.Strings(names)
 	return names, nil
 }
 
