@@ -1,8 +1,8 @@
 package main
 
 import (
-	"solod.dev/so/time"
 	"solod.dev/so/testing"
+	"solod.dev/so/time"
 )
 
 func TestDate(t *testing.T) {
@@ -34,5 +34,28 @@ func TestNow(t *testing.T) {
 	tm := time.Now()
 	if tm.IsZero() {
 		t.Error("unexpected Time.IsZero")
+	}
+}
+
+func TestSleep(t *testing.T) {
+	start := time.Now()
+	time.Sleep(20 * time.Millisecond)
+	elapsed := time.Since(start)
+	if elapsed < 20*time.Millisecond {
+		t.Error("Sleep returned before the duration elapsed")
+	}
+	if elapsed > 100*time.Millisecond {
+		t.Error("Sleep returned after an unexpectedly long duration")
+	}
+}
+
+func TestSleepNonPositive(t *testing.T) {
+	start := time.Now()
+	// Returns immediately without blocking.
+	time.Sleep(0)
+	time.Sleep(-1 * time.Second)
+	elapsed := time.Since(start)
+	if elapsed > 10*time.Millisecond {
+		t.Error("Sleep should return immediately")
 	}
 }

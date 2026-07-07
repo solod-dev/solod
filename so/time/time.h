@@ -1,6 +1,7 @@
 #include "so/builtin/builtin.h"
 
 #ifdef so_build_hosted
+#include <errno.h>
 #include <time.h>
 
 #define time_tm struct tm
@@ -21,6 +22,19 @@ static inline int64_t time_mono() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
+// time_sleep pauses the calling thread for at least ns nanoseconds.
+// It restarts if interrupted by a signal so the full duration elapses.
+static inline void time_sleep(int64_t ns) {
+    struct timespec req = {
+        .tv_sec = (time_t)(ns / 1000000000LL),
+        .tv_nsec = (long)(ns % 1000000000LL),
+    };
+    struct timespec rem;
+    while (nanosleep(&req, &rem) != 0 && errno == EINTR) {
+        req = rem;
+    }
 }
 
 #else
@@ -61,6 +75,11 @@ static inline so_R_i64_i32 time_wall() {
 
 static inline int64_t time_mono() {
     return 0;
+}
+
+static inline void time_sleep(int64_t ns) {
+    (void)ns;
+    so_panic("time: sleep requires a hosted environment");
 }
 
 #endif  // so_build_hosted

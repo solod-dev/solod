@@ -267,6 +267,15 @@ func (t *Time) stripMono() {
 	}
 }
 
+// Sleep pauses the current thread for at least the duration d.
+// A negative or zero duration causes Sleep to return immediately.
+func Sleep(d Duration) {
+	if d <= 0 {
+		return
+	}
+	time_sleep(int64(d))
+}
+
 // norm returns nhi, nlo such that
 //
 //	hi * base + lo == nhi * base + nlo

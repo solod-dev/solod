@@ -26,5 +26,7 @@ func main() {
 		{Name: "TestParse_Error", F: TestParse_Error},
 		{Name: "TestDate", F: TestDate},
 		{Name: "TestNow", F: TestNow},
+		{Name: "TestSleep", F: TestSleep},
+		{Name: "TestSleepNonPositive", F: TestSleepNonPositive},
 	})
 }

@@ -44,6 +44,11 @@ func time_wall() (int64, int32) { return 0, 0 }
 //so:extern
 func time_mono() int64 { return 0 }
 
+// time_sleep pauses the calling thread for at least ns nanoseconds.
+//
+//so:extern
+func time_sleep(ns int64) { _ = ns }
+
 // Monotonic times are reported as offsets from monoStart.
 // We initialize monoStart to time_mono() - 1 so that on systems where
 // monotonic time resolution is fairly low (e.g. Windows 2008

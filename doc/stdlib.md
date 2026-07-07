@@ -511,6 +511,7 @@ Functions:
 - `Unix`, `UnixMilli`, `UnixMicro` create a Time from a Unix timestamp.
 - `Since` and `Until` return the duration elapsed since or until a given time.
 - `Parse` parses a time string per layout (strptime verbs) with a given offset, returning a Time.
+- `Sleep` pauses the current thread for at least the given duration.
 
 Types:
 
