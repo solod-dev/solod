@@ -226,13 +226,12 @@ Networking and more targets:
 - WebAssembly support (WASI).
 - Freestanding mode.
 
-⏳ [v0.3](./doc/changelog.md) — Concurrency:
+⏳ [v0.3](./doc/changelog.md) — Concurrency and tooling:
 
-- Bounded worker pool (instead of goroutines).
-- Channels.
-- Threads.
-- Synchronization primitives.
+- Concurrency building blocks: thread, channel, bounded worker pool.
+- Synchronization primitives: mutex, condition variable, run once.
 - Atomics.
+- CLI commands to run tests and benchmarks.
 
 Future plans:
 

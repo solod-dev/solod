@@ -4,8 +4,6 @@ This document outlines the main changes in different So versions.
 
 ## v0.3 (in progress)
 
-`so bench` command: runs benchmarks from a package's `bench` subdirectory, mirroring `so test`. It discovers `BenchmarkXxx(b *testing.B)` functions, generates a runner that dispatches them via `testing.RunBenchmarks` with the system allocator, and runs them. See the [testing guide](testing.md).
-
 `conc` package: basic primitives for concurrent programming, backed by pthreads.
 
 - `Chan[T]` — a thread-safe FIFO channel (buffered) or rendezvous (unbuffered).
@@ -19,8 +17,7 @@ This document outlines the main changes in different So versions.
 - `Once` — runs a function exactly once.
 
 [22e7e78](https://github.com/solod-dev/solod/commit/22e7e782cb3edc56789c08306e08e6f71739fddf)
-
-`testing` package and the `so test` command: minimal testing support that mirrors Go's `testing`. Tests live in a package's `test` subdirectory; `so test` discovers `TestXxx(t *testing.T)` functions, generates a runner, and runs them. See the [testing guide](testing.md).
+[f5ae958](https://github.com/solod-dev/solod/commit/f5ae958ba9ee34a135dc006f6d0b30063a3d1479)
 
 You can now use anonymous functions as variable types and function parameters:
 
@@ -33,6 +30,15 @@ var fn func(int) int = calc
 ```
 
 [d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
+
+`so test` command: runs tests from a package's `test` subdirectory. It discovers `TestXxx(t *testing.T)` functions, generates a runner that dispatches them via `testing.RunTests`, and runs them. See the [testing guide](testing.md).
+
+[ca13759](https://github.com/solod-dev/solod/commit/ca1375959866ca7fc7c0b38b60f5b84fd085e6bc)
+
+`so bench` command: runs benchmarks from a package's `bench` subdirectory, mirroring `so test`. It discovers `BenchmarkXxx(b *testing.B)` functions, generates a runner that dispatches them via `testing.RunBenchmarks` with the system allocator, and runs them. See the [testing guide](testing.md).
+
+[c374069](https://github.com/solod-dev/solod/commit/c37406988e712a7f266c87990107d6f491a566f7)
+[e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1)
 
 ## v0.2
 
