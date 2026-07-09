@@ -17,7 +17,8 @@ func main() {
 		{Name: "BenchmarkCond32_So", F: BenchmarkCond32_So},
 		{Name: "BenchmarkMutexUncontended_So", F: BenchmarkMutexUncontended_So},
 		{Name: "BenchmarkMutexTryLock_So", F: BenchmarkMutexTryLock_So},
-		{Name: "BenchmarkMutexContended_So", F: BenchmarkMutexContended_So},
+		{Name: "BenchmarkMutexContendedSpin_So", F: BenchmarkMutexContendedSpin_So},
+		{Name: "BenchmarkMutexContendedWork_So", F: BenchmarkMutexContendedWork_So},
 		{Name: "BenchmarkOnceUncontended_So", F: BenchmarkOnceUncontended_So},
 		{Name: "BenchmarkOnceContended_So", F: BenchmarkOnceContended_So},
 	})

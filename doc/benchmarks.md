@@ -305,10 +305,12 @@ Apple M1 • Go 1.26.1
 ## Synchronization
 
 So's synchronization primitives are built on POSIX threads: `Mutex` and `Cond`
-wrap a pthread mutex and condition variable. The mutex is faster than Go's.
-`Cond` is slower because it parks threads in the kernel instead of a user-space
-scheduler. `Once` takes a lock-free atomic fast path, so uncontended it is close
-to Go; under contention it inherits the same kernel dispatch cost as `Cond`.
+wrap a pthread mutex and condition variable. The mutex beats Go's for short,
+spin-friendly critical sections but loses once contention forces threads to park
+in the kernel. `Cond` is slower because it always parks threads in the kernel
+instead of a user-space scheduler. `Once` takes a lock-free atomic fast path,
+so uncontended it is close to Go; under contention it inherits the same kernel
+dispatch cost as `Cond`.
 
 The contended benchmarks run 8 worker threads that share one primitive, using a
 persistent thread pool on the So side and an equivalent persistent goroutine pool
@@ -316,13 +318,21 @@ on the Go side.
 
 ### Mutex
 
-Uncontended lock/unlock is ~1.6x faster than Go, and under contention So is ~2.8x faster.
+Uncontended lock/unlock is ~1.6x faster than Go. Under contention the result
+depends on how long the lock is held. With an empty critical section (the _spin_
+row) a waiting thread reacquires the lock while still spinning and almost never
+parks, so So's thin pthread wrapper wins by ~2.8x. Give the critical section a
+small (~1µs) amount of real work (the _work_ row), and waiters exhaust their spin
+budget and park in the kernel; every handoff then costs a wakeup syscall, and So
+drops to ~0.5x of Go. The _work_ critical section runs identically on both sides
+single-threaded, so the gap is purely the parking cost, not the work.
 
-| Benchmark             |    Go |    So | Winner        |
-| --------------------- | ----: | ----: | ------------- |
-| Uncontended           |  14ns |   9ns | **So** - 1.6x |
-| TryLock               |  15ns |   9ns | **So** - 1.7x |
-| Contended (8 threads) | 600µs | 213µs | **So** - 2.8x |
+| Benchmark           |    Go |    So | Winner        |
+| ------------------- | ----: | ----: | ------------- |
+| Uncontended         |  14ns |   9ns | **So** - 1.6x |
+| TryLock             |  14ns |   9ns | **So** - 1.6x |
+| Contended spin (8t) | 600µs | 215µs | **So** - 2.8x |
+| Contended work (8t) |   9ms |  16ms | Go - 0.5x     |
 
 ### Cond
 
@@ -347,10 +357,10 @@ and land within ~1.2x of each other. Under contention the gap is because of
 `conc.Pool` dispatch: waking the eight workers crosses into the kernel, the
 same cost that makes `Cond` slow, rather than anything in `Once`.
 
-| Benchmark             |    Go |    So | Winner     |
-| --------------------- | ----: | ----: | ---------- |
-| Uncontended           | 2.1ns | 2.6ns | Go - 0.8x  |
-| Contended (8 threads) | 6.0µs |  32µs | Go - 0.18x |
+| Benchmark      |    Go |    So | Winner    |
+| -------------- | ----: | ----: | --------- |
+| Uncontended    | 2.1ns | 2.6ns | Go - 0.8x |
+| Contended (8t) | 6.0µs |  32µs | Go - 0.2x |
 
 ### Atomic
 

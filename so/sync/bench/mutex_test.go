@@ -22,11 +22,32 @@ func BenchmarkMutexTryLock_Go(b *testing.B) {
 	}
 }
 
-func BenchmarkMutexContended_Go(b *testing.B) {
+func BenchmarkMutexContendedSpin_Go(b *testing.B) {
 	var mu sync.Mutex
 	task := func() {
 		for range numLoops {
 			mu.Lock()
+			mu.Unlock()
+		}
+	}
+
+	p := newPool(numWorkers)
+	defer p.Free()
+
+	for b.Loop() {
+		for range numWorkers {
+			p.Go(task)
+		}
+		p.Wait()
+	}
+}
+
+func BenchmarkMutexContendedWork_Go(b *testing.B) {
+	var mu sync.Mutex
+	task := func() {
+		for range numLoops {
+			mu.Lock()
+			sink = busy(sink, workIters)
 			mu.Unlock()
 		}
 	}
