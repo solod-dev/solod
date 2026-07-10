@@ -15,7 +15,8 @@ So supports structs, methods, interfaces, slices, maps, multiple returns, and de
 So is for Go developers who want systems-level control without learning a new language. And for C programmers who like Go's safety, structure, and tooling.
 
 [Example](#example) •
-[Installation](#installation-and-usage) •
+[Installation](#installation) •
+[Usage](#usage) •
 [Documentation](#documentation-and-examples) •
 [Benchmarks](#testing-and-benchmarks) •
 [Compatibility](#compatibility) •
@@ -98,7 +99,7 @@ int main(void) {
 
 Check out more examples in [So by example](https://github.com/solod-dev/example) and learn about the supported language features in the [language tour](doc/spec.md).
 
-## Installation and usage
+## Installation
 
 Install the So command line tool:
 
@@ -112,6 +113,10 @@ Create a new Go project and add the Solod dependency to use the So standard libr
 go mod init example
 go get solod.dev@latest
 ```
+
+Use `main` or a specific commit hash instead of `latest` to install the newest development version, not the latest tagged release.
+
+## Usage
 
 Write regular Go code, but use So packages instead of the standard Go packages:
 
