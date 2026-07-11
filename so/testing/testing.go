@@ -6,15 +6,23 @@ import (
 	"solod.dev/so/os"
 )
 
+// The C backing for the variadic Errorf/Fatalf methods, which cannot be
+// expressed in So (a So variadic packs its args into a slice; a real C variadic
+// is needed to forward them to fmt).
+//
+//so:embed testing.h
+var testing_h string
+
+//so:embed testing.c
+var testing_c string
+
 // T is the context passed to a test function. It records failure and skip
 // state for a single test.
 //
-// Unlike Go's testing.T, the message methods are NOT variadic: So cannot
-// forward a "...any" argument to fmt, so there is no Errorf/Fatalf. Format the
-// message yourself with fmt.Sprintf when needed:
+// The plain message methods (Log, Error, Fatal, Skip) take a preformatted
+// string. For formatted messages use the variadic [T.Errorf] and [T.Fatalf]:
 //
-//	buf := fmt.NewBuffer(64)
-//	t.Error(fmt.Sprintf(buf, "Index = %d, want 6", got))
+//	t.Errorf("Index = %d, want 6", got)
 //
 // So also has no recover, so T cannot unwind a running test. Fatal only marks
 // the test failed and prints the message; by convention the test function must
@@ -54,11 +62,29 @@ func (t *T) Error(msg string) {
 	t.Fail()
 }
 
+// Errorf formats its arguments like [fmt.Sprintf], then
+// behaves like [T.Error] (Log followed by Fail).
+//
+//so:extern
+func (t *T) Errorf(format string, args ...any) {
+	buf := fmt.NewBuffer(fmt.BufSize)
+	t.Error(fmt.Sprintf(buf, format, args...))
+}
+
 // Fatal is equivalent to Log followed by Fail. The test function must return
 // after calling it; see [T].
 func (t *T) Fatal(msg string) {
 	t.Log(msg)
 	t.Fail()
+}
+
+// Fatalf formats its arguments like [fmt.Sprintf], then behaves like [T.Fatal].
+// The test function must return after calling it; see [T].
+//
+//so:extern
+func (t *T) Fatalf(format string, args ...any) {
+	buf := fmt.NewBuffer(fmt.BufSize)
+	t.Fatal(fmt.Sprintf(buf, format, args...))
 }
 
 // Skip marks the test as skipped. Like Fatal, the test must return afterwards.

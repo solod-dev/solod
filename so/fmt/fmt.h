@@ -42,6 +42,9 @@ so_R_int_err fmt_Printf(const char* format, ...);
 // If the output size exceeds buf length, it silently truncates the output.
 so_String fmt_Sprintf(fmt_Buffer buf, const char* format, ...);
 
+// vsprintf is like Sprintf but takes a va_list instead of a variable number of arguments.
+so_String fmt_vsprintf(fmt_Buffer buf, const char* format, va_list args);
+
 // Fprintf formats according to a format specifier and writes to w.
 // It returns the number of bytes written and any write error encountered.
 // Returns [ErrSize] if the output size exceeds BufSize.

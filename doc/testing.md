@@ -43,15 +43,17 @@ func TestEqual(t *testing.T) {
 
 The `T` type records failure and skip state for one test:
 
-| Method              | Description                                                    |
-| ------------------- | -------------------------------------------------------------- |
-| `Name() string`     | Name of the running test.                                      |
-| `Fail()`            | Mark the test failed, keep running.                            |
-| `Failed() bool`     | Whether the test has failed.                                   |
-| `Log(msg string)`   | Record a log line.                                             |
-| `Error(msg string)` | `Log` + `Fail`.                                                |
-| `Fatal(msg string)` | `Log` + `Fail`. The test must `return` afterwards (see below). |
-| `Skip(msg string)`  | Mark the test skipped. The test must `return` afterwards.      |
+| Method             | Description                                                        |
+| ------------------ | ------------------------------------------------------------------ |
+| `Name() string`    | Name of the running test.                                          |
+| `Fail()`           | Mark the test failed, keep running.                                |
+| `Failed() bool`    | Whether the test has failed.                                       |
+| `Log(msg)`         | Record a log line.                                                 |
+| `Error(msg)`       | `Log` + `Fail`.                                                    |
+| `Errorf(msg, ...)` | `fmt.Sprintf` + `Log` + `Fail`.                                    |
+| `Fatal(msg)`       | `Log` + `Fail`. The test must `return` afterwards (see below).     |
+| `Fatalf(msg, ...)` | `fmt.Sprintf` + `Log` + `Fail`. The test must `return` afterwards. |
+| `Skip(msg)`        | Mark the test skipped. The test must `return` afterwards.          |
 
 ## Running
 
@@ -183,20 +185,6 @@ distinct names (e.g. a `_Go` suffix) so both sets can share the `package main`
 directory without colliding.
 
 ## Caveats
-
-### No Errorf / formatted helpers
-
-So cannot forward a `...any` argument to `fmt`, so there is no `Errorf`, `Fatalf`, or `Logf`. Format the message yourself with `fmt.Sprintf`:
-
-```go
-func TestIndex(t *testing.T) {
-	got := bytes.Index([]byte("hello world"), []byte("world"))
-	if got != 6 {
-		buf := fmt.NewBuffer(64)
-		t.Error(fmt.Sprintf(buf, "Index = %d, want 6", got))
-	}
-}
-```
 
 ### Fatal and Skip need an explicit return
 
