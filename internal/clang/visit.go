@@ -175,7 +175,7 @@ func (g *Generator) emitForClause(w io.Writer, stmt ast.Stmt) {
 	case *ast.AssignStmt:
 		if s.Tok == token.DEFINE {
 			ident := s.Lhs[0].(*ast.Ident)
-			cType := g.mapType(s, g.types.Defs[ident].Type())
+			cType := g.mapTypeName(s, g.types.Defs[ident].Type())
 			fmt.Fprintf(w, "%s %s = ", cType, ident.Name)
 			g.emitExpr(w, s.Rhs[0])
 		} else {
@@ -243,7 +243,7 @@ func (g *Generator) emitGenDecl(w io.Writer, decl *ast.GenDecl) {
 func (g *Generator) emitConstSpec(w io.Writer, spec *ast.ValueSpec) {
 	for i, name := range spec.Names {
 		typ := g.types.Defs[name].Type()
-		cType := g.mapType(spec, typ)
+		cType := g.mapTypeName(spec, typ)
 
 		// Check if this is an iota-based constant (implicit value or explicit iota usage).
 		isIota := i >= len(spec.Values) || containsIota(spec.Values[i])
@@ -323,7 +323,7 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 				continue
 			}
 			typ := g.types.Defs[name].Type()
-			ct := g.mapCType(spec, typ)
+			ct := g.mapTypeDecl(spec, typ)
 
 			// Emit the leading declarator: "T name = init".
 			fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(name.Name))
@@ -347,7 +347,7 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 					break
 				}
 				nextTyp := g.types.Defs[nextName].Type()
-				nextCt := g.mapCType(spec, nextTyp)
+				nextCt := g.mapTypeDecl(spec, nextTyp)
 				if nextCt.IsArray() || nextCt.Base != ct.Base {
 					break
 				}
@@ -366,7 +366,7 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 			continue
 		}
 		typ := g.types.Defs[name].Type()
-		ct := g.mapCType(spec, typ)
+		ct := g.mapTypeDecl(spec, typ)
 		specifier := ""
 		if g.state.indent == 0 {
 			// Package-level variable: build specifier with qualifiers.
@@ -423,7 +423,7 @@ func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs directive
 				}
 			}
 		}
-		ct := g.mapCType(spec, resolved)
+		ct := g.mapTypeDecl(spec, resolved)
 		cName := g.declSymbolName(g.types.Defs[spec.Name])
 		attr := dirs.attrString()
 		if attr != "" {
@@ -435,7 +435,7 @@ func (g *Generator) emitTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs directive
 	case *ast.InterfaceType:
 		iface := g.types.Defs[spec.Name].Type().Underlying().(*types.Interface)
 		if iface.Empty() {
-			cType := g.mapType(spec, iface)
+			cType := g.mapTypeName(spec, iface)
 			cName := g.declSymbolName(g.types.Defs[spec.Name])
 			fmt.Fprintf(w, "%stypedef %s %s;\n", g.indent(), cType, cName)
 		} else {

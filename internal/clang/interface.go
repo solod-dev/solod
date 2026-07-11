@@ -23,7 +23,7 @@ func (g *Generator) emitInterfaceTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 		params.WriteString("void* self")
 		for p := range sig.Params().Variables() {
 			params.WriteString(", ")
-			params.WriteString(g.mapType(spec, p.Type()))
+			params.WriteString(g.mapTypeName(spec, p.Type()))
 			params.WriteString(" ")
 			params.WriteString(p.Name())
 		}
@@ -47,8 +47,8 @@ func (g *Generator) emitInterfaceLit(w io.Writer, ifaceType types.Type, expr ast
 	}
 	concreteNamed := types.Unalias(concreteType).(*types.Named)
 
-	cIface := g.mapType(expr, named)
-	cConcrete := g.mapType(expr, concreteNamed)
+	cIface := g.mapTypeName(expr, named)
+	cConcrete := g.mapTypeName(expr, concreteNamed)
 
 	if isPtr {
 		fmt.Fprintf(w, "(%s){.self = ", cIface)
@@ -79,7 +79,7 @@ func (g *Generator) emitTypeAssertion(w io.Writer, stmt *ast.AssignStmt, ta *ast
 		assertedType = ptr.Elem()
 	}
 	concreteNamed := types.Unalias(assertedType).(*types.Named)
-	cConcrete := g.mapType(ta, concreteNamed)
+	cConcrete := g.mapTypeName(ta, concreteNamed)
 
 	okIdent := stmt.Lhs[1].(*ast.Ident)
 	if stmt.Tok == token.DEFINE {
@@ -96,7 +96,7 @@ func (g *Generator) emitTypeAssertExpr(w io.Writer, n *ast.TypeAssertExpr) {
 	sourceType := g.types.TypeOf(n.X)
 	if iface, ok := sourceType.Underlying().(*types.Interface); ok && iface.Empty() {
 		targetType := g.types.TypeOf(n.Type)
-		cType := g.mapType(n, targetType)
+		cType := g.mapTypeName(n, targetType)
 		if _, isPtr := targetType.Underlying().(*types.Pointer); isPtr {
 			// Pointer assertion: any.(*Type) -> (Type*)expr
 			fmt.Fprintf(w, "(%s)", cType)
@@ -120,7 +120,7 @@ func (g *Generator) emitTypeAssertExpr(w io.Writer, n *ast.TypeAssertExpr) {
 
 	// Cast to a pointer or value type, depending on the request.
 	concreteNamed := types.Unalias(targetType).(*types.Named)
-	cConcrete := g.mapType(n, concreteNamed)
+	cConcrete := g.mapTypeName(n, concreteNamed)
 	if isPtr {
 		// Pointer assertion: ival.(*Type) -> (Type*)ival.self
 		fmt.Fprintf(w, "(%s*)", cConcrete)
@@ -175,7 +175,7 @@ func (g *Generator) emitAnyValue(w io.Writer, node ast.Node, expr ast.Expr) {
 		return
 	}
 
-	cType := g.mapType(node, valType)
+	cType := g.mapTypeName(node, valType)
 	fmt.Fprintf(w, "&(%s){", cType)
 	g.emitExpr(w, expr)
 	fmt.Fprint(w, "}")

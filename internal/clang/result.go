@@ -41,7 +41,7 @@ func (g *Generator) collectResultTypes() {
 		if named.Obj().Pkg() != g.pkg.Types {
 			continue
 		}
-		valType := g.mapType(sym.funcDecl, named)
+		valType := g.mapTypeName(sym.funcDecl, named)
 		cName := valType + "Result"
 		if seen[cName] {
 			continue
@@ -88,7 +88,7 @@ func (g *Generator) returnType(node ast.Node, sig *types.Signature) string {
 			if _, ok := arr.Elem().(*types.Array); ok {
 				g.fail(node, "returning multi-dimensional arrays is not supported")
 			}
-			return g.mapType(node, arr) + "*"
+			return g.mapTypeName(node, arr) + "*"
 		}
 		if _, ok := ret.Underlying().(*types.Map); ok {
 			g.fail(node, "returning maps is not supported")
@@ -98,7 +98,7 @@ func (g *Generator) returnType(node ast.Node, sig *types.Signature) string {
 				g.fail(node, "returning pointer-to-array is not supported")
 			}
 		}
-		return g.mapType(node, ret)
+		return g.mapTypeName(node, ret)
 	}
 	return "void"
 }
@@ -134,7 +134,7 @@ func (g *Generator) emitMultiReturnDefine(w io.Writer, stmt *ast.AssignStmt, cal
 			fmt.Fprintf(w, "%s%s = %s;\n", g.indent(), ident.Name, accessor)
 			continue
 		}
-		cType := g.mapType(stmt, def.Type())
+		cType := g.mapTypeName(stmt, def.Type())
 		fmt.Fprintf(w, "%s%s %s = %s;\n", g.indent(), cType, ident.Name, accessor)
 	}
 }
@@ -185,7 +185,7 @@ func (g *Generator) multiReturnFields(node ast.Node, sig *types.Signature) multi
 	if isErrorType(second) {
 		if named, ok := types.Unalias(first).(*types.Named); ok {
 			if _, ok := named.Underlying().(*types.Struct); ok {
-				resultType := g.mapType(node, named) + "Result"
+				resultType := g.mapTypeName(node, named) + "Result"
 				return multiReturn{resultType: resultType, hasError: true}
 			}
 		}

@@ -68,7 +68,7 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 	if decl.Type.Params != nil {
 		for _, field := range decl.Type.Params.List {
 			typ := g.types.TypeOf(field.Type)
-			ct := g.mapCType(decl, typ)
+			ct := g.mapTypeDecl(decl, typ)
 			for _, n := range field.Names {
 				parts = append(parts, ct.Decl(n.Name))
 			}
@@ -94,7 +94,7 @@ func (g *Generator) emitFuncTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 
 	var params []string
 	for parVar := range sig.Params().Variables() {
-		params = append(params, g.mapType(spec, parVar.Type()))
+		params = append(params, g.mapTypeName(spec, parVar.Type()))
 	}
 
 	name := g.declSymbolName(g.types.Defs[spec.Name])
@@ -330,7 +330,7 @@ func (g *Generator) emitFuncVarArgs(w io.Writer, call *ast.CallExpr, sig *types.
 	}
 
 	variadicParam := sig.Params().At(sig.Params().Len() - 1)
-	elemType := g.mapType(call, variadicParam.Type().(*types.Slice).Elem())
+	elemType := g.mapTypeName(call, variadicParam.Type().(*types.Slice).Elem())
 	count := len(variadicArgs)
 
 	if count == 0 {

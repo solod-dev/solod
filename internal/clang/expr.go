@@ -144,7 +144,7 @@ func (g *Generator) emitBinaryExpr(w io.Writer, n *ast.BinaryExpr) {
 			g.emitArrayCmpOperand(w, n.X, arr)
 			fmt.Fprint(w, ", ")
 			g.emitArrayCmpOperand(w, n.Y, arr)
-			elemType := g.mapType(n, arr.Elem())
+			elemType := g.mapTypeName(n, arr.Elem())
 			fmt.Fprintf(w, ", %d * sizeof(%s))", arr.Len(), elemType)
 			return
 		}
@@ -157,7 +157,7 @@ func (g *Generator) emitBinaryExpr(w io.Writer, n *ast.BinaryExpr) {
 	if n.Op == token.SHL || n.Op == token.SHR {
 		fmt.Fprint(w, "(")
 		if lit, ok := n.X.(*ast.BasicLit); ok && lit.Kind == token.INT {
-			cType := g.mapType(n, g.types.TypeOf(n))
+			cType := g.mapTypeName(n, g.types.TypeOf(n))
 			fmt.Fprintf(w, "(%s)", cType)
 		}
 		g.emitExpr(w, n.X)
@@ -286,7 +286,7 @@ func (g *Generator) emitCallExpr(w io.Writer, n *ast.CallExpr) {
 			}
 		}
 		// Regular type conversion (e.g. int(3.14)).
-		cType := g.mapType(n, tv.Type)
+		cType := g.mapTypeName(n, tv.Type)
 		fmt.Fprintf(w, "(%s)", cType)
 		g.emitParenExpr(w, n.Args[0])
 		return
@@ -315,9 +315,9 @@ func (g *Generator) emitGenericCall(w io.Writer, n *ast.CallExpr, fun ast.Expr, 
 		}
 	}
 	g.emitExpr(w, fun)
-	fmt.Fprintf(w, "(%s", g.mapType(n, inst.TypeArgs.At(0)))
+	fmt.Fprintf(w, "(%s", g.mapTypeName(n, inst.TypeArgs.At(0)))
 	for i := 1; i < inst.TypeArgs.Len(); i++ {
-		fmt.Fprintf(w, ", %s", g.mapType(n, inst.TypeArgs.At(i)))
+		fmt.Fprintf(w, ", %s", g.mapTypeName(n, inst.TypeArgs.At(i)))
 	}
 	sig, _ := inst.Type.(*types.Signature)
 	for i, arg := range n.Args {
@@ -450,13 +450,13 @@ func (g *Generator) emitSelectorExpr(w io.Writer, n *ast.SelectorExpr) {
 		} else {
 			named = types.Unalias(recv).(*types.Named)
 		}
-		cName := g.mapType(n, named) + "_" + n.Sel.Name
+		cName := g.mapTypeName(n, named) + "_" + n.Sel.Name
 
 		// Pointer receiver methods use void* in C, but the function type expects T*.
 		// Cast to match the function pointer type.
 		declSig := selection.Obj().Type().(*types.Signature)
 		if _, isPtrRecv := declSig.Recv().Type().(*types.Pointer); isPtrRecv {
-			cTypeName := g.mapType(n, g.types.TypeOf(n))
+			cTypeName := g.mapTypeName(n, g.types.TypeOf(n))
 			fmt.Fprintf(w, "(%s)%s", cTypeName, cName)
 		} else {
 			fmt.Fprint(w, cName)
@@ -521,7 +521,7 @@ func (g *Generator) emitIndexExpr(w io.Writer, n *ast.IndexExpr) {
 	var elemType string
 	switch t := g.types.TypeOf(n.X).Underlying().(type) {
 	case *types.Slice:
-		elemType = g.mapType(n, t.Elem())
+		elemType = g.mapTypeName(n, t.Elem())
 	case *types.Basic:
 		if t.Kind() == types.String || t.Kind() == types.UntypedString {
 			elemType = "so_byte"
@@ -547,7 +547,7 @@ func (g *Generator) emitUnaryExpr(w io.Writer, n *ast.UnaryExpr) {
 		if ident, ok := n.X.(*ast.Ident); ok {
 			if _, ok := g.types.TypeOf(n.X).Underlying().(*types.Array); ok {
 				if g.isArrayParam(ident) {
-					ct := g.mapCType(n, g.types.TypeOf(n))
+					ct := g.mapTypeDecl(n, g.types.TypeOf(n))
 					fmt.Fprintf(w, "(%s)", ct.Decl(""))
 					g.emitExpr(w, n.X)
 					return
@@ -582,7 +582,7 @@ func (g *Generator) emitExprAsType(w io.Writer, node ast.Node, expr ast.Expr, ta
 	if isNamedNonEmptyInterface(targetType) {
 		valType := g.types.TypeOf(expr)
 		if isNilType(valType) {
-			cType := g.mapType(node, targetType)
+			cType := g.mapTypeName(node, targetType)
 			fmt.Fprintf(w, "(%s){0}", cType)
 			return
 		}

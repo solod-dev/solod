@@ -136,7 +136,7 @@ func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl, dirs direc
 				emitted = true
 			}
 			typ := g.types.Defs[name].Type()
-			ct := g.mapCType(spec, typ)
+			ct := g.mapTypeDecl(spec, typ)
 			cName := g.symbolName(g.types.Defs[name])
 
 			switch decl.Tok {

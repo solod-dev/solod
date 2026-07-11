@@ -30,7 +30,7 @@ func (g *Generator) emitArrayLit(w io.Writer, n *ast.CompositeLit) {
 // Composite literals need compound literal syntax (e.g. (so_int[3]){11, 22, 33}).
 func (g *Generator) emitArrayArg(w io.Writer, node ast.Node, arg ast.Expr, arr *types.Array) {
 	if _, isLit := arg.(*ast.CompositeLit); isLit {
-		elemType := g.mapType(node, arr.Elem())
+		elemType := g.mapTypeName(node, arr.Elem())
 		fmt.Fprintf(w, "(%s%s)", elemType, arrayDims(arr))
 		g.emitExpr(w, arg)
 		return
@@ -43,7 +43,7 @@ func (g *Generator) emitArrayArg(w io.Writer, node ast.Node, arg ast.Expr, arr *
 // wrapped in extra parentheses so commas inside braces don't split macro args.
 func (g *Generator) emitArrayCmpOperand(w io.Writer, expr ast.Expr, arr *types.Array) {
 	if _, isLit := expr.(*ast.CompositeLit); isLit {
-		elemType := g.mapType(expr, arr.Elem())
+		elemType := g.mapTypeName(expr, arr.Elem())
 		fmt.Fprintf(w, "((%s%s)", elemType, arrayDims(arr))
 		g.emitExpr(w, expr)
 		fmt.Fprint(w, ")")
@@ -56,7 +56,7 @@ func (g *Generator) emitArrayCmpOperand(w io.Writer, expr ast.Expr, arr *types.A
 // Example: []int{1, 2, 3, 4} → {(so_int[4]){1, 2, 3, 4}, 4, 4}
 func (g *Generator) emitSliceLit(w io.Writer, n *ast.CompositeLit) {
 	sl := g.types.TypeOf(n).Underlying().(*types.Slice)
-	elemType := g.mapType(n, sl.Elem())
+	elemType := g.mapTypeName(n, sl.Elem())
 	size := len(n.Elts)
 	if size == 0 {
 		fmt.Fprint(w, "(so_Slice){0}")
@@ -107,7 +107,7 @@ func (g *Generator) emitSliceExpr(w io.Writer, n *ast.SliceExpr) {
 
 	switch t := typ.(type) {
 	case *types.Array:
-		elemType := g.mapType(n, t.Elem())
+		elemType := g.mapTypeName(n, t.Elem())
 		if n.Slice3 {
 			fmt.Fprintf(w, "so_array_slice3(%s, ", elemType)
 		} else {
@@ -163,7 +163,7 @@ func (g *Generator) emitSliceExpr(w io.Writer, n *ast.SliceExpr) {
 		fmt.Fprint(w, ")")
 
 	case *types.Slice:
-		elemType := g.mapType(n, t.Elem())
+		elemType := g.mapTypeName(n, t.Elem())
 		if n.Slice3 {
 			fmt.Fprintf(w, "so_slice3(%s, ", elemType)
 		} else {

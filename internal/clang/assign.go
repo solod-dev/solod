@@ -119,7 +119,7 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 		}
 
 		typ := def.Type()
-		ct := g.mapCType(stmt, typ)
+		ct := g.mapTypeDecl(stmt, typ)
 
 		if ct.IsArray() {
 			// Arrays can't be grouped with other variables.
@@ -162,7 +162,7 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 			if nextDef == nil {
 				break
 			}
-			nextCType := g.mapType(stmt, nextDef.Type())
+			nextCType := g.mapTypeName(stmt, nextDef.Type())
 			if nextCType != ct.Base {
 				break
 			}
@@ -244,7 +244,7 @@ func (g *Generator) emitAssign(w io.Writer, stmt *ast.AssignStmt) {
 			fmt.Fprint(w, ", ")
 			if _, isLit := stmt.Rhs[i].(*ast.CompositeLit); isLit {
 				// Compound literal: (int[3]){1, 2, 3}
-				elemType := g.mapType(stmt, arr.Elem())
+				elemType := g.mapTypeName(stmt, arr.Elem())
 				fmt.Fprintf(w, "(%s%s)", elemType, arrayDims(arr))
 			}
 			g.emitExpr(w, stmt.Rhs[i])

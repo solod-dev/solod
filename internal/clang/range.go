@@ -53,7 +53,7 @@ func (g *Generator) emitArrayRange(w io.Writer, stmt *ast.RangeStmt) {
 	}
 
 	key := stmt.Key.(*ast.Ident)
-	elemType := g.mapType(stmt, arrType.Elem())
+	elemType := g.mapTypeName(stmt, arrType.Elem())
 	keyDecl := g.rangeKeyDecl(stmt, key)
 
 	fmt.Fprintf(w, "%sfor (%s%s = 0; %s < %d; %s++) {\n",
@@ -101,7 +101,7 @@ func (g *Generator) emitSliceRange(w io.Writer, stmt *ast.RangeStmt) {
 
 	key := stmt.Key.(*ast.Ident)
 	sliceType := g.types.TypeOf(stmt.X).Underlying().(*types.Slice)
-	elemType := g.mapType(stmt, sliceType.Elem())
+	elemType := g.mapTypeName(stmt, sliceType.Elem())
 	keyDecl := g.rangeKeyDecl(stmt, key)
 
 	fmt.Fprintf(w, "%sfor (%s%s = 0; %s < so_len(", g.indent(), keyDecl, key.Name, key.Name)
@@ -189,5 +189,5 @@ func (g *Generator) rangeKeyDecl(stmt *ast.RangeStmt, key *ast.Ident) string {
 	if stmt.Tok == token.ASSIGN {
 		return ""
 	}
-	return g.mapType(stmt, g.types.Defs[key].Type()) + " "
+	return g.mapTypeName(stmt, g.types.Defs[key].Type()) + " "
 }

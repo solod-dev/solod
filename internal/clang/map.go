@@ -15,10 +15,10 @@ import (
 //		((so_String[]){so_str("a"), so_str("b")}),
 //		((so_int[]){11, 22})))
 func (g *Generator) emitMapLit(w io.Writer, n *ast.CompositeLit) {
-	mapType := g.types.TypeOf(n).Underlying().(*types.Map)
-	g.validateMapValueType(n, mapType.Elem())
-	keyType := g.mapType(n, mapType.Key())
-	valType := g.mapType(n, mapType.Elem())
+	mapTypeName := g.types.TypeOf(n).Underlying().(*types.Map)
+	g.validateMapValueType(n, mapTypeName.Elem())
+	keyType := g.mapTypeName(n, mapTypeName.Key())
+	valType := g.mapTypeName(n, mapTypeName.Elem())
 	size := len(n.Elts)
 
 	if size == 0 {
@@ -45,9 +45,9 @@ func (g *Generator) emitMapLit(w io.Writer, n *ast.CompositeLit) {
 
 // emitMapIndexExpr emits a map index read as so_map_get(K, V, m, key).
 func (g *Generator) emitMapIndexExpr(w io.Writer, n *ast.IndexExpr) {
-	mapType := g.types.TypeOf(n.X).Underlying().(*types.Map)
-	keyType := g.mapType(n, mapType.Key())
-	valType := g.mapType(n, mapType.Elem())
+	mapTypeName := g.types.TypeOf(n.X).Underlying().(*types.Map)
+	keyType := g.mapTypeName(n, mapTypeName.Key())
+	valType := g.mapTypeName(n, mapTypeName.Elem())
 
 	fmt.Fprintf(w, "so_map_get(%s, %s, ", keyType, valType)
 	g.emitExpr(w, n.X)
@@ -58,9 +58,9 @@ func (g *Generator) emitMapIndexExpr(w io.Writer, n *ast.IndexExpr) {
 
 // emitMapIndexAssign emits a map index write as so_map_set(K, V, &m, key, val).
 func (g *Generator) emitMapIndexAssign(w io.Writer, node ast.Node, idx *ast.IndexExpr, rhs ast.Expr) {
-	mapType := g.types.TypeOf(idx.X).Underlying().(*types.Map)
-	keyType := g.mapType(node, mapType.Key())
-	valType := g.mapType(node, mapType.Elem())
+	mapTypeName := g.types.TypeOf(idx.X).Underlying().(*types.Map)
+	keyType := g.mapTypeName(node, mapTypeName.Key())
+	valType := g.mapTypeName(node, mapTypeName.Elem())
 
 	fmt.Fprintf(w, "%sso_map_set(%s, %s, ", g.indent(), keyType, valType)
 	g.emitExpr(w, idx.X)
@@ -74,9 +74,9 @@ func (g *Generator) emitMapIndexAssign(w io.Writer, node ast.Node, idx *ast.Inde
 // emitMapCommaOk emits a comma-ok map access: v, ok := m[key] or v, ok = m[key].
 // Emits two statements: a so_map_get for the value and a so_map_has for the bool.
 func (g *Generator) emitMapCommaOk(w io.Writer, stmt *ast.AssignStmt, idx *ast.IndexExpr, isDefine bool) {
-	mapType := g.types.TypeOf(idx.X).Underlying().(*types.Map)
-	keyType := g.mapType(stmt, mapType.Key())
-	valType := g.mapType(stmt, mapType.Elem())
+	mapTypeName := g.types.TypeOf(idx.X).Underlying().(*types.Map)
+	keyType := g.mapTypeName(stmt, mapTypeName.Key())
+	valType := g.mapTypeName(stmt, mapTypeName.Elem())
 
 	vIdent := stmt.Lhs[0].(*ast.Ident)
 	okIdent := stmt.Lhs[1].(*ast.Ident)
@@ -111,9 +111,9 @@ func (g *Generator) emitMapCommaOk(w io.Writer, stmt *ast.AssignStmt, idx *ast.I
 // emitMapRange emits a for-range loop over a map.
 // Uses a hidden _i variable to iterate the internal arrays.
 func (g *Generator) emitMapRange(w io.Writer, stmt *ast.RangeStmt) {
-	mapType := g.types.TypeOf(stmt.X).Underlying().(*types.Map)
-	keyType := g.mapType(stmt, mapType.Key())
-	valType := g.mapType(stmt, mapType.Elem())
+	mapTypeName := g.types.TypeOf(stmt.X).Underlying().(*types.Map)
+	keyType := g.mapTypeName(stmt, mapTypeName.Key())
+	valType := g.mapTypeName(stmt, mapTypeName.Elem())
 
 	fmt.Fprintf(w, "%sfor (so_int _i = 0; _i < ", g.indent())
 	g.emitExpr(w, stmt.X)

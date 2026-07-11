@@ -29,7 +29,7 @@ func (g *Generator) emitStructTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs dir
 				g.emitFuncPtrField(w, spec, name.Name, sig, cName)
 			} else {
 				// Regular struct field (arrays get dimension suffix).
-				ct := g.mapCType(field, typ)
+				ct := g.mapTypeDecl(field, typ)
 				fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(name.Name))
 			}
 		}
@@ -44,7 +44,7 @@ func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName strin
 	retType := g.returnType(node, sig)
 	var params []string
 	for p := range sig.Params().Variables() {
-		cType := g.mapType(node, p.Type())
+		cType := g.mapTypeName(node, p.Type())
 		if cType == enclosingStruct || cType == enclosingStruct+"*" {
 			cType = "struct " + cType
 		}
@@ -61,7 +61,7 @@ func (g *Generator) emitInlineStructField(w io.Writer, st *ast.StructType, field
 	g.state.indent++
 	for _, f := range st.Fields.List {
 		typ := g.types.TypeOf(f.Type)
-		ct := g.mapCType(f, typ)
+		ct := g.mapTypeDecl(f, typ)
 		for _, name := range f.Names {
 			fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(name.Name))
 		}
@@ -130,7 +130,7 @@ func (g *Generator) emitAnonStructLit(w io.Writer, n *ast.CompositeLit, st *ast.
 	fmt.Fprint(w, "(struct {\n")
 	for _, field := range st.Fields.List {
 		typ := g.types.TypeOf(field.Type)
-		cType := g.mapType(field, typ)
+		cType := g.mapTypeName(field, typ)
 		for _, name := range field.Names {
 			fmt.Fprintf(w, "%s    %s %s;\n", g.indent(), cType, name.Name)
 		}
@@ -166,7 +166,7 @@ func (g *Generator) emitStructLit(w io.Writer, n *ast.CompositeLit) {
 	} else {
 		typ = g.types.TypeOf(n)
 	}
-	cType := g.mapType(n, typ)
+	cType := g.mapTypeName(n, typ)
 	fmt.Fprintf(w, "(%s)", cType)
 	g.emitBareStructInit(w, n)
 }
@@ -224,7 +224,7 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 	}
 
 	// Regular method call: r.Area() → main_Rect_Area(&r)
-	cStructType := g.mapType(sel, named)
+	cStructType := g.mapTypeName(sel, named)
 	cName := cStructType + "_" + sel.Sel.Name
 	fmt.Fprintf(w, "%s(", cName)
 
@@ -236,7 +236,7 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 			if i > 0 {
 				fmt.Fprint(w, ", ")
 			}
-			fmt.Fprint(w, g.mapType(sel, typeArgs.At(i)))
+			fmt.Fprint(w, g.mapTypeName(sel, typeArgs.At(i)))
 		}
 		fmt.Fprint(w, ", ")
 	}
@@ -331,7 +331,7 @@ func (g *Generator) emitMethodVarArgs(w io.Writer, sel *ast.SelectorExpr, call *
 	// Emit variadic args as a so_Slice literal.
 	variadicArgs := args[fixedCount:]
 	variadicParam := sig.Params().At(sig.Params().Len() - 1)
-	elemType := g.mapType(sel, variadicParam.Type().(*types.Slice).Elem())
+	elemType := g.mapTypeName(sel, variadicParam.Type().(*types.Slice).Elem())
 	count := len(variadicArgs)
 	targetType := variadicParam.Type().(*types.Slice).Elem()
 	if count == 0 {

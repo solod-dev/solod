@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// CType represents a C type with optional array dimensions.
+// CType represents a C type with all information
+// needed to declare a variable of that type.
 type CType struct {
 	Base       string   // e.g. "int", "so_int"
 	Dims       string   // e.g. "[3]", "[2][3]", ""
@@ -36,13 +37,20 @@ func (t CType) IsArray() bool {
 	return t.Dims != "" && !t.PtrToArray
 }
 
-// mapCType maps a Go type to a CType (base + array dims).
-func (g *Generator) mapCType(node ast.Node, typ types.Type) CType {
+// mapTypeDecl maps a Go type to a [CType].
+//
+// Use it when the type introduces a name (locals, params, struct fields,
+// typedefs), because C declaration syntax is name-embedded: arrays `T x[N]`,
+// function pointers `R (*x)(A)`, pointer-to-array `T (*x)[N]`.
+//
+// For a bare inline type token (casts, macro args, compound-literal
+// element types), use [Generator.mapTypeName] instead.
+func (g *Generator) mapTypeDecl(node ast.Node, typ types.Type) CType {
 	// Pointer to array.
 	if ptr, ok := types.Unalias(typ).(*types.Pointer); ok {
 		if _, ok := types.Unalias(ptr.Elem()).(*types.Array); ok {
 			return CType{
-				Base:       g.mapType(node, ptr.Elem()),
+				Base:       g.mapTypeName(node, ptr.Elem()),
 				Dims:       arrayDims(ptr.Elem()),
 				PtrToArray: true,
 			}
@@ -52,7 +60,7 @@ func (g *Generator) mapCType(node ast.Node, typ types.Type) CType {
 	if sig, ok := types.Unalias(typ).(*types.Signature); ok {
 		var params []string
 		for p := range sig.Params().Variables() {
-			params = append(params, g.mapType(node, p.Type()))
+			params = append(params, g.mapTypeName(node, p.Type()))
 		}
 		return CType{
 			FuncPtr:    true,
@@ -63,19 +71,28 @@ func (g *Generator) mapCType(node ast.Node, typ types.Type) CType {
 	// Anonymous struct is only valid as a local variable with an initializer:
 	// `s := struct{ v int }{42}` translates to `so_auto s = (struct{ so_int v; }){42}`.
 	// Value contexts (slice/array elements, params, returns) go through
-	// mapType instead, which fails because there is no C type name.
+	// mapTypeName instead, which fails because there is no C type name.
 	if _, ok := types.Unalias(typ).(*types.Struct); ok {
 		return CType{Base: "so_auto"}
 	}
 	// Regular type (including arrays and named function types).
 	return CType{
-		Base: g.mapType(node, typ),
+		Base: g.mapTypeName(node, typ),
 		Dims: arrayDims(typ),
 	}
 }
 
-// mapType maps a Go type to its C equivalent.
-func (g *Generator) mapType(node ast.Node, typ types.Type) string {
+// mapTypeName maps a Go type to a bare C type token.
+//
+// Use it when the type stands on its own: casts, macro arguments like
+// `so_at(T, ...)`, compound-literal element types like `(T[N]){...}`,
+// and return types.
+//
+// For a named declaration, use [Generator.mapTypeDecl] instead.
+//
+// For an array type mapTypeName returns the innermost element token and drops
+// the dimensions. If you need them, pair it with [arrayDims] or use mapTypeDecl.
+func (g *Generator) mapTypeName(node ast.Node, typ types.Type) string {
 	typ = types.Unalias(typ)
 
 	// Complex types (e.g. pointers, named types, structs).
@@ -86,7 +103,7 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 		for inner, ok := elem.(*types.Array); ok; inner, ok = elem.(*types.Array) {
 			elem = inner.Elem()
 		}
-		return g.mapType(node, elem)
+		return g.mapTypeName(node, elem)
 
 	case *types.Slice:
 		return "so_Slice"
@@ -122,9 +139,9 @@ func (g *Generator) mapType(node ast.Node, typ types.Type) string {
 	case *types.Pointer:
 		elem := t.Elem()
 		if _, ok := types.Unalias(elem).(*types.Array); ok {
-			return g.mapType(node, elem) + "(*)" + arrayDims(elem)
+			return g.mapTypeName(node, elem) + "(*)" + arrayDims(elem)
 		}
-		return g.mapType(node, elem) + "*"
+		return g.mapTypeName(node, elem) + "*"
 
 	case *types.Signature:
 		// Look for a named type with the same

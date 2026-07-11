@@ -76,7 +76,7 @@ func (g *Generator) emitBuiltin(w io.Writer, call *ast.CallExpr, ident *ast.Iden
 // emitAppendCall emits an append() builtin call.
 func (g *Generator) emitAppendCall(w io.Writer, call *ast.CallExpr) {
 	sliceType := g.types.TypeOf(call.Args[0]).Underlying().(*types.Slice)
-	elemType := g.mapType(call, sliceType.Elem())
+	elemType := g.mapTypeName(call, sliceType.Elem())
 	if call.Ellipsis.IsValid() {
 		srcType := g.types.TypeOf(call.Args[1]).Underlying()
 		if basic, ok := srcType.(*types.Basic); ok && basic.Info()&types.IsString != 0 {
@@ -113,7 +113,7 @@ func (g *Generator) emitClearCall(w io.Writer, call *ast.CallExpr) {
 		g.fail(call, "clear() is not supported for maps")
 	}
 	sliceType := typ.(*types.Slice)
-	elemType := g.mapType(call, sliceType.Elem())
+	elemType := g.mapTypeName(call, sliceType.Elem())
 	fmt.Fprintf(w, "so_clear(%s, ", elemType)
 	g.emitMacroArg(w, call.Args[0])
 	fmt.Fprint(w, ")")
@@ -133,7 +133,7 @@ func (g *Generator) emitCopyCall(w io.Writer, call *ast.CallExpr) {
 	}
 	// copy([]T, []T) - copy elements of any slice type.
 	dstType := g.types.TypeOf(call.Args[0]).Underlying().(*types.Slice)
-	elemType := g.mapType(call, dstType.Elem())
+	elemType := g.mapTypeName(call, dstType.Elem())
 	fmt.Fprintf(w, "so_copy(%s, ", elemType)
 	g.emitMacroArg(w, call.Args[0])
 	fmt.Fprint(w, ", ")
@@ -147,7 +147,7 @@ func (g *Generator) emitMakeCall(w io.Writer, call *ast.CallExpr) {
 
 	switch t := typ.(type) {
 	case *types.Slice:
-		elemType := g.mapType(call, t.Elem())
+		elemType := g.mapTypeName(call, t.Elem())
 		fmt.Fprintf(w, "so_make_slice(%s, ", elemType)
 		g.emitExpr(w, call.Args[1])
 		fmt.Fprint(w, ", ")
@@ -160,8 +160,8 @@ func (g *Generator) emitMakeCall(w io.Writer, call *ast.CallExpr) {
 
 	case *types.Map:
 		g.validateMapValueType(call, t.Elem())
-		keyType := g.mapType(call, t.Key())
-		valType := g.mapType(call, t.Elem())
+		keyType := g.mapTypeName(call, t.Key())
+		valType := g.mapTypeName(call, t.Elem())
 		fmt.Fprintf(w, "so_make_map(%s, %s, ", keyType, valType)
 		g.emitExpr(w, call.Args[1])
 		fmt.Fprint(w, ")")
@@ -210,7 +210,7 @@ func (g *Generator) emitNewCall(w io.Writer, call *ast.CallExpr) {
 	tv := g.types.Types[call.Args[0]]
 	if tv.IsType() {
 		// new(T) - zero-initialized compound literal.
-		cType := g.mapType(call, tv.Type)
+		cType := g.mapTypeName(call, tv.Type)
 		fmt.Fprintf(w, "&(%s){0}", cType)
 		return
 	}
@@ -233,7 +233,7 @@ func (g *Generator) emitNewCall(w io.Writer, call *ast.CallExpr) {
 		return
 	}
 	// Scalar: wrap in compound literal.
-	cType := g.mapType(call, elemType)
+	cType := g.mapTypeName(call, elemType)
 	fmt.Fprintf(w, "&(%s){", cType)
 	g.emitExpr(w, call.Args[0])
 	fmt.Fprint(w, "}")
