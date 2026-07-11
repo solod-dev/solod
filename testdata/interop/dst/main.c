@@ -36,6 +36,11 @@ int main(void) {
         write_acc(&acc, "Hello %s!", "world");
     }
     {
+        // Extern variadic method.
+        Account acc = (Account){.name = so_str("Eve")};
+        Account_Log(&acc, "Balance: %d", 789);
+    }
+    {
         // Extern function pointer.
         Account acc = (Account){.name = so_str("Charlie"), .write = write_acc};
         acc.write(&acc, "Balance: %d", 123);

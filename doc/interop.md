@@ -63,6 +63,8 @@ f := fopen("/tmp/test.txt", "w")
 
 The `so:extern` directive supports two optional parameters: a C name override and the `nodecay` flag.
 
+Methods can be extern too.
+
 ## Extern options
 
 _Name override_ specifies the C name to use instead of the default package-prefixed name. Useful for extern types that must match a C header:

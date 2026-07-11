@@ -1,5 +1,14 @@
 #include "person.ext.h"
 
+void Account_Log(Account* a, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf("Log %s: ", a->name.ptr);
+    vprintf(fmt, args);
+    printf("\n");
+    va_end(args);
+}
+
 int64_t account_inc_balance(Account* a, int64_t amount) {
     int64_t balBefore = a->balance;
     so_byte* flags = a->flags.ptr;

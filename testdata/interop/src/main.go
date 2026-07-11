@@ -19,6 +19,9 @@ type Account struct {
 	write   WriteFunc
 }
 
+//so:extern
+func (acc *Account) Log(format string, args ...any)
+
 //so:extern Account
 type Acc Account
 
@@ -78,6 +81,11 @@ func main() {
 		// Extern variadic function.
 		acc := Account{name: "Bob"}
 		write_acc(&acc, "Hello %s!", "world")
+	}
+	{
+		// Extern variadic method.
+		acc := Account{name: "Eve"}
+		acc.Log("Balance: %d", 789)
 	}
 	{
 		// Extern function pointer.

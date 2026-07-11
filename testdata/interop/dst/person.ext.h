@@ -26,6 +26,8 @@ struct Account {
     write_func_t write;
 };
 
+void Account_Log(Account* a, const char* fmt, ...);
+
 int64_t account_inc_balance(Account* a, int64_t amount);
 
 void account_set_name(Account* a, so_String name);

@@ -281,25 +281,19 @@ func (g *Generator) emitFuncCallArgs(w io.Writer, call *ast.CallExpr) {
 		sig, _ = funType.Underlying().(*types.Signature)
 	}
 
-	if ext, ok := g.callExtern(call); ok && !ext.nodecay {
-		// Extern C call: decay all args to C-compatible types.
-		// So wrapper types (so_String, so_Slice) must be unwrapped to their
-		// underlying C representations for C function macros.
-		if call.Ellipsis.IsValid() {
-			g.fail(call, "spreading variadic arguments to an extern function is not supported")
-		}
-		g.emitCArgs(w, call)
+	if ext, ok := g.funcExtern(call); ok && !ext.nodecay {
+		// Extern C function: decay args to C-compatible types.
+		g.emitFuncExternArgs(w, call)
 		return
 	}
 
 	if sig != nil && sig.Variadic() && !call.Ellipsis.IsValid() {
 		// Variadic call with individual args: pack trailing args into a slice literal.
-		g.emitFixedArgs(w, call, sig)
-		g.emitVariadicArgs(w, call, sig)
+		g.emitFuncVarArgs(w, call, sig)
 		return
 	}
 
-	// Regular call: emit all args as-is.
+	// Non-variadic call or variadic call with ellipsis: emit all args directly.
 	for i, arg := range call.Args {
 		if i > 0 {
 			fmt.Fprint(w, ", ")
@@ -318,8 +312,9 @@ func (g *Generator) emitFuncCallArgs(w io.Writer, call *ast.CallExpr) {
 	}
 }
 
-// emitFixedArgs emits the non-variadic arguments for a variadic call.
-func (g *Generator) emitFixedArgs(w io.Writer, call *ast.CallExpr, sig *types.Signature) {
+// emitFuncVarArgs packs trailing arguments into an inline so_Slice literal.
+func (g *Generator) emitFuncVarArgs(w io.Writer, call *ast.CallExpr, sig *types.Signature) {
+	// Emit fixed args first.
 	fixedCount := sig.Params().Len() - 1
 	for i := 0; i < fixedCount && i < len(call.Args); i++ {
 		if i > 0 {
@@ -327,13 +322,9 @@ func (g *Generator) emitFixedArgs(w io.Writer, call *ast.CallExpr, sig *types.Si
 		}
 		g.emitExprAsType(w, call, call.Args[i], sig.Params().At(i).Type())
 	}
-}
 
-// emitVariadicArgs packs trailing arguments into an inline so_Slice literal.
-func (g *Generator) emitVariadicArgs(w io.Writer, call *ast.CallExpr, sig *types.Signature) {
-	fixedCount := sig.Params().Len() - 1
+	// Emit variadic args as a so_Slice literal.
 	variadicArgs := call.Args[fixedCount:]
-
 	if fixedCount > 0 {
 		fmt.Fprint(w, ", ")
 	}
@@ -359,12 +350,17 @@ func (g *Generator) emitVariadicArgs(w io.Writer, call *ast.CallExpr, sig *types
 	fmt.Fprintf(w, "}, %d, %d}", count, count)
 }
 
-// emitCArgs emits arguments for an extern C function call.
-func (g *Generator) emitCArgs(w io.Writer, call *ast.CallExpr) {
+// emitFuncExternArgs emits arguments for an extern C function call, handling type decay.
+func (g *Generator) emitFuncExternArgs(w io.Writer, call *ast.CallExpr) {
+	if call.Ellipsis.IsValid() {
+		g.fail(call, "spreading variadic arguments to an extern function is not supported")
+	}
+
 	var sig *types.Signature
 	if funType := g.types.TypeOf(call.Fun); funType != nil {
 		sig, _ = funType.Underlying().(*types.Signature)
 	}
+
 	for i, arg := range call.Args {
 		if i > 0 {
 			fmt.Fprint(w, ", ")

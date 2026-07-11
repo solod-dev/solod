@@ -283,40 +283,71 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 func (g *Generator) emitMethodCallArgs(w io.Writer, sel *ast.SelectorExpr, call *ast.CallExpr, sig *types.Signature, lparen, rparen string) {
 	args := call.Args
 
+	if ext, ok := g.methodExtern(sel); ok && !ext.nodecay {
+		// Extern C method: decay args to C-compatible types.
+		g.emitMethodExternArgs(w, sel, call, sig)
+		return
+	}
+
 	if sig.Variadic() && !call.Ellipsis.IsValid() {
-		// Variadic call with individual args: emit fixed args, then pack trailing args.
-		fixedCount := sig.Params().Len() - 1
-		for i := 0; i < fixedCount && i < len(args); i++ {
-			fmt.Fprintf(w, ", %s", lparen)
-			g.emitExprAsType(w, sel, args[i], sig.Params().At(i).Type())
-			fmt.Fprint(w, rparen)
-		}
-		variadicArgs := args[fixedCount:]
-		variadicParam := sig.Params().At(sig.Params().Len() - 1)
-		elemType := g.mapType(sel, variadicParam.Type().(*types.Slice).Elem())
-		count := len(variadicArgs)
-		targetType := variadicParam.Type().(*types.Slice).Elem()
-		if count == 0 {
-			// No variadic args: emit a nil slice.
-			fmt.Fprintf(w, ", %s(so_Slice){0}%s", lparen, rparen)
-			return
-		}
-		fmt.Fprintf(w, ", %s(so_Slice){(%s[%d]){", lparen, elemType, count)
-		for i, arg := range variadicArgs {
-			if i > 0 {
-				fmt.Fprint(w, ", ")
-			}
-			g.emitExprAsType(w, sel, arg, targetType)
-		}
-		fmt.Fprintf(w, "}, %d, %d}%s", count, count, rparen)
-	} else {
-		// Non-variadic call or variadic call with ellipsis: emit all args directly.
-		for i, arg := range args {
-			fmt.Fprintf(w, ", %s", lparen)
+		// Variadic call with individual args: pack trailing args into a slice literal.
+		g.emitMethodVarArgs(w, sel, call, sig, lparen, rparen)
+		return
+	}
+
+	// Non-variadic call or variadic call with ellipsis: emit all args directly.
+	for i, arg := range args {
+		fmt.Fprintf(w, ", %s", lparen)
+		g.emitExprAsType(w, sel, arg, sig.Params().At(i).Type())
+		fmt.Fprint(w, rparen)
+	}
+}
+
+// emitMethodExternArgs emits method arguments for an extern C method, handling type decay.
+func (g *Generator) emitMethodExternArgs(w io.Writer, sel *ast.SelectorExpr, call *ast.CallExpr, sig *types.Signature) {
+	if call.Ellipsis.IsValid() {
+		g.fail(call, "spreading variadic arguments to an extern function is not supported")
+	}
+	for i, arg := range call.Args {
+		fmt.Fprint(w, ", ")
+		if i < sig.Params().Len() && isNamedNonEmptyInterface(sig.Params().At(i).Type()) {
 			g.emitExprAsType(w, sel, arg, sig.Params().At(i).Type())
-			fmt.Fprint(w, rparen)
+		} else {
+			g.emitCArg(w, arg)
 		}
 	}
+}
+
+func (g *Generator) emitMethodVarArgs(w io.Writer, sel *ast.SelectorExpr, call *ast.CallExpr, sig *types.Signature, lparen, rparen string) {
+	// Emit fixed args first.
+	fixedCount := sig.Params().Len() - 1
+	args := call.Args
+	for i := 0; i < fixedCount && i < len(args); i++ {
+		fmt.Fprintf(w, ", %s", lparen)
+		g.emitExprAsType(w, sel, args[i], sig.Params().At(i).Type())
+		fmt.Fprint(w, rparen)
+	}
+
+	// Emit variadic args as a so_Slice literal.
+	variadicArgs := args[fixedCount:]
+	variadicParam := sig.Params().At(sig.Params().Len() - 1)
+	elemType := g.mapType(sel, variadicParam.Type().(*types.Slice).Elem())
+	count := len(variadicArgs)
+	targetType := variadicParam.Type().(*types.Slice).Elem()
+	if count == 0 {
+		// No variadic args: emit a nil slice.
+		fmt.Fprintf(w, ", %s(so_Slice){0}%s", lparen, rparen)
+		return
+	}
+
+	fmt.Fprintf(w, ", %s(so_Slice){(%s[%d]){", lparen, elemType, count)
+	for i, arg := range variadicArgs {
+		if i > 0 {
+			fmt.Fprint(w, ", ")
+		}
+		g.emitExprAsType(w, sel, arg, targetType)
+	}
+	fmt.Fprintf(w, "}, %d, %d}%s", count, count, rparen)
 }
 
 // structFieldType returns the type of a struct field by name.

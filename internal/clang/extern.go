@@ -71,9 +71,9 @@ func parseExtern(doc *ast.CommentGroup) (bool, externInfo) {
 	return false, externInfo{}
 }
 
-// callExtern returns the extern metadata for a call expression, if it
-// targets an extern C function.
-func (g *Generator) callExtern(call *ast.CallExpr) (externInfo, bool) {
+// funcExtern returns the extern metadata for a function call
+// if the function is marked as extern.
+func (g *Generator) funcExtern(call *ast.CallExpr) (externInfo, bool) {
 	switch fun := call.Fun.(type) {
 	case *ast.Ident:
 		// Local package call.
@@ -89,6 +89,16 @@ func (g *Generator) callExtern(call *ast.CallExpr) (externInfo, bool) {
 		return g.callExternField(fun)
 	}
 	return externInfo{}, false
+}
+
+// methodExtern returns the extern metadata for a method-value selector
+// if the method is marked as extern.
+func (g *Generator) methodExtern(sel *ast.SelectorExpr) (externInfo, bool) {
+	selection, ok := g.types.Selections[sel]
+	if !ok || selection.Kind() != types.MethodVal {
+		return externInfo{}, false
+	}
+	return g.getExtern(selection.Obj())
 }
 
 // callExternField checks whether a selector targets a function pointer field
