@@ -17,7 +17,7 @@ package path
 import (
 	"solod.dev/so/bytealg"
 	"solod.dev/so/mem"
-	"solod.dev/so/stringslite"
+	"solod.dev/so/strings"
 )
 
 // Clean returns the shortest path name equivalent to path
@@ -40,7 +40,7 @@ import (
 // The returned string is allocated; the caller owns it.
 func Clean(a mem.Allocator, path string) string {
 	if path == "" {
-		return stringslite.Clone(a, ".")
+		return strings.Clone(a, ".")
 	}
 
 	rooted := path[0] == '/'
@@ -101,7 +101,7 @@ func Clean(a mem.Allocator, path string) string {
 	// Turn empty string into "."
 	if out.w == 0 {
 		out.free()
-		return stringslite.Clone(a, ".")
+		return strings.Clone(a, ".")
 	}
 
 	return out.string()
@@ -240,7 +240,7 @@ func (b *lazybuf) append(c byte) {
 
 func (b *lazybuf) string() string {
 	if b.buf == nil {
-		return stringslite.Clone(b.a, b.s[:b.w])
+		return strings.Clone(b.a, b.s[:b.w])
 	}
 	return string(b.buf[:b.w])
 }

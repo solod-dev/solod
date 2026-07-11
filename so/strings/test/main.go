@@ -12,6 +12,8 @@ func main() {
 		{Name: "TestCut", F: TestCut},
 		{Name: "TestCutPrefixSuffix", F: TestCutPrefixSuffix},
 		{Name: "TestIndex", F: TestIndex},
+		{Name: "TestHasPrefixSuffix", F: TestHasPrefixSuffix},
+		{Name: "TestTrimPrefixSuffix", F: TestTrimPrefixSuffix},
 		{Name: "TestRepeat", F: TestRepeat},
 		{Name: "TestReplace", F: TestReplace},
 		{Name: "TestSplitJoin", F: TestSplitJoin},

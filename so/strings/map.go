@@ -6,7 +6,6 @@ package strings
 
 import (
 	"solod.dev/so/mem"
-	"solod.dev/so/stringslite"
 	"solod.dev/so/unicode"
 	"solod.dev/so/unicode/utf8"
 )
@@ -31,7 +30,7 @@ func ToUpper(a mem.Allocator, s string) string {
 
 	if isASCII { // optimize for ASCII-only strings.
 		if !hasLower {
-			return stringslite.Clone(a, s)
+			return Clone(a, s)
 		}
 		b := Builder{a: a}
 		pos := 0
@@ -71,7 +70,7 @@ func ToLower(a mem.Allocator, s string) string {
 
 	if isASCII { // optimize for ASCII-only strings.
 		if !hasUpper {
-			return stringslite.Clone(a, s)
+			return Clone(a, s)
 		}
 		b := Builder{a: a}
 		pos := 0
@@ -134,7 +133,7 @@ func Map(a mem.Allocator, mapping RuneFunc, s string) string {
 
 	// Fast path for unchanged input
 	if b.Cap() == 0 { // didn't call b.Grow above
-		return stringslite.Clone(a, s)
+		return Clone(a, s)
 	}
 
 	for _, c := range s {

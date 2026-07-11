@@ -7,7 +7,6 @@ package strings
 import (
 	"solod.dev/so/math/bits"
 	"solod.dev/so/mem"
-	"solod.dev/so/stringslite"
 )
 
 // maxInt is the maximum value of an int.
@@ -45,7 +44,7 @@ func Repeat(a mem.Allocator, s string, count int) string {
 	if count == 0 {
 		return ""
 	} else if count == 1 {
-		return stringslite.Clone(a, s)
+		return Clone(a, s)
 	}
 
 	// Since we cannot return an error on overflow,
@@ -67,15 +66,15 @@ func Repeat(a mem.Allocator, s string, count int) string {
 	// Optimize for commonly repeated strings of relatively short length.
 	if s[0] == ' ' || s[0] == '-' || s[0] == '0' || s[0] == '=' || s[0] == '\t' {
 		if n <= len(repeatedSpaces) && HasPrefix(repeatedSpaces, s) {
-			return stringslite.Clone(a, repeatedSpaces[:n])
+			return Clone(a, repeatedSpaces[:n])
 		} else if n <= len(repeatedDashes) && HasPrefix(repeatedDashes, s) {
-			return stringslite.Clone(a, repeatedDashes[:n])
+			return Clone(a, repeatedDashes[:n])
 		} else if n <= len(repeatedZeroes) && HasPrefix(repeatedZeroes, s) {
-			return stringslite.Clone(a, repeatedZeroes[:n])
+			return Clone(a, repeatedZeroes[:n])
 		} else if n <= len(repeatedEquals) && HasPrefix(repeatedEquals, s) {
-			return stringslite.Clone(a, repeatedEquals[:n])
+			return Clone(a, repeatedEquals[:n])
 		} else if n <= len(repeatedTabs) && HasPrefix(repeatedTabs, s) {
-			return stringslite.Clone(a, repeatedTabs[:n])
+			return Clone(a, repeatedTabs[:n])
 		}
 	}
 

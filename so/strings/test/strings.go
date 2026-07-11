@@ -64,6 +64,30 @@ func TestIndex(t *testing.T) {
 	if idx != 4 {
 		t.Error("IndexAny failed")
 	}
+	idx = strings.IndexByte("hello world", 'o')
+	if idx != 4 {
+		t.Error("IndexByte failed")
+	}
+}
+
+func TestHasPrefixSuffix(t *testing.T) {
+	src := "hello world"
+	if !strings.HasPrefix(src, "hello") || strings.HasPrefix(src, "world") {
+		t.Error("HasPrefix failed")
+	}
+	if !strings.HasSuffix(src, "world") || strings.HasSuffix(src, "hello") {
+		t.Error("HasSuffix failed")
+	}
+}
+
+func TestTrimPrefixSuffix(t *testing.T) {
+	src := "hello world"
+	if s := strings.TrimPrefix(src, "hello "); s != "world" {
+		t.Error("TrimPrefix failed")
+	}
+	if s := strings.TrimSuffix(src, " world"); s != "hello" {
+		t.Error("TrimSuffix failed")
+	}
 }
 
 func TestRepeat(t *testing.T) {

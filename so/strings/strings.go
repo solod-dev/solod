@@ -8,7 +8,6 @@ package strings
 import (
 	"solod.dev/so/bytealg"
 	"solod.dev/so/mem"
-	"solod.dev/so/stringslite"
 	"solod.dev/so/unicode/utf8"
 )
 
@@ -26,7 +25,12 @@ import (
 // If the allocator is nil, uses the system allocator.
 // The returned string is allocated; the caller owns it.
 func Clone(a mem.Allocator, s string) string {
-	return stringslite.Clone(a, s)
+	if len(s) == 0 {
+		return ""
+	}
+	b := mem.AllocSlice[byte](a, len(s), len(s))
+	copy(b, s)
+	return string(b)
 }
 
 // Compare returns an integer comparing two strings lexicographically.
@@ -64,7 +68,10 @@ func Count(s, substr string) int {
 // returning the text before and after sep.
 // If sep does not appear in s, cut returns s, "".
 func Cut(s, sep string) (string, string) {
-	return stringslite.Cut(s, sep)
+	if i := Index(s, sep); i >= 0 {
+		return s[:i], s[i+len(sep):]
+	}
+	return s, ""
 }
 
 // CutPrefix returns s without the provided leading prefix string
@@ -72,7 +79,10 @@ func Cut(s, sep string) (string, string) {
 // If s doesn't start with prefix, CutPrefix returns s, false.
 // If prefix is the empty string, CutPrefix returns s, true.
 func CutPrefix(s, prefix string) (string, bool) {
-	return stringslite.CutPrefix(s, prefix)
+	if !HasPrefix(s, prefix) {
+		return s, false
+	}
+	return s[len(prefix):], true
 }
 
 // CutSuffix returns s without the provided ending suffix string
@@ -80,7 +90,10 @@ func CutPrefix(s, prefix string) (string, bool) {
 // If s doesn't end with suffix, CutSuffix returns s, false.
 // If suffix is the empty string, CutSuffix returns s, true.
 func CutSuffix(s, suffix string) (string, bool) {
-	return stringslite.CutSuffix(s, suffix)
+	if !HasSuffix(s, suffix) {
+		return s, false
+	}
+	return s[:len(s)-len(suffix)], true
 }
 
 // Join concatenates the elements of its first argument to create a single string.
@@ -93,7 +106,7 @@ func Join(a mem.Allocator, elems []string, sep string) string {
 	if len(elems) == 0 {
 		return ""
 	} else if len(elems) == 1 {
-		return stringslite.Clone(a, elems[0])
+		return Clone(a, elems[0])
 	}
 
 	var n int
@@ -122,12 +135,12 @@ func Join(a mem.Allocator, elems []string, sep string) string {
 
 // HasPrefix reports whether the string s begins with prefix.
 func HasPrefix(s, prefix string) bool {
-	return stringslite.HasPrefix(s, prefix)
+	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
 }
 
 // HasSuffix reports whether the string s ends with suffix.
 func HasSuffix(s, suffix string) bool {
-	return stringslite.HasSuffix(s, suffix)
+	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
 }
 
 // Replace returns a copy of the string s with the first n
@@ -143,12 +156,12 @@ func HasSuffix(s, suffix string) bool {
 // The returned string is allocated; the caller owns it.
 func Replace(a mem.Allocator, s, old, new string, n int) string {
 	if old == new || n == 0 {
-		return stringslite.Clone(a, s)
+		return Clone(a, s)
 	}
 
 	// Compute number of replacements.
 	if m := Count(s, old); m == 0 {
-		return stringslite.Clone(a, s)
+		return Clone(a, s)
 	} else if n < 0 || m < n {
 		n = m
 	}

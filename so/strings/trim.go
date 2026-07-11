@@ -5,7 +5,6 @@
 package strings
 
 import (
-	"solod.dev/so/stringslite"
 	"solod.dev/so/unicode"
 	"solod.dev/so/unicode/utf8"
 )
@@ -95,13 +94,19 @@ func TrimSpace(s string) string {
 // TrimPrefix returns s without the provided leading prefix string.
 // If s doesn't start with prefix, s is returned unchanged.
 func TrimPrefix(s, prefix string) string {
-	return stringslite.TrimPrefix(s, prefix)
+	if HasPrefix(s, prefix) {
+		return s[len(prefix):]
+	}
+	return s
 }
 
 // TrimSuffix returns s without the provided trailing suffix string.
 // If s doesn't end with suffix, s is returned unchanged.
 func TrimSuffix(s, suffix string) string {
-	return stringslite.TrimSuffix(s, suffix)
+	if HasSuffix(s, suffix) {
+		return s[:len(s)-len(suffix)]
+	}
+	return s
 }
 
 // TrimFunc returns a slice of the string s with all leading

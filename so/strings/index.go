@@ -6,7 +6,6 @@ package strings
 
 import (
 	"solod.dev/so/bytealg"
-	"solod.dev/so/stringslite"
 	"solod.dev/so/unicode/utf8"
 )
 
@@ -68,7 +67,48 @@ func ContainsFunc(s string, f RunePredicate) bool {
 
 // Index returns the index of the first instance of substr in s, or -1 if substr is not present in s.
 func Index(s, substr string) int {
-	return stringslite.Index(s, substr)
+	n := len(substr)
+	if n == 0 {
+		return 0
+	} else if n == 1 {
+		return IndexByte(s, substr[0])
+	} else if n == len(s) {
+		if substr == s {
+			return 0
+		}
+		return -1
+	} else if n > len(s) {
+		return -1
+	}
+
+	c0 := substr[0]
+	c1 := substr[1]
+	i := 0
+	t := len(s) - n + 1
+	fails := 0
+	for i < t {
+		if s[i] != c0 {
+			o := IndexByte(s[i+1:t], c0)
+			if o < 0 {
+				return -1
+			}
+			i += o + 1
+		}
+		if s[i+1] == c1 && s[i:i+n] == substr {
+			return i
+		}
+		i++
+		fails++
+		if fails >= (4+(i>>4)) && i < t {
+			// See comment in [bytes.Index].
+			j := bytealg.IndexRabinKarp([]byte(s[i:]), []byte(substr))
+			if j < 0 {
+				return -1
+			}
+			return i + j
+		}
+	}
+	return -1
 }
 
 // LastIndex returns the index of the last instance of substr in s, or -1 if substr is not present in s.
@@ -109,7 +149,7 @@ func LastIndex(s, substr string) int {
 
 // IndexByte returns the index of the first instance of c in s, or -1 if c is not present in s.
 func IndexByte(s string, c byte) int {
-	return stringslite.IndexByte(s, c)
+	return bytealg.IndexByteString(s, c)
 }
 
 // IndexRune returns the index of the first instance of the Unicode code point
