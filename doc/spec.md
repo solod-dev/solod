@@ -11,7 +11,7 @@ Solod (So) is a strict subset of Go that transpiles to regular C. This document 
 [If/else](#ifelse) •
 [Switch](#switch) •
 [For](#for) •
-[Goto](#goto) •
+[Goto](#labels-and-goto) •
 [Functions](#functions) •
 [Multiple returns](#multiple-return-values) •
 [Variadic functions](#variadic-functions) •
@@ -123,7 +123,14 @@ var vNil any        // NULL
 
 ## Strings
 
-Strings are represented as `so_String` type in C (a struct with a `ptr` and `len`). String literals are wrapped in `so_str()`.
+Strings are represented as `so_String` type in C:
+
+```c
+typedef struct {
+    const char* ptr;
+    so_int len;
+} so_String;
+```
 
 Indexing a string returns a byte (`uint8_t`):
 
@@ -150,7 +157,7 @@ s3 := s[:3]   // "hel"
 s4 := s[1:4]  // "ell"
 ```
 
-String comparison uses dedicated functions (`so_string_eq`, etc.) instead of C operators:
+Comparing strings (uses `memcmp`):
 
 ```go
 s1 := "hello"
@@ -165,14 +172,14 @@ Converting a string to a byte or rune slice:
 ```go
 s := "1世3"
 bs := []byte(s)  // zero-copy view of s
-rs := []rune(s)  // allocates
+rs := []rune(s)  // allocates with alloca
 ```
 
 Converting a byte or a rune slice to a string:
 
 ```go
 s1 := string(bs)  // zero-copy view of bs
-s2 := string(rs)  // allocates
+s2 := string(rs)  // allocates with alloca
 ```
 
 `string([]byte)` and `[]byte(string)` are zero-copy views that alias the original data. Modifying the byte slice will affect the string and vice versa. Clone the data if you need an independent copy.
@@ -225,15 +232,21 @@ nums := [...]int{1, 2, 3, 4, 5}
 s := nums[1:4]  // s is a so_Slice
 ```
 
-Limitations:
+Arrays decay to pointers when passed to functions (no value semantics on calls).
 
-- Arrays decay to pointers when passed to functions (no value semantics on calls).
-- Cannot return arrays from functions.
-- Array assignment uses `memcpy`.
+Array assignment uses `memcpy`.
 
 ## Slices
 
-Slices are represented as `so_Slice` type in C (a struct with a data pointer, `len`, and `cap`).
+Slices are represented as `so_Slice` type in C:
+
+```c
+typedef struct {
+    void* ptr;
+    so_int len;
+    so_int cap;
+} so_Slice;
+```
 
 Slice literals:
 
@@ -279,7 +292,7 @@ c := cap(s)                 // capacity
 x := s[2]                   // index access
 ```
 
-`make()` allocates a fixed amount of memory on the stack (`sizeof(T)*cap`). `append()` only works up to the initial capacity and panics if it's exceeded. There's no automatic reallocation. Use the `so/slices` package instead of `make` and `append` for heap allocation and dynamic arrays.
+`make()` allocates a fixed amount of memory on the stack (`sizeof(T)*cap`) with `alloca`. `append()` only works up to the initial capacity and panics if it's exceeded. There's no automatic reallocation. Use the `so/slices` package instead of `make` and `append` for heap allocation and dynamic arrays.
 
 Iterating over a slice with `range`:
 
@@ -297,11 +310,20 @@ s[1] <<= 2
 s[1]++
 ```
 
-`clear` zeros all elements of a slice to their zero value. Length and capacity are unchanged. `clear` is not supported for maps.
+`clear` zeros all elements of a slice to their zero value. Length and capacity are unchanged.
 
 ## Maps
 
 Maps are fixed-size and stack-allocated, backed by "mask-step-index" hashtables. They are pointer-based reference types, represented as `so_Map*` in C. No delete, no resize.
+
+```c
+typedef struct {
+    void* keys;
+    void* vals;
+    so_int len;
+    so_int cap;
+} so_Map;
+```
 
 Only use maps when you have a small, fixed number of items (<1024). For anything else, use heap-allocated maps from the `so/maps` package.
 
@@ -318,7 +340,7 @@ Creating a map with `make`:
 m := make(map[string]int, 2)
 ```
 
-The capacity argument is required and determines the fixed size of the map. `make()` allocates key and value arrays on the stack.
+The capacity argument is required and determines the fixed size of the map. `make()` allocates key and value arrays on the stack with `alloca`.
 
 Setting and getting values:
 
@@ -348,13 +370,15 @@ for k, v := range m {
 
 Supported key types: all integer types, `bool`, `float32`, `float64`, `string`, and pointers.
 
+A `nil` map emits as `NULL` in C.
+
 Limitations:
 
 - Maps have a fixed capacity set at creation time. Setting a key when the map is full panics.
 - Compound assignment on map index (`m["a"] += 1`) is not supported.
 - Arrays as map value types are not supported.
-- Returning maps from functions is not supported (stack-allocated keys/vals become dangling).
 - `delete` is not supported.
+- `clear` is not supported with maps.
 
 ## If/else
 
@@ -425,7 +449,7 @@ case 42:
 }
 ```
 
-String switch uses `so_string_eq` for comparisons.
+String switch uses `memcmp` for comparisons.
 
 `fallthrough` and type switches are not supported.
 
@@ -467,9 +491,9 @@ for k := range 3 {
 
 Range over a slice and range over a string are also supported.
 
-`break` and `continue` work as expected.
+Regular `break` and `continue` work as expected.
 
-## Goto
+## Labels and goto
 
 Labels and `goto` map directly to C:
 
@@ -488,6 +512,23 @@ next:
 fallback:
     println("done")
 ```
+
+Labeled `break` in a loop works as expected:
+
+```go
+sum := 0
+outer:
+for i := range 5 {
+    for j := range 5 {
+        if i+j > 3 {
+            break outer
+        }
+        sum += i + j
+    }
+}
+```
+
+Labeled `continue` is not supported.
 
 ## Functions
 
@@ -735,7 +776,12 @@ func (r Rect) resize(x int) Rect {
 }
 ```
 
-Pointer receivers pass `void* self` in C and cast to the struct pointer. Value receivers pass the struct by value, so modifications operate on a copy.
+A method translates to a regular function in C; the receiver is passed as the first argument. Pointer receivers are passed as `void*`, value receivers are passed as a typed value:
+
+```c
+so_int main_Rect_Area(void* self)
+static main_Rect main_Rect_resize(main_Rect r, so_int x)
+```
 
 Calling methods on values and pointers:
 
@@ -776,7 +822,17 @@ type Shape interface {
 
 In C, an interface is a struct with a `void* self` pointer and function pointers for each method (less efficient than using a static method table, but simpler; this might change in the future).
 
-Interface methods must use pointer receivers, since the vtable uses `void* self` function pointers. Converting a concrete type to an interface requires passing a pointer:
+```c
+typedef struct main_Shape {
+    void* self;
+    so_int (*Area)(void* self);
+    so_int (*Perim)(void* self, so_int n);
+} main_Shape;
+```
+
+Interface methods must use pointer receivers, since the vtable uses `void* self` function pointers.
+
+Converting a concrete type to an interface requires passing a pointer:
 
 ```go
 s := Shape(&r)
@@ -876,7 +932,7 @@ const (
 )
 ```
 
-Each constant is emitted as a C `const`. Exported constants are public, unexported ones are `static`.
+Each constant is emitted as a C `const`.
 
 `iota` is supported for integer-typed constants:
 
@@ -890,19 +946,18 @@ const (
 )
 ```
 
-Iota values are evaluated at compile time and translated to integer literals:
-
-```c
-typedef so_int main_Day;
-
-const main_Day main_Sunday = 0;
-const main_Day main_Monday = 1;
-const main_Day main_Tuesday = 2;
-```
+Iota values are evaluated at compile time and translated to integer literals.
 
 ## Errors
 
-The `error` type is a regular interface with an `Error() string` method. In C, it is represented as `so_Error` — an interface struct with a `void* self` pointer and an `Error` function pointer, following the same pattern as other named interfaces.
+The `error` type is a regular interface with an `Error() string` method. In C, it is represented as `so_Error` an interface struct, following the same pattern as other named interfaces:
+
+```c
+typedef struct {
+    void* self;
+    so_String (*Error)(void* self);
+} so_Error;
+```
 
 Use `errors.New` to create sentinel errors at the package level:
 
