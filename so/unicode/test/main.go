@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/unicode", []testing.Test{
+	testing.RunTests("so/unicode", os.Args, []testing.Test{
 		{Name: "TestIs", F: TestIs},
 		{Name: "TestTo", F: TestTo},
 	})

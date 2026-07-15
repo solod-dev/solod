@@ -75,6 +75,24 @@ ok	so/sync	4 tests
 
 `so test` exits non-zero if any test fails. The `=== RUN` line is printed before each test, so if a test hard-crashes (a `panic` or a segfault, which cannot be recovered), the output still identifies the culprit.
 
+### Running a subset
+
+The `-run` flag limits the run to tests whose names start with a given prefix. Unlike Go's `-run`, it is a plain prefix match, not a regexp:
+
+```
+so test -run=TestMutex ./so/sync
+```
+
+```
+=== RUN   TestMutex_LockUnlock
+--- PASS: TestMutex_LockUnlock
+=== RUN   TestMutex_TryLock
+--- PASS: TestMutex_TryLock
+ok	so/sync	2 tests
+```
+
+Here, `-run=TestMutex` runs all tests that start with `TestMutex`, while `-run=TestMutex_TryLock` runs only that specific test. If a prefix doesn't match any test, no tests will run.
+
 ## How it works
 
 `so test`:

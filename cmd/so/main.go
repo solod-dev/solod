@@ -127,6 +127,7 @@ func build(args []string) error {
 
 func test(args []string) error {
 	flags := flag.NewFlagSet("test", flag.ContinueOnError)
+	run := flags.String("run", "", "run only tests whose names start with this prefix")
 	checkNil := flags.Bool("check-nil", false, "check for nil pointer dereference")
 	trackSource := flags.Bool("track-source", false, "track source locations for panics")
 	if err := flags.Parse(args); err != nil {
@@ -138,11 +139,17 @@ func test(args []string) error {
 		pkg = flags.Arg(0)
 	}
 
+	// Forward the test-related options to the compiled runner.
+	var runArgs []string
+	if *run != "" {
+		runArgs = []string{"-run=" + *run}
+	}
+
 	opts := compiler.Options{
 		CheckNil:    *checkNil,
 		TrackSource: *trackSource,
 	}
-	return compiler.Test(pkg, opts)
+	return compiler.Test(pkg, runArgs, opts)
 }
 
 func bench(args []string) error {

@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/time", []testing.Test{
+	testing.RunTests("so/time", os.Args, []testing.Test{
 		{Name: "TestFormat_RFC3339", F: TestFormat_RFC3339},
 		{Name: "TestFormat_RFC3339Nano", F: TestFormat_RFC3339Nano},
 		{Name: "TestFormat_DateTime", F: TestFormat_DateTime},

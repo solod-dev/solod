@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/net", []testing.Test{
+	testing.RunTests("so/net", os.Args, []testing.Test{
 		{Name: "TestSplitHostPort", F: TestSplitHostPort},
 		{Name: "TestJoinHostPort", F: TestJoinHostPort},
 		{Name: "TestTCP_ResolveNamedPort", F: TestTCP_ResolveNamedPort},

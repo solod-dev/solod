@@ -1,9 +1,11 @@
 package testing
 
 import (
+	"solod.dev/so/flag"
 	"solod.dev/so/fmt"
 	"solod.dev/so/io"
 	"solod.dev/so/os"
+	"solod.dev/so/strings"
 )
 
 // The C backing for the variadic Errorf/Fatalf methods, which cannot be
@@ -101,10 +103,24 @@ type Test struct {
 
 // RunTests runs the given tests for package pkg, prints per-test results
 // to stdout, and exits with a non-zero status if any test failed.
-func RunTests(pkg string, tests []Test) {
+// args is the runner's os.Args; RunTests parses flags from it.
+func RunTests(pkg string, args []string, tests []Test) {
+	var run string
+	fs := flag.NewFlagSet("so test", flag.ContinueOnError)
+	fs.StringVar(&run, "run", "", "run only tests whose names start with this prefix")
+	if err := fs.Parse(args[1:]); err != nil {
+		os.Exit(2)
+	}
+
 	failed := 0
 	skipped := 0
+	total := 0
 	for _, tc := range tests {
+		if !strings.HasPrefix(tc.Name, run) {
+			continue
+		}
+		total++
+
 		t := &T{name: tc.Name, w: os.Stdout}
 		fmt.Fprintf(t.w, "=== RUN   %s\n", t.name)
 		tc.F(t)
@@ -122,13 +138,17 @@ func RunTests(pkg string, tests []Test) {
 		fmt.Fprintf(t.w, "--- PASS: %s\n", t.name)
 	}
 
+	if total == 0 {
+		fmt.Fprintf(os.Stdout, "ok\t%s\t%d tests [no tests to run]\n", pkg, total)
+		return
+	}
 	if failed > 0 {
-		fmt.Fprintf(os.Stdout, "FAIL\t%s\t%d of %d failed\n", pkg, failed, len(tests))
+		fmt.Fprintf(os.Stdout, "FAIL\t%s\t%d of %d failed\n", pkg, failed, total)
 		os.Exit(1)
 	}
 	if skipped > 0 {
-		fmt.Fprintf(os.Stdout, "ok\t%s\t%d tests (%d skipped)\n", pkg, len(tests), skipped)
+		fmt.Fprintf(os.Stdout, "ok\t%s\t%d tests (%d skipped)\n", pkg, total, skipped)
 		return
 	}
-	fmt.Fprintf(os.Stdout, "ok\t%s\t%d tests\n", pkg, len(tests))
+	fmt.Fprintf(os.Stdout, "ok\t%s\t%d tests\n", pkg, total)
 }

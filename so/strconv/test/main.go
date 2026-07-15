@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/strconv", []testing.Test{
+	testing.RunTests("so/strconv", os.Args, []testing.Test{
 		{Name: "TestAppendBool", F: TestAppendBool},
 		{Name: "TestAppendFloat", F: TestAppendFloat},
 		{Name: "TestAppendInt", F: TestAppendInt},

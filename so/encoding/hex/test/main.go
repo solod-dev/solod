@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/encoding/hex", []testing.Test{
+	testing.RunTests("so/encoding/hex", os.Args, []testing.Test{
 		{Name: "TestEncode", F: TestEncode},
 		{Name: "TestEncodeToString", F: TestEncodeToString},
 		{Name: "TestDecode", F: TestDecode},

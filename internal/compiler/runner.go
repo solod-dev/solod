@@ -33,7 +33,7 @@ type kind struct {
 
 // run discovers the kind's functions in the subdir of srcDir, generates a
 // deterministic main.go runner there, and runs it via Run.
-func (k kind) run(srcDir string, opts Options) error {
+func (k kind) run(srcDir string, args []string, opts Options) error {
 	dir := filepath.Join(srcDir, k.subdir)
 	info, err := os.Stat(dir)
 	if err != nil || !info.IsDir() {
@@ -52,7 +52,7 @@ func (k kind) run(srcDir string, opts Options) error {
 		return err
 	}
 
-	return Run(dir, nil, opts)
+	return Run(dir, args, opts)
 }
 
 // find parses every non-generated .go file in dir and returns the names of

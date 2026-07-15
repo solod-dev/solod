@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/sync", []testing.Test{
+	testing.RunTests("so/sync", os.Args, []testing.Test{
 		{Name: "TestCond", F: TestCond},
 		{Name: "TestMutex_LockUnlock", F: TestMutex_LockUnlock},
 		{Name: "TestMutex_TryLock", F: TestMutex_TryLock},

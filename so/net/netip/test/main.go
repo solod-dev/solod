@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/net/netip", []testing.Test{
+	testing.RunTests("so/net/netip", os.Args, []testing.Test{
 		{Name: "TestParseAddr_IPv4", F: TestParseAddr_IPv4},
 		{Name: "TestParseAddr_IPv6", F: TestParseAddr_IPv6},
 		{Name: "TestAddr_String", F: TestAddr_String},

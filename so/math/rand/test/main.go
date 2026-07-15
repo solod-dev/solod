@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/math/rand", []testing.Test{
+	testing.RunTests("so/math/rand", os.Args, []testing.Test{
 		{Name: "TestInt", F: TestInt},
 		{Name: "TestFloat64", F: TestFloat64},
 		{Name: "TestGlobal", F: TestGlobal},

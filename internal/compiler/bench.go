@@ -19,7 +19,7 @@ var benchKind = kind{
 // Bench discovers BenchmarkXxx functions in the "bench" subdirectory of srcDir,
 // generates a deterministic main.go runner there, and runs it via Run.
 func Bench(srcDir string, opts Options) error {
-	return benchKind.run(srcDir, opts)
+	return benchKind.run(srcDir, nil, opts)
 }
 
 // emitBenchmarks writes the runner body dispatching the benchmarks via

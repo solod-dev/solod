@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/encoding/binary", []testing.Test{
+	testing.RunTests("so/encoding/binary", os.Args, []testing.Test{
 		{Name: "TestBigEndian", F: TestBigEndian},
 		{Name: "TestLittleEndian", F: TestLittleEndian},
 	})

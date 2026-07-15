@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/bytes", []testing.Test{
+	testing.RunTests("so/bytes", os.Args, []testing.Test{
 		{Name: "TestBuffer_Stack", F: TestBuffer_Stack},
 		{Name: "TestBuffer_Heap", F: TestBuffer_Heap},
 		{Name: "TestClone", F: TestClone},

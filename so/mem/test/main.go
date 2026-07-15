@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/mem", []testing.Test{
+	testing.RunTests("so/mem", os.Args, []testing.Test{
 		{Name: "TestTryAlloc", F: TestTryAlloc},
 		{Name: "TestTryAllocSlice", F: TestTryAllocSlice},
 		{Name: "TestAlloc", F: TestAlloc},

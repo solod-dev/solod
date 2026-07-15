@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/sync/atomic", []testing.Test{
+	testing.RunTests("so/sync/atomic", os.Args, []testing.Test{
 		{Name: "TestBool", F: TestBool},
 		{Name: "TestInt32_Concurrent", F: TestInt32_Concurrent},
 		{Name: "TestInt32_SwapCAS", F: TestInt32_SwapCAS},

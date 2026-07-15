@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/log/slog", []testing.Test{
+	testing.RunTests("so/log/slog", os.Args, []testing.Test{
 		{Name: "TestEnabled", F: TestEnabled},
 		{Name: "TestText", F: TestText},
 		{Name: "TestDefaultConcurrentInit", F: TestDefaultConcurrentInit},

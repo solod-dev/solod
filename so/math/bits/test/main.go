@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/math/bits", []testing.Test{
+	testing.RunTests("so/math/bits", os.Args, []testing.Test{
 		{Name: "TestAdd32", F: TestAdd32},
 		{Name: "TestSub32", F: TestSub32},
 		{Name: "TestMul32", F: TestMul32},

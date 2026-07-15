@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/conc", []testing.Test{
+	testing.RunTests("so/conc", os.Args, []testing.Test{
 		{Name: "TestChan_Buffered", F: TestChan_Buffered},
 		{Name: "TestChan_ProducerConsumer", F: TestChan_ProducerConsumer},
 		{Name: "TestChan_Unbuffered", F: TestChan_Unbuffered},

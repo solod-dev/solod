@@ -2,10 +2,13 @@
 
 package main
 
-import "solod.dev/so/testing"
+import (
+	"solod.dev/so/os"
+	"solod.dev/so/testing"
+)
 
 func main() {
-	testing.RunTests("so/crypto/crand", []testing.Test{
+	testing.RunTests("so/crypto/crand", os.Args, []testing.Test{
 		{Name: "TestRead", F: TestRead},
 		{Name: "TestRead_Empty", F: TestRead_Empty},
 		{Name: "TestReader", F: TestReader},
