@@ -67,6 +67,8 @@ func escAddrParam(p int) *int             { return &p }
 func escAddrComposite() *Pair             { return &Pair{} }
 func escStruct(a, b string) Pair          { return Pair{s: a + b} }
 func escSliceLit(a, b string) []string    { return []string{a + b} }
+func escSliceLitConst() []int             { return []int{1, 2, 3} }
+func escSliceLitVar() []int               { s := []int{1, 2, 3}; return s }
 func escSubslice(a, b string) string      { s := a + b; return s[1:] }
 func escAppend() []int                    { s := make([]int, 0, 4); return append(s, 1) }
 func escAppendFrameDst() []byte           { var a [4]byte; s := a[:0]; return append(s, 1) }
@@ -85,6 +87,7 @@ func okArrayParam(a [3]int) [3]int        { return a }
 func okNamedArrayParam(a Arr) Arr         { return a }
 func okMapParam(m map[string]int) map[string]int { return m }
 func okSliceParam(s []int) []int          { return s }
+func okEmptySliceLit() []int              { return []int{} }
 func okStructParam(p Pair) Pair           { return p }
 func okStructPtrParam(p *Pair) *Pair      { return p }
 func okStructWithArray() Boxed            { return Boxed{a: [3]int{1, 2, 3}} }

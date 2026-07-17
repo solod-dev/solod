@@ -41,7 +41,7 @@ func returnInt16() (int16, error)   { return 42, nil }
 func returnUint16() (uint16, error) { return 42, nil }
 func returnRune() (rune, error)     { return 'x', nil }
 func returnString() (string, error) { return "hello", nil }
-func returnSlice() ([]int, error)   { return []int{1, 2, 3}, nil }
+func returnSlice(s []int) ([]int, error) { return s, nil }
 func returnStruct() (File, error)   { return File{size: 42}, nil }
 func returnAny() (any, error)       { return &file, nil }
 func returnPtr() (*File, error)     { return &file, nil }
@@ -93,7 +93,7 @@ func main() {
 		_ = run
 		str, err := returnString()
 		_ = str
-		slice, err := returnSlice()
+		slice, err := returnSlice(nil)
 		_ = slice
 		struc, err := returnStruct()
 		_ = struc

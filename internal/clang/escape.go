@@ -222,13 +222,20 @@ func (c *escapeChecker) isFrameAddress(operand ast.Expr) bool {
 	return false
 }
 
-// isFrameComposite reports whether a composite literal is a frame value. An array
-// literal lowers to a bare C array in the frame. A struct or slice literal is a
-// frame value when one of its elements is (e.g. Pair{s: a + b}).
+// isFrameComposite reports whether a composite literal is a frame value.
 func (c *escapeChecker) isFrameComposite(x *ast.CompositeLit) bool {
-	if isUnderlyingArray(c.info.TypeOf(x)) {
+	t := c.info.TypeOf(x)
+	// An array literal lowers to a bare C array in the frame.
+	if isUnderlyingArray(t) {
 		return true
 	}
+	// A non-empty slice literal lowers to a so_Slice over a compound-literal
+	// backing array in the frame (see emitSliceLit); an empty one lowers to
+	// a null slice and is safe.
+	if _, ok := t.Underlying().(*types.Slice); ok && len(x.Elts) > 0 {
+		return true
+	}
+	// A struct literal is a frame value when one of its elements is (e.g. Pair{s: a + b}).
 	for _, el := range x.Elts {
 		if kv, ok := el.(*ast.KeyValueExpr); ok {
 			el = kv.Value

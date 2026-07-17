@@ -25,7 +25,7 @@ static so_R_i16_err returnInt16(void);
 static so_R_u16_err returnUint16(void);
 static so_R_rune_err returnRune(void);
 static so_R_str_err returnString(void);
-static so_R_slice_err returnSlice(void);
+static so_R_slice_err returnSlice(so_Slice s);
 static main_FileResult returnStruct(void);
 static so_R_ptr_err returnAny(void);
 static so_R_ptr_err returnPtr(void);
@@ -74,8 +74,8 @@ static so_R_str_err returnString(void) {
     return (so_R_str_err){.val = so_str("hello"), .err = (so_Error){0}};
 }
 
-static so_R_slice_err returnSlice(void) {
-    return (so_R_slice_err){.val = (so_Slice){(so_int[3]){1, 2, 3}, 3, 3}, .err = (so_Error){0}};
+static so_R_slice_err returnSlice(so_Slice s) {
+    return (so_R_slice_err){.val = s, .err = (so_Error){0}};
 }
 
 static main_FileResult returnStruct(void) {
@@ -154,7 +154,7 @@ int main(void) {
         so_String str = _res10.val;
         err = _res10.err;
         (void)str;
-        so_R_slice_err _res11 = returnSlice();
+        so_R_slice_err _res11 = returnSlice((so_Slice){0});
         so_Slice slice = _res11.val;
         err = _res11.err;
         (void)slice;
