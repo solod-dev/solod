@@ -236,11 +236,12 @@ Networking and more targets:
 - Concurrency building blocks: thread, channel, bounded worker pool.
 - Synchronization primitives: mutex, condition variable, run once.
 - Atomics.
+- Low-level JSON API.
 - CLI commands to run tests and benchmarks.
 
 Future plans:
 
-- JSON.
+- High-level JSON API.
 - HTTP.
 - SQL.
 
