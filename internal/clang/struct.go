@@ -39,7 +39,10 @@ func (g *Generator) emitStructTypeSpec(w io.Writer, spec *ast.TypeSpec, dirs dir
 }
 
 // emitFuncPtrField emits a function pointer field in a struct typedef.
-// Example: so_int (*ratingFn)(struct main_Movie m);
+// Example: so_int (*ratingFn)(struct main_Movie);
+//
+// Parameter names are omitted, because they are not required in a C function
+// pointer declaration. Emitting them could cause a conflict with a C keyword.
 func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName string, sig *types.Signature, enclosingStruct string) {
 	retType := g.returnType(node, sig)
 	var params []string
@@ -48,7 +51,7 @@ func (g *Generator) emitFuncPtrField(w io.Writer, node ast.Node, fieldName strin
 		if cType == enclosingStruct || cType == enclosingStruct+"*" {
 			cType = "struct " + cType
 		}
-		params = append(params, cType+" "+p.Name())
+		params = append(params, cType)
 	}
 	fmt.Fprintf(w, "%s%s (*%s)(%s);\n", g.indent(), retType, fieldName, strings.Join(params, ", "))
 }

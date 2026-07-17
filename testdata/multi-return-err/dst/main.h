@@ -8,7 +8,7 @@ typedef struct main_File main_File;
 
 typedef struct main_Reader {
     void* self;
-    so_R_int_err (*Read)(void* self, so_int buf);
+    so_R_int_err (*Read)(void* self, so_int);
 } main_Reader;
 
 typedef struct main_File {

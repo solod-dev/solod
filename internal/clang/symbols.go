@@ -44,6 +44,7 @@ type symbol struct {
 func (g *Generator) collect() {
 	g.comments = ast.CommentMap{}
 	g.embeds = Embeds{vars: make(map[string]bool)}
+	g.handleReservedNames()
 
 	srcDir := ""
 	if len(g.pkg.GoFiles) > 0 {

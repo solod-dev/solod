@@ -9,7 +9,7 @@ typedef struct main_Rect main_Rect;
 typedef struct main_Shape {
     void* self;
     so_int (*Area)(void* self);
-    so_int (*Perim)(void* self, so_int n);
+    so_int (*Perim)(void* self, so_int);
 } main_Shape;
 
 typedef struct main_Canvas {

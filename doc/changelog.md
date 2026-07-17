@@ -63,6 +63,8 @@ var fn func(int) int = calc
 
 [d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
 
+Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
+
 ## v0.2
 
 Networking, new targets, and friendlier interop.

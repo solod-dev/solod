@@ -7,8 +7,8 @@ typedef struct main_Movie main_Movie;
 
 typedef struct main_Movie {
     so_int year;
-    so_int (*ratingFn)(struct main_Movie m);
-    void (*updateFn)(struct main_Movie* m);
+    so_int (*ratingFn)(struct main_Movie);
+    void (*updateFn)(struct main_Movie*);
 } main_Movie;
 
 // A named function type can be used as a function argument or return value.

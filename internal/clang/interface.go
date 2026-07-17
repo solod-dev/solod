@@ -19,13 +19,13 @@ func (g *Generator) emitInterfaceTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 	for m := range iface.Methods() {
 		sig := m.Type().(*types.Signature)
 		retType := g.returnType(spec, sig)
+		// Parameter names are omitted, because they are not required in a C function
+		// pointer declaration. Emitting them could cause a conflict with a C keyword.
 		var params strings.Builder
 		params.WriteString("void* self")
 		for p := range sig.Params().Variables() {
 			params.WriteString(", ")
 			params.WriteString(g.mapTypeName(spec, p.Type()))
-			params.WriteString(" ")
-			params.WriteString(p.Name())
 		}
 		fmt.Fprintf(w, "    %s (*%s)(%s);\n", retType, m.Name(), params.String())
 	}

@@ -121,6 +121,18 @@ var vPtr *person    // NULL
 var vNil any        // NULL
 ```
 
+### Reserved C names
+
+Go identifiers might conflict with C keywords or macros (`long`, `bool`, ...). So handles these automatically for local variables and parameters by appending an underscore in the generated C:
+
+```go
+func scale(long int, register int) int {
+	return long * register // -> long_ * register_
+}
+```
+
+Some cases are rejected during compilation instead of mangling the name. This happens if you use reserved words as struct fields or package-level declarations, or when the mangled name would conflict with an existing identifier (for example, a local `long` next to a local `long_`).
+
 ## Strings
 
 Strings are represented as `so_String` type in C:
