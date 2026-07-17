@@ -17,6 +17,9 @@ func (g *Generator) walkAST(w io.Writer, root ast.Node) {
 	ast.Inspect(root, func(node ast.Node) bool {
 		defer func() {
 			if r := recover(); r != nil {
+				if _, ok := r.(*failure); ok {
+					panic(r) // already a diagnostic; don't reformat as an unexpected panic
+				}
 				if !g.panicked {
 					g.panicked = true
 					pos := g.pkg.Fset.Position(node.Pos())

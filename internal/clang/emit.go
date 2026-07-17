@@ -23,8 +23,17 @@ type EmitOptions struct {
 // Emit generates C code for the given Go package and all its subpackages,
 // and writes it to the specified output directory. Creates a single header
 // file with typedefs (.h) and a single implementation file (.c) for each package.
-func Emit(opts EmitOptions) error {
-	var err error
+func Emit(opts EmitOptions) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			f, ok := r.(*failure)
+			if !ok {
+				panic(r) // not a diagnostic: a real bug, keep crashing
+			}
+			err = f
+		}
+	}()
+
 	if err = os.MkdirAll(opts.OutDir, 0o755); err != nil {
 		return fmt.Errorf("create output directory %s: %w", opts.OutDir, err)
 	}

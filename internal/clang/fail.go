@@ -6,18 +6,29 @@ import (
 	"go/ast"
 	"go/token"
 	"os"
+	"strings"
 )
 
-// fail prints an error with source context to stderr and exits.
-func (g *Generator) fail(node ast.Node, format string, args ...any) {
-	msg := fmt.Sprintf(format, args...)
-	pos := g.pkg.Fset.Position(node.Pos())
-	fmt.Fprintf(os.Stderr, "%s: %s\n", pos, msg)
-	if srcLine, err := readSourceLine(pos.Filename, pos.Line); err == nil {
-		fmt.Fprintf(os.Stderr, "%s\n", srcLine)
-		fmt.Fprintf(os.Stderr, "%s\n", errorMarker(srcLine, pos))
+// failure is a diagnostic produced by fail.
+type failure struct {
+	pos token.Position
+	msg string
+}
+
+func (f *failure) Error() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s: %s", f.pos, f.msg)
+	if srcLine, err := readSourceLine(f.pos.Filename, f.pos.Line); err == nil {
+		fmt.Fprintf(&b, "\n%s\n%s", srcLine, errorMarker(srcLine, f.pos))
 	}
-	os.Exit(1)
+	return b.String()
+}
+
+// fail aborts code generation with a diagnostic anchored at node. It does not return.
+func (g *Generator) fail(node ast.Node, format string, args ...any) {
+	pos := g.pkg.Fset.Position(node.Pos())
+	err := &failure{pos: pos, msg: fmt.Sprintf(format, args...)}
+	panic(err)
 }
 
 // readSourceLine reads a single line from a source file (1-indexed).
