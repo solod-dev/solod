@@ -235,23 +235,10 @@ So can also target [freestanding](doc/freestanding.md) environments.
 ## Roadmap
 
 ✓ [v0.1](https://github.com/solod-dev/solod/releases/tag/v0.1.0) —
-Core language features and stdlib packages:
-
-```text
-bufio    io      path      strings
-bytes    maps    rand      strconv
-flag     math    slices    time
-fmt      os      slog      unicode
-```
+Core language features and stdlib packages.
 
 ✓ [v0.2](https://github.com/solod-dev/solod/releases/tag/v0.2.0) —
-Networking and more targets:
-
-- Basic networking.
-- UUIDs and hex encoding.
-- 32-bit target support.
-- WebAssembly support (WASI).
-- Freestanding mode.
+Networking, uuids and more targets: WebAssembly, 32-bit, freestanding.
 
 ⏳ [v0.3](./doc/changelog.md) — Concurrency and tooling:
 
@@ -260,6 +247,7 @@ Networking and more targets:
 - Atomics.
 - Low-level JSON API.
 - CLI commands to run tests and benchmarks.
+- Basic escape analysis.
 
 Future plans:
 

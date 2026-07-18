@@ -4,54 +4,32 @@ This document outlines the main changes in different So versions.
 
 ## v0.3 (in progress)
 
-### Concurrency, synchronization, atomics
+### Language
 
-`conc` package: basic primitives for concurrent programming, backed by pthreads.
+**Escape analysis**. If a function tries to return a stack-allocated value, the program won't compile:
 
-- `Chan[T]` — a thread-safe FIFO channel (buffered) or rendezvous (unbuffered).
-- `Pool` — a bounded worker pool for fork-join parallelism.
-- `Thread` — an operating system thread.
+```go
+type Point struct{ x, y int }
 
-`sync` package: basic synchronization primitives, backed by pthreads.
+func newPoint(x, y int) *Point {
+    return &Point{x: x, y: y} // dangling pointer
+}
 
-- `Cond` — a condition variable.
-- `Mutex` — a mutual exclusion lock.
-- `Once` — runs a function exactly once.
+func main() {
+    p := newPoint(3, 4)
+    println(p.x, p.y)
+}
+```
 
-[22e7e78](https://github.com/solod-dev/solod/commit/22e7e782cb3edc56789c08306e08e6f71739fddf) ·
-[f5ae958](https://github.com/solod-dev/solod/commit/f5ae958ba9ee34a135dc006f6d0b30063a3d1479)
+```text
+so run: main.go:8:9: stack-allocated value escapes function frame
+	return &Point{x: x, y: y}
+	       ^here
+```
 
-`sync/atomic` package: lock-free atomic operations. Provides atomic values like `Int64`, `Uint64`, `Bool`, and `Pointer[T]`.
+[3f2a2cc](https://github.com/solod-dev/solod/commit/3f2a2cc0afc13c2fc1eb66cbaa34c50581f72a97)
 
-[71a49a0](https://github.com/solod-dev/solod/commit/71a49a0413622a4cc5a1f53e88d98fbcaceb3496)
-
-### Low-level JSON API
-
-`encoding/json` package: token-level JSON encoding and decoding. With no reflection, there is no
-`Marshal`/`Unmarshal`; you read and write one token at a time using `Decoder` and `Encoder`. Both types support streaming and use minimal allocations.
-
-[54161e2](https://github.com/solod-dev/solod/commit/54161e27f5d7bf08a80cc50d21bb1c063c8ccf23)
-
-### Tools
-
-`so test` command: runs tests from a package's `test` subdirectory. It discovers `TestXxx(t *testing.T)` functions, generates a runner that dispatches them via `testing.RunTests`, and runs them. See the [testing guide](testing.md).
-
-[ca13759](https://github.com/solod-dev/solod/commit/ca1375959866ca7fc7c0b38b60f5b84fd085e6bc) ·
-[163afcb](https://github.com/solod-dev/solod/commit/163afcb8662359cb6b93a4043f4572b4bec64d7b)
-
-`so bench` command: runs benchmarks from a package's `bench` subdirectory, mirroring `so test`. It discovers `BenchmarkXxx(b *testing.B)` functions, generates a runner that dispatches them via `testing.RunBenchmarks` with the system allocator, and runs them. See the [testing guide](testing.md).
-
-[c374069](https://github.com/solod-dev/solod/commit/c37406988e712a7f266c87990107d6f491a566f7) ·
-[e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1) ·
-[2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
-
-`panic` flag controls how a panic terminates the program: `exit` (default) calls `exit(1)`, `abort` raises `SIGABRT` for a debugger or core dump, and `trace` prints a stack trace before exiting. See the [spec](spec.md#panic).
-
-[8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
-
-### Other changes
-
-You can now use anonymous functions as variable types and function parameters:
+**Anonymous functions**. You can now use anonymous functions as variable types and function parameters:
 
 ```go
 // func parameter
@@ -63,7 +41,51 @@ var fn func(int) int = calc
 
 [d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
 
-Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
+**Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
+
+[7f1bb70](https://github.com/solod-dev/solod/commit/7f1bb702ebb28e0fb6d941e428deb3d476eb7188)
+
+### Standard library
+
+**Concurrency tools**. The `conc` package provides basic tools for concurrent programming, backed by pthreads.
+
+- `Chan[T]` — a thread-safe FIFO channel (buffered) or rendezvous (unbuffered).
+- `Pool` — a bounded worker pool for fork-join parallelism.
+- `Thread` — an operating system thread.
+
+**Synchronization primitives**. The `sync` package provides basic synchronization primitives, backed by pthreads.
+
+- `Cond` — a condition variable.
+- `Mutex` — a mutual exclusion lock.
+- `Once` — runs a function exactly once.
+
+[22e7e78](https://github.com/solod-dev/solod/commit/22e7e782cb3edc56789c08306e08e6f71739fddf) ·
+[f5ae958](https://github.com/solod-dev/solod/commit/f5ae958ba9ee34a135dc006f6d0b30063a3d1479)
+
+**Atomic types**. The `sync/atomic` package provides lock-free atomic operations. Offers atomic values like `Int64`, `Uint64`, `Bool`, and `Pointer[T]`.
+
+[71a49a0](https://github.com/solod-dev/solod/commit/71a49a0413622a4cc5a1f53e88d98fbcaceb3496)
+
+**Low-level JSON API**. The `encoding/json` package provides token-level JSON encoding and decoding. With no reflection, there is no `Marshal`/`Unmarshal`; you read and write one token at a time using `Decoder` and `Encoder`. Both types support streaming and use minimal allocations.
+
+[54161e2](https://github.com/solod-dev/solod/commit/54161e27f5d7bf08a80cc50d21bb1c063c8ccf23)
+
+### Tools
+
+**Tests**. The `so test` command runs tests from a package's `test` subdirectory. It discovers `TestXxx(t *testing.T)` functions, generates a runner that dispatches them via `testing.RunTests`, and runs them. See the [testing guide](testing.md).
+
+[ca13759](https://github.com/solod-dev/solod/commit/ca1375959866ca7fc7c0b38b60f5b84fd085e6bc) ·
+[163afcb](https://github.com/solod-dev/solod/commit/163afcb8662359cb6b93a4043f4572b4bec64d7b)
+
+**Benchmarks**. The `so bench` command runs benchmarks from a package's `bench` subdirectory, mirroring `so test`. It discovers `BenchmarkXxx(b *testing.B)` functions, generates a runner that dispatches them via `testing.RunBenchmarks` with the system allocator, and runs them. See the [testing guide](testing.md).
+
+[c374069](https://github.com/solod-dev/solod/commit/c37406988e712a7f266c87990107d6f491a566f7) ·
+[e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1) ·
+[2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
+
+**Stack traces**. The `panic` flag controls how a panic terminates the program: `exit` (default) calls `exit(1)`, `abort` raises `SIGABRT` for a debugger or core dump, and `trace` prints a stack trace before exiting. See the [spec](spec.md#panic).
+
+[8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
 
 ## v0.2
 
