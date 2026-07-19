@@ -10,35 +10,37 @@ I386 = docker run --rm --platform linux/i386 -v "$(shell pwd)":/src -w /src solo
 EMCC = emcc
 ZIG = zig cc
 
-compiler =
+mode =
 OUT_NAME = main
 RUN_CMD = ./build/main
 
-# Set CC and CFLAGS based on the selected compiler.
-ifeq ($(compiler), clang)
+# Set CC and CFLAGS based on the selected mode.
+ifeq ($(mode), clang)
     CC = $(CLANG)
-else ifeq ($(compiler), gcc)
+else ifeq ($(mode), gcc)
     CC = $(GCC_NATIVE)
 	CFLAGS += -fanalyzer -D_FORTIFY_SOURCE=2
-else ifeq ($(compiler), docker)
+else ifeq ($(mode), docker)
     CC = $(GCC_DOCKER) gcc
 	CFLAGS += -fanalyzer -D_FORTIFY_SOURCE=2
     RUN_CMD = $(GCC_DOCKER) ./build/main
-else ifeq ($(compiler), bare)
+else ifeq ($(mode), fast)
+	CFLAGS = $(CFLAGS_CORE)
+else ifeq ($(mode), bare)
 	CC = $(ZIG)
 	CFLAGS = $(CFLAGS_CORE) --target=wasm32-freestanding -nostdlib -Wl,--no-entry -Wl,--export=main -DSO_HEAP_SIZE=65536
 	LDLIBS =
 	OUT_NAME = main.wasm
 	RUN_CMD = wasmtime --invoke main ./build/main.wasm 0 0
-else ifeq ($(compiler), riscv64)
+else ifeq ($(mode), riscv64)
 	CC = $(RISCV64) gcc
 	CFLAGS = $(CFLAGS_CORE)
 	RUN_CMD = $(RISCV64) ./build/main
-else ifeq ($(compiler), i386)
+else ifeq ($(mode), i386)
 	CC = $(I386) gcc
 	CFLAGS = $(CFLAGS_CORE)
 	RUN_CMD = $(I386) ./build/main
-else ifeq ($(compiler), wasm)
+else ifeq ($(mode), wasm)
 	CC = $(EMCC)
 	CFLAGS = $(CFLAGS_CORE) -sSTANDALONE_WASM
 	OUT_NAME = main.wasm
