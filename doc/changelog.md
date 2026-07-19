@@ -27,6 +27,8 @@ so run: main.go:8:9: stack-allocated value escapes function frame
 	       ^here
 ```
 
+The check isn't thorough and only covers a few common cases.
+
 [3f2a2cc](https://github.com/solod-dev/solod/commit/3f2a2cc0afc13c2fc1eb66cbaa34c50581f72a97)
 
 **Anonymous functions**. You can now use anonymous functions as variable types and function parameters:

@@ -40,8 +40,13 @@ func TestFindReturnEscapes(t *testing.T) {
 	// Each function is named after whether it should be flagged.
 	const src = `package x
 
-type Pair struct{ s string }
-type Boxed struct{ a [3]int }
+type BoxStr struct{ s string }
+type BoxCount struct {
+	s string
+	n int
+}
+type BoxArrStr struct{ a [2]string }
+type BoxArrInt struct{ a [3]int }
 type Arr [3]int
 
 // --- should be flagged (returns frame-bound memory) ---
@@ -64,14 +69,84 @@ func escMakeSlice(n int) []int            { return make([]int, n) }
 func escMakeMap() map[string]int          { return make(map[string]int, 4) }
 func escAddrLocal() *int                  { x := 5; return &x }
 func escAddrParam(p int) *int             { return &p }
-func escAddrComposite() *Pair             { return &Pair{} }
-func escStruct(a, b string) Pair          { return Pair{s: a + b} }
+func escAddrComposite() *BoxStr           { return &BoxStr{} }
+func escStruct(a, b string) BoxStr        { return BoxStr{s: a + b} }
+func escNew() *BoxStr                     { return new(BoxStr) }
+func escNewLit(a, b string) *BoxStr       { return new(BoxStr{s: a + b}) }
+func escMapLit() map[string]int           { return map[string]int{"a": 1} }
+func escMapLitEmpty() map[string]int      { return map[string]int{} }
 func escSliceLit(a, b string) []string    { return []string{a + b} }
 func escSliceLitConst() []int             { return []int{1, 2, 3} }
 func escSliceLitVar() []int               { s := []int{1, 2, 3}; return s }
 func escSubslice(a, b string) string      { s := a + b; return s[1:] }
 func escAppend() []int                    { s := make([]int, 0, 4); return append(s, 1) }
 func escAppendFrameDst() []byte           { var a [4]byte; s := a[:0]; return append(s, 1) }
+func escAppendElem(dst []string, a, b string) []string { return append(dst, a+b) }
+func escAppendSpreadLit(dst []string, a, b string) []string {
+	return append(dst, []string{a + b}...)
+}
+func escAppendSpreadVar(dst []string, a, b string) []string {
+	s := []string{a + b}
+	return append(dst, s...)
+}
+func escAliasField(a, b string) BoxStr {
+	var p BoxStr
+	q := &p
+	q.s = a + b
+	return p
+}
+func escAliasCopy(a, b string) BoxStr {
+	var p BoxStr
+	q := &p
+	r := q
+	r.s = a + b
+	return p
+}
+func escFieldAssign(a, b string) BoxStr {
+	var p BoxStr
+	p.s = a + b
+	return p
+}
+func escFieldAssignPtr(a, b string) *BoxStr {
+	p := new(BoxStr)
+	p.s = a + b
+	return p
+}
+func escIndexAssign(s []string, a, b string) []string {
+	s[0] = a + b
+	return s
+}
+func escMapAssign(m map[string]string, a, b string) map[string]string {
+	m["k"] = a + b
+	return m
+}
+func escStarAssign(p *string, a, b string) *string {
+	*p = a + b
+	return p
+}
+func escArrayLitElem(x, y string) BoxArrStr {
+	return BoxArrStr{a: [2]string{x + y}}
+}
+func escArrayVarElem(x, y string) BoxArrStr {
+	var a [2]string
+	a[0] = x + y
+	return BoxArrStr{a: a}
+}
+func escFieldRead(a, b string) string {
+	var p BoxStr
+	p.s = a + b
+	return p.s
+}
+func escIndexRead(a, b string) string {
+	s := []string{a + b}
+	return s[0]
+}
+func escStarRead(a, b string) BoxStr {
+	var p BoxStr
+	q := &p
+	q.s = a + b
+	return *q
+}
 
 // --- should NOT be flagged (safe) ---
 
@@ -88,17 +163,78 @@ func okNamedArrayParam(a Arr) Arr         { return a }
 func okMapParam(m map[string]int) map[string]int { return m }
 func okSliceParam(s []int) []int          { return s }
 func okEmptySliceLit() []int              { return []int{} }
-func okStructParam(p Pair) Pair           { return p }
-func okStructPtrParam(p *Pair) *Pair      { return p }
-func okStructWithArray() Boxed            { return Boxed{a: [3]int{1, 2, 3}} }
+func okStructParam(p BoxStr) BoxStr       { return p }
+func okStructPtrParam(p *BoxStr) *BoxStr  { return p }
+func okStructWithArray() BoxArrInt        { return BoxArrInt{a: [3]int{1, 2, 3}} }
+func okStructArrLit() BoxArrStr           { return BoxArrStr{a: [2]string{"x", "y"}} }
 func okAppendParam(dst []byte, a [3]byte) []byte { return append(dst, a[:]...) }
+func okAppendElem(dst []string, s string) []string { return append(dst, s) }
+func okAppendSpreadParam(dst, src []string) []string { return append(dst, src...) }
+func okAppendFrameSpread(dst []byte) []byte {
+	// The elements are plain bytes, so copying them in carries no frame memory.
+	var a [4]byte
+	return append(dst, a[:]...)
+}
+func okFieldAssignSafe(p BoxStr, s string) BoxStr {
+	p.s = s
+	return p
+}
+func okFieldAssignNoReturn(a, b string) string {
+	var p BoxStr
+	p.s = a + b
+	return "x"
+}
+func okIndexAssignSafe(s []string, v string) []string {
+	s[0] = v
+	return s
+}
+func okIntFieldRead(a, b string) int {
+	// The field is copied whole, so it carries no frame memory even though
+	// the assignment above marks all of p.
+	var p BoxCount
+	p.s = a + b
+	return p.n
+}
+func okByteIndexRead(a, b string) byte {
+	var arr [2]byte
+	return arr[0]
+}
+func okAliasSafe(s string) BoxStr {
+	var p BoxStr
+	q := &p
+	q.s = s
+	return p
+}
+
+// --- known misses (NOT safe, but out of scope; see the Scope comment in escape.go) ---
+//
+// These do dangle. They are named ok so the test passes: it pins what the
+// checker gives up on, so a future change that starts catching them is visible.
+
+func okMissDoublePtr(a, b string) BoxStr {
+	// Only one pointer hop is tracked, so pp is marked but p is not.
+	var p BoxStr
+	pp := &p
+	qq := &pp
+	(*qq).s = a + b
+	return p
+}
+func okMissOutParam(p *string, a, b string) {
+	// Nothing is returned, and only returns are checked.
+	*p = a + b
+}
+func okMissOpaqueCall(a, b string) string {
+	// The result of a call is opaque, even when it hands back frame memory.
+	return identity(a + b)
+}
+func identity(s string) string { return s }
 
 // --- methods (checked like functions) ---
 
-func (p Pair) escMethodConcat(a string) string { return p.s + a }
-func (p *Pair) escMethodAddr() *Pair           { return &Pair{} }
-func (p Pair) okMethodField() string           { return p.s }
-func (p *Pair) okMethodRecv() *Pair            { return p }
+func (p BoxStr) escMethodConcat(a string) string { return p.s + a }
+func (p *BoxStr) escMethodAddr() *BoxStr         { return &BoxStr{} }
+func (p BoxStr) okMethodField() string           { return p.s }
+func (p *BoxStr) okMethodRecv() *BoxStr          { return p }
 `
 
 	info, f := checkSnippet(t, src)

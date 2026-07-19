@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"slices"
 )
 
 // Escape analysis
@@ -14,16 +15,43 @@ import (
 // the address of a local, etc. Such a value is a "frame value": it is valid only
 // until the function returns. Returning one hands the caller a dangling pointer.
 //
-// This checker rejects any return of a frame value. It runs per function, in two
-// passes over the body:
+// This checker rejects any return of a frame value. It runs per function, in
+// three passes over the body:
 //
-//  1. markFrameVars computes the set of locals that hold a frame value.
-//  2. escapes scans every return and flags the results that are frame values.
+//  1. collectPointsTo computes the locals that each pointer local may address.
+//  2. markFrameVars computes the set of locals that hold a frame value.
+//  3. escapes scans every return and flags the results that are frame values.
 //
-// The analysis is intraprocedural. A call to a user or stdlib function is opaque:
-// its result is assumed not to be a frame value (make, append and the builtin
-// conversions are the known exceptions, handled explicitly). It does not descend
-// into nested closures, which have their own frame.
+// # Scope
+//
+// The checker catches the most common ways frame memory can leave a function,
+// and only those. It doesn't guarantee memory safety: code that passes can
+// still have dangling pointers. That's intentional. A fully accurate analysis
+// would need interprocedural summaries and a real points-to analysis, which
+// would be much more expensive than it's worth here.
+//
+// The rule for changing this file: only add to it when a pattern actually
+// appears in real code, not just to cover every possible case. Every case
+// handled here repeats information about lowering that's already in the emitter
+// (for example, isFrameComposite knows what emitSliceLit does), and that
+// duplication makes the checker expensive to maintain. It's not worth adding
+// precision that no program actually needs.
+//
+// What it deliberately does not do:
+//
+//   - Interprocedural analysis. A call to a user or stdlib function is opaque:
+//     its result is assumed not to be a frame value. The make, new and append
+//     builtins and the builtin conversions are the known exceptions, handled
+//     explicitly.
+//   - Anything but returns. Storing a frame value through a pointer parameter
+//     or into a global leaks it just as well, and is not checked.
+//   - Pointer chains past one hop (see collectPointsTo).
+//
+// Marking is done per variable, not per field: storing to p.s marks all of p
+// (see rootLocal). This overestimates, so a return might be flagged even when
+// it's actually safe. It's better to have a false positive (which causes a
+// compile error the author can fix) than a false negative, which leads to
+// memory corruption in the generated C code.
 
 // escapeMsg is the diagnostic reported for a return that escapes the frame.
 const escapeMsg = "stack-allocated value escapes function frame"
@@ -45,9 +73,11 @@ func findReturnEscapes(info *types.Info, decl *ast.FuncDecl) []ast.Node {
 	c := &escapeChecker{
 		info:   info,
 		locals: map[types.Object]bool{},
+		points: map[types.Object][]types.Object{},
 		fvars:  map[types.Object]bool{},
 	}
 	c.collectLocals(decl)
+	c.collectPointsTo(decl.Body)
 	c.markFrameVars(decl.Body)
 	return c.escapes(decl)
 }
@@ -55,8 +85,9 @@ func findReturnEscapes(info *types.Info, decl *ast.FuncDecl) []ast.Node {
 // escapeChecker holds the per-function analysis state.
 type escapeChecker struct {
 	info   *types.Info
-	locals map[types.Object]bool // every object declared in the function
-	fvars  map[types.Object]bool // locals that hold a frame value
+	locals map[types.Object]bool           // every object declared in the function
+	points map[types.Object][]types.Object // locals that a pointer local may address
+	fvars  map[types.Object]bool           // locals that hold a frame value
 }
 
 // collectLocals records every object declared inside the function: receiver,
@@ -72,6 +103,74 @@ func (c *escapeChecker) collectLocals(decl *ast.FuncDecl) {
 	})
 }
 
+// collectPointsTo fills points with the locals that each pointer local may
+// address, so that a store through the pointer also marks what it addresses:
+// in q := &p; q.s = a + b, it is p that ends up holding the frame value, not
+// just q. Only an address taken of a local is tracked; a pointer from anywhere
+// else addresses memory this frame does not own.
+//
+// A pointer is tracked per root variable, so storing one into a field
+// (q.next = &p) records p for the whole of q. That is imprecise but safe:
+// it can only mark more locals than strictly necessary.
+//
+// Only one hop is tracked. A store through a pointer to a pointer marks the
+// intermediate, not the final target: in pp := &p; qq := &pp; (*qq).s = a + b,
+// pp is marked but p is not. Reading a pointer back out of a field or element
+// (q := n.next) is not tracked either, only a copy of a whole pointer variable.
+//
+// It iterates to a fixpoint so it follows pointer copies (q := &p; r := q).
+// The target sets only grow and are bounded by the locals, so the loop terminates.
+func (c *escapeChecker) collectPointsTo(body *ast.BlockStmt) {
+	for {
+		changed := false
+		c.walk(body, func(n ast.Node) {
+			assignPairs(n, func(lhs, rhs ast.Expr) {
+				changed = c.addPointsTo(lhs, rhs) || changed
+			})
+		})
+		if !changed {
+			return
+		}
+	}
+}
+
+// addPointsTo records that the local behind lhs may address whatever rhs does.
+func (c *escapeChecker) addPointsTo(lhs, rhs ast.Expr) bool {
+	obj := c.rootLocal(lhs)
+	if obj == nil {
+		return false
+	}
+	changed := false
+	for _, target := range c.pointsTo(rhs) {
+		if !slices.Contains(c.points[obj], target) {
+			c.points[obj] = append(c.points[obj], target)
+			changed = true
+		}
+	}
+	return changed
+}
+
+// pointsTo returns the locals that the value of expr may address.
+func (c *escapeChecker) pointsTo(expr ast.Expr) []types.Object {
+	switch x := expr.(type) {
+	case *ast.ParenExpr:
+		return c.pointsTo(x.X)
+	case *ast.UnaryExpr:
+		// &p, &p.s and &s[i] all address the local they root at.
+		if x.Op == token.AND {
+			if obj := c.rootLocal(x.X); obj != nil {
+				return []types.Object{obj}
+			}
+		}
+	case *ast.Ident:
+		// Copying a pointer carries its targets along.
+		if obj := c.info.ObjectOf(x); obj != nil {
+			return c.points[obj]
+		}
+	}
+	return nil
+}
+
 // markFrameVars fills fvars with the locals that hold a frame value,
 // It iterates to a fixpoint so it follows assignment chains such as
 //
@@ -82,14 +181,7 @@ func (c *escapeChecker) markFrameVars(body *ast.BlockStmt) {
 	for {
 		changed := false
 		c.walk(body, func(n ast.Node) {
-			switch s := n.(type) {
-			case *ast.Ident:
-				changed = c.markArrayDecl(s) || changed
-			case *ast.AssignStmt:
-				changed = c.markAssign(s) || changed
-			case *ast.DeclStmt:
-				changed = c.markDecl(s) || changed
-			}
+			changed = c.markNode(n) || changed
 		})
 		if !changed {
 			return
@@ -97,10 +189,27 @@ func (c *escapeChecker) markFrameVars(body *ast.BlockStmt) {
 	}
 }
 
+// markNode marks the locals that a single node turns into frame values.
+func (c *escapeChecker) markNode(n ast.Node) bool {
+	changed := false
+	switch s := n.(type) {
+	case *ast.Ident:
+		changed = c.markArrayDecl(s)
+	case *ast.AssignStmt:
+		changed = c.markAddAssign(s)
+	}
+	assignPairs(n, func(lhs, rhs ast.Expr) {
+		if c.isFrameValue(rhs) {
+			changed = c.markVar(lhs) || changed
+		}
+	})
+	return changed
+}
+
 // markArrayDecl marks a local array variable, which is itself a frame value: an
-// array lowers to a bare C array, so returning it by value returns a pointer into
-// the frame. It acts on the defining ident, which lives in the body, so it skips
-// parameters (an array parameter is already a caller pointer, safe to return).
+// array translates to a bare C array, so returning it by value returns a pointer
+// into the frame. It acts on the defining ident, which lives in the body, so it
+// skips parameters (an array parameter is already a caller pointer, safe to return).
 func (c *escapeChecker) markArrayDecl(id *ast.Ident) bool {
 	obj := c.info.Defs[id]
 	if obj == nil || !isUnderlyingArray(obj.Type()) {
@@ -109,70 +218,73 @@ func (c *escapeChecker) markArrayDecl(id *ast.Ident) bool {
 	return c.markVar(id)
 }
 
-// markAssign marks the LHS locals that an assignment turns into frame values.
-func (c *escapeChecker) markAssign(s *ast.AssignStmt) bool {
-	switch s.Tok {
-	case token.ADD_ASSIGN:
-		// s += x on strings emits so_string_add, a fresh frame value.
-		if len(s.Lhs) == 1 && isStringExpr(c.info, s.Lhs[0]) {
-			return c.markVar(s.Lhs[0])
-		}
-	case token.ASSIGN, token.DEFINE:
-		return c.markPairs(s.Lhs, s.Rhs)
-	}
-	return false
-}
-
-// markDecl marks the locals that a var declaration
-// with initializers turns into frame values.
-func (c *escapeChecker) markDecl(s *ast.DeclStmt) bool {
-	gd, ok := s.Decl.(*ast.GenDecl)
-	if !ok || gd.Tok != token.VAR {
+// markAddAssign marks the local that a string += turns into a frame value:
+// it emits so_string_add, whose result is fresh frame memory.
+func (c *escapeChecker) markAddAssign(s *ast.AssignStmt) bool {
+	if s.Tok != token.ADD_ASSIGN || len(s.Lhs) != 1 {
 		return false
 	}
-	changed := false
-	for _, spec := range gd.Specs {
-		vs, ok := spec.(*ast.ValueSpec)
-		if !ok || len(vs.Values) != len(vs.Names) {
-			continue
-		}
-		lhs := make([]ast.Expr, len(vs.Names))
-		for i, name := range vs.Names {
-			lhs[i] = name
-		}
-		changed = c.markPairs(lhs, vs.Values) || changed
-	}
-	return changed
-}
-
-// markPairs marks each LHS local whose paired RHS is a frame value. A single
-// multi-value RHS (x, y := f()) is an opaque call, so it marks nothing.
-func (c *escapeChecker) markPairs(lhs, rhs []ast.Expr) bool {
-	if len(lhs) != len(rhs) {
+	if !isStringExpr(c.info, s.Lhs[0]) {
 		return false
 	}
-	changed := false
-	for i := range lhs {
-		if c.isFrameValue(rhs[i]) {
-			changed = c.markVar(lhs[i]) || changed
-		}
-	}
-	return changed
+	return c.markVar(s.Lhs[0])
 }
 
-// markVar records the local named by expr as holding a frame value
-// and reports whether that changed the set.
+// markVar records that a write to expr produces a frame value and reports
+// whether that changed the set. Assigning a variable marks just that variable:
+// q := &p makes q a frame value, but leaves p untouched. Storing through it
+// (p.s, s[i], *p) also marks whatever the variable may address, because the
+// frame value lands there rather than in the variable.
 func (c *escapeChecker) markVar(expr ast.Expr) bool {
-	id, ok := expr.(*ast.Ident)
-	if !ok || id.Name == "_" {
+	obj := c.rootLocal(expr)
+	if obj == nil {
 		return false
 	}
-	obj := c.info.ObjectOf(id)
-	if obj == nil || !c.locals[obj] || c.fvars[obj] {
+	changed := c.mark(obj)
+	if _, ok := ast.Unparen(expr).(*ast.Ident); ok {
+		return changed
+	}
+	for _, target := range c.points[obj] {
+		changed = c.mark(target) || changed
+	}
+	return changed
+}
+
+// mark records obj as holding a frame value and reports whether that changed the set.
+func (c *escapeChecker) mark(obj types.Object) bool {
+	if c.fvars[obj] {
 		return false
 	}
 	c.fvars[obj] = true
 	return true
+}
+
+// rootLocal returns the local variable that an assignment target writes to:
+// p.s and p.x.y both root at p, s[i] roots at s, and *p roots at p. Marking
+// the whole variable instead of just the field isn't precise, but it's safer:
+// once an aggregate contains a frame pointer, returning a copy is unsafe.
+// It returns nil if the target doesn't root at a local variable.
+func (c *escapeChecker) rootLocal(expr ast.Expr) types.Object {
+	for {
+		switch x := expr.(type) {
+		case *ast.ParenExpr:
+			expr = x.X
+		case *ast.SelectorExpr:
+			expr = x.X
+		case *ast.IndexExpr:
+			expr = x.X
+		case *ast.StarExpr:
+			expr = x.X
+		case *ast.Ident:
+			obj := c.info.ObjectOf(x)
+			if obj == nil || !c.locals[obj] {
+				return nil
+			}
+			return obj
+		default:
+			return nil
+		}
+	}
 }
 
 // isFrameValue reports whether the value of expr lives in the current frame.
@@ -195,8 +307,23 @@ func (c *escapeChecker) isFrameValue(e ast.Expr) bool {
 		return c.isFrameValue(x.X)
 	case *ast.CallExpr:
 		return c.isFrameCall(x)
+	case *ast.SelectorExpr, *ast.IndexExpr, *ast.StarExpr:
+		return c.isFrameRead(e)
 	}
 	return false
+}
+
+// isFrameRead reports whether reading out of a local carries frame memory with
+// it: p.s and s[i] on a local that holds a frame value, *p on a pointer to one.
+// Marking is per variable (see rootLocal), so the read has to consult the root.
+// It only carries frame memory onward when what it reads can reference memory
+// elsewhere: p.n on an int field is a plain copy even when p is marked.
+func (c *escapeChecker) isFrameRead(expr ast.Expr) bool {
+	obj := c.rootLocal(expr)
+	if obj == nil || !c.fvars[obj] {
+		return false
+	}
+	return carriesPointers(c.info.TypeOf(expr))
 }
 
 // isFrameConcat reports whether a binary expression is a string + that emits
@@ -224,37 +351,27 @@ func (c *escapeChecker) isFrameAddress(operand ast.Expr) bool {
 
 // isFrameComposite reports whether a composite literal is a frame value.
 func (c *escapeChecker) isFrameComposite(x *ast.CompositeLit) bool {
-	t := c.info.TypeOf(x)
-	// An array literal lowers to a bare C array in the frame.
-	if isUnderlyingArray(t) {
+	switch c.info.TypeOf(x).Underlying().(type) {
+	case *types.Array:
+		// An array literal translates to a bare C array in the frame.
 		return true
-	}
-	// A non-empty slice literal lowers to a so_Slice over a compound-literal
-	// backing array in the frame (see emitSliceLit); an empty one lowers to
-	// a null slice and is safe.
-	if _, ok := t.Underlying().(*types.Slice); ok && len(x.Elts) > 0 {
+	case *types.Map:
+		// A map literal translates to so_map_lit, which calls so_make_map;
+		// an empty one translates to a &(so_Map){0} compound literal. Both
+		// live in the frame.
 		return true
+	case *types.Slice:
+		// A non-empty slice literal translates to a so_Slice over a
+		// compound-literal backing array in the frame (see emitSliceLit);
+		// an empty one translates to a null slice and is safe.
+		return len(x.Elts) > 0
 	}
-	// A struct literal is a frame value when one of its elements is (e.g. Pair{s: a + b}).
-	for _, el := range x.Elts {
-		if kv, ok := el.(*ast.KeyValueExpr); ok {
-			el = kv.Value
-		}
-		// An array element is copied by value into the struct or slice, so its
-		// own frame storage travels with the copy and does not escape. (Frame
-		// memory it references through a nested string or slice is not tracked.)
-		if isUnderlyingArray(c.info.TypeOf(el)) {
-			continue
-		}
-		if c.isFrameValue(el) {
-			return true
-		}
-	}
-	return false
+	// A struct literal is a frame value when one of its elements is (e.g. BoxStr{s: a + b}).
+	return c.hasFrameElem(x.Elts)
 }
 
 // isFrameCall reports whether a call produces a frame value. Conversions and the
-// make and append builtins can; every other call is opaque and assumed not to.
+// make, new and append builtins can; every other call is opaque and assumed not to.
 func (c *escapeChecker) isFrameCall(call *ast.CallExpr) bool {
 	if tv, ok := c.info.Types[call.Fun]; ok && tv.IsType() {
 		return c.isFrameConversion(tv.Type, call)
@@ -274,13 +391,76 @@ func (c *escapeChecker) isFrameCall(call *ast.CallExpr) bool {
 		case *types.Slice, *types.Map:
 			return true
 		}
+	case "new":
+		// Every form of new emits the address of a compound literal
+		// in the frame (see emitNewCall).
+		return true
 	case "append":
-		// append writes into the destination slice's existing backing (it never
-		// reallocates, only asserts capacity), so its result aliases that backing.
-		// It is a frame value only when the destination is.
-		return len(call.Args) > 0 && c.isFrameValue(call.Args[0])
+		return c.isFrameAppend(call)
 	}
 	return false
+}
+
+// isFrameAppend reports whether an append produces a frame value.
+//
+// append(dst, el1, el2, ... eln) copies the elements into the existing backing
+// array of the dst slice (it never reallocates, just checks capacity), so the
+// result shares that backing array. It is a frame value if either dst or any
+// of the elements are frame values.
+func (c *escapeChecker) isFrameAppend(call *ast.CallExpr) bool {
+	if len(call.Args) == 0 {
+		return false
+	}
+	if c.isFrameValue(call.Args[0]) {
+		return true
+	}
+	if call.Ellipsis.IsValid() {
+		return c.isFrameSpread(call)
+	}
+	return slices.ContainsFunc(call.Args[1:], c.isFrameElem)
+}
+
+// isFrameSpread reports whether append(dst, src...) carries frame memory in
+// from src. It copies the elements of src, not its header, so src being a frame
+// value only matters when the element type can reference the frame: appending a
+// frame []byte copies plain bytes, appending a frame []string copies headers
+// that point into it.
+func (c *escapeChecker) isFrameSpread(call *ast.CallExpr) bool {
+	dst, ok := c.info.TypeOf(call.Args[0]).Underlying().(*types.Slice)
+	if !ok || !carriesPointers(dst.Elem()) {
+		return false
+	}
+	return c.isFrameValue(call.Args[1])
+}
+
+// hasFrameElem reports whether any of the elements stored into an aggregate
+// carries frame memory into it.
+func (c *escapeChecker) hasFrameElem(elts []ast.Expr) bool {
+	for _, el := range elts {
+		if kv, ok := el.(*ast.KeyValueExpr); ok {
+			el = kv.Value
+		}
+		if c.isFrameElem(el) {
+			return true
+		}
+	}
+	return false
+}
+
+// isFrameElem reports whether storing el into an aggregate carries frame memory into it.
+func (c *escapeChecker) isFrameElem(el ast.Expr) bool {
+	t := c.info.TypeOf(el)
+	// A pointer-free element is copied whole into the aggregate, so its own
+	// frame storage travels with the copy and does not escape.
+	if !carriesPointers(t) {
+		return false
+	}
+	// An array literal is written out element by element (BoxArrStr{a: {x, y}}),
+	// so it carries frame memory only when one of its own elements does.
+	if lit, ok := el.(*ast.CompositeLit); ok && isUnderlyingArray(t) {
+		return c.hasFrameElem(lit.Elts)
+	}
+	return c.isFrameValue(el)
 }
 
 // isFrameConversion reports whether a type conversion produces a frame value.
@@ -367,6 +547,70 @@ func (c *escapeChecker) walk(root ast.Node, visit func(ast.Node)) {
 		visit(n)
 		return true
 	})
+}
+
+// assignPairs calls fn for each (target, value) pair that n assigns, covering
+// both plain assignments and var declarations with initializers. A single
+// multi-value RHS (x, y := f()) is an opaque call, so it pairs nothing.
+func assignPairs(n ast.Node, fn func(lhs, rhs ast.Expr)) {
+	switch s := n.(type) {
+	case *ast.AssignStmt:
+		if s.Tok == token.ASSIGN || s.Tok == token.DEFINE {
+			pairUp(s.Lhs, s.Rhs, fn)
+		}
+	case *ast.DeclStmt:
+		gd, ok := s.Decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.VAR {
+			return
+		}
+		for _, spec := range gd.Specs {
+			vs, ok := spec.(*ast.ValueSpec)
+			if !ok {
+				continue
+			}
+			names := make([]ast.Expr, len(vs.Names))
+			for i, name := range vs.Names {
+				names[i] = name
+			}
+			pairUp(names, vs.Values, fn)
+		}
+	}
+}
+
+// pairUp calls fn for each lhs/rhs pair, or nothing if they do not line up.
+func pairUp(lhs, rhs []ast.Expr, fn func(lhs, rhs ast.Expr)) {
+	if len(lhs) != len(rhs) {
+		return
+	}
+	for i := range lhs {
+		fn(lhs[i], rhs[i])
+	}
+}
+
+// carriesPointers reports whether a value of type t can reference memory outside
+// itself. Copying a pointer-free value into an aggregate copies the whole value,
+// so it can never carry frame memory along with it.
+func carriesPointers(t types.Type) bool {
+	if t == nil {
+		return true
+	}
+	switch u := t.Underlying().(type) {
+	case *types.Basic:
+		// A string is a pointer and a length; every other basic type is inline.
+		return isStringType(u) || u.Kind() == types.UnsafePointer
+	case *types.Array:
+		return carriesPointers(u.Elem())
+	case *types.Struct:
+		for field := range u.Fields() {
+			if carriesPointers(field.Type()) {
+				return true
+			}
+		}
+		return false
+	}
+	// Pointers, slices, maps, channels, interfaces and functions
+	// all reference memory elsewhere.
+	return true
 }
 
 // isStringExpr reports whether expr has string type.
