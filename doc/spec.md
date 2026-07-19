@@ -1056,6 +1056,18 @@ Trace mode is hosted-only and adds `-rdynamic -fno-omit-frame-pointer` to the C 
 
 `recover` is not supported.
 
+### Assertions
+
+_"Assertion" here means a precondition check. It is unrelated to a [type assertion](#interfaces)._
+
+An assertion checks a precondition the caller is required to satisfy. Assertions panic on failure, so they report a source location and honor `--panic`. They cover slice and string bounds, index-out-of-range, slice-to-array length, and zero map capacity. Since Go's syntax doesn't have a built-in `assert`, it's provided through the `c.Assert` function in the standard library.
+
+Defining `NDEBUG` in a C build completely removes assertions. The condition inside the assertion won't be checked at all, so it shouldn't have any side effects. Only use `NDEBUG` when you're sure your program is correct.
+
+Not every failure is an assertion. Other runtime checks, like calling `append` beyond capacity, always cause a panic and are not affected by `NDEBUG`, because they report situations the caller can't always predict ahead of time.
+
+Nil pointer dereference is checked separately, via the `--check-nil` flag (off by default) rather than `NDEBUG`.
+
 ## Defer
 
 `defer` schedules a function or method call to run at the end of the function:

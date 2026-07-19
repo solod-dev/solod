@@ -20,6 +20,12 @@ func get_cstring(s string) *c.ConstChar {
 	return nil
 }
 
+func TestAssert(t *testing.T) {
+	_ = t
+	a, b := 11, 11
+	c.Assert(a == b, "a != b")
+}
+
 func TestString(t *testing.T) {
 	cstr := get_cstring("Hello, C!")
 	str := c.String(cstr)

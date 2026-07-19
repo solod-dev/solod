@@ -9,6 +9,7 @@ import (
 
 func main() {
 	testing.RunTests("so/c", os.Args, []testing.Test{
+		{Name: "TestAssert", F: TestAssert},
 		{Name: "TestString", F: TestString},
 		{Name: "TestExtern", F: TestExtern},
 		{Name: "TestVal", F: TestVal},

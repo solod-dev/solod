@@ -4,10 +4,6 @@
 
 #define c_Alloca(T, n) ((T*)so_alloca(sizeof(T) * (size_t)(n)))
 
-static inline void c_Assert(bool cond, const char* msg) {
-    assert((cond) && msg);
-}
-
 static inline so_Slice c_Bytes(void* ptr, so_int n) {
     return ptr ? (so_Slice){ptr, n, n} : (so_Slice){0};
 }

@@ -6,9 +6,9 @@
 // SwapByte temporarily allocates a buffer of size n
 // on the stack, so it's not suitable for large n.
 static inline void mem_SwapByte(void* a, void* b, so_int n) {
-    assert(a != NULL && "mem: nil pointer");
-    assert(b != NULL && "mem: nil pointer");
-    assert(n >= 0 && "mem: negative size");
+    so_assert(a != NULL, "mem: nil pointer");
+    so_assert(b != NULL, "mem: nil pointer");
+    so_assert(n >= 0, "mem: negative size");
     if (n == 0) return;
 
     size_t size = (size_t)n;

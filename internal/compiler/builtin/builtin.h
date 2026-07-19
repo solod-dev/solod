@@ -35,10 +35,14 @@
 #define PRId64 "lld"
 #define PRIu64 "llu"
 
+#ifdef NDEBUG
+#define assert(cond) ((void)0)
+#else
 #define assert(cond)                   \
     do {                               \
         if (!(cond)) __builtin_trap(); \
     } while (0)
+#endif
 
 #endif  // __STDC_HOSTED__
 
@@ -169,13 +173,13 @@ typedef struct {
 })
 
 // string_slice creates a substring [from, to).
-#define so_string_slice(s, from, to) ({                     \
-    so_String _s = (s);                                     \
-    so_int _from = (so_int)(from);                          \
-    so_int _to = (so_int)(to);                              \
-    assert((0 <= _from && _from <= _to && _to <= _s.len) && \
-           "slice bounds out of range");                    \
-    (so_String){_s.ptr + _from, _to - _from};               \
+#define so_string_slice(s, from, to) ({                    \
+    so_String _s = (s);                                    \
+    so_int _from = (so_int)(from);                         \
+    so_int _to = (so_int)(to);                             \
+    so_assert(0 <= _from && _from <= _to && _to <= _s.len, \
+              "slice bounds out of range");                \
+    (so_String){_s.ptr + _from, _to - _from};              \
 })
 
 // string_add concatenates two strings.
@@ -261,10 +265,10 @@ static inline size_t strlen(const char* s) {
 // --- Arrays ---
 
 // slice_array converts a slice to an array pointer with bounds checking.
-#define so_slice_array(s, n) ({                                 \
-    so_Slice _s = (s);                                          \
-    assert(_s.len >= (so_int)(n) && "slice-to-array mismatch"); \
-    _s.ptr;                                                     \
+#define so_slice_array(s, n) ({                                  \
+    so_Slice _s = (s);                                           \
+    so_assert(_s.len >= (so_int)(n), "slice-to-array mismatch"); \
+    _s.ptr;                                                      \
 })
 
 // array_slice creates a slice from a C array.
@@ -305,14 +309,14 @@ typedef struct {
 
 // slice creates a slice from another slice
 // from index 'from' (inclusive) to index 'to' (exclusive).
-#define so_slice(T, s, from, to) ({                         \
-    so_Slice _s = (s);                                      \
-    so_int _from = (so_int)(from);                          \
-    so_int _to = (so_int)(to);                              \
-    assert((0 <= _from && _from <= _to && _to <= _s.cap) && \
-           "slice bounds out of range");                    \
-    T* _ptr = _s.ptr == NULL ? NULL : (T*)_s.ptr + _from;   \
-    (so_Slice){_ptr, _to - _from, _s.cap - _from};          \
+#define so_slice(T, s, from, to) ({                        \
+    so_Slice _s = (s);                                     \
+    so_int _from = (so_int)(from);                         \
+    so_int _to = (so_int)(to);                             \
+    so_assert(0 <= _from && _from <= _to && _to <= _s.cap, \
+              "slice bounds out of range");                \
+    T* _ptr = _s.ptr == NULL ? NULL : (T*)_s.ptr + _from;  \
+    (so_Slice){_ptr, _to - _from, _s.cap - _from};         \
 })
 
 // slice3 creates a slice from another slice with an explicit capacity.
@@ -321,9 +325,9 @@ typedef struct {
     so_int _from = (so_int)(from);                             \
     so_int _to = (so_int)(to);                                 \
     so_int _max = (so_int)(max);                               \
-    assert((0 <= _from && _from <= _to &&                      \
-            _to <= _max && _max <= _s.cap) &&                  \
-           "slice bounds out of range");                       \
+    so_assert(0 <= _from && _from <= _to &&                    \
+                  _to <= _max && _max <= _s.cap,               \
+              "slice bounds out of range");                    \
     (so_Slice){(T*)_s.ptr + _from, _to - _from, _max - _from}; \
 })
 
@@ -334,14 +338,15 @@ typedef struct {
 // append appends elements to a slice without resizing.
 // Returns the new slice with updated length.
 // Panics if the new length exceeds the capacity.
-#define so_append(T, s, ...) ({                                   \
-    so_Slice _s = (s);                                            \
-    T _vals[] = {__VA_ARGS__};                                    \
-    so_int _n = (so_int)(sizeof(_vals) / sizeof(T));              \
-    assert((_s.len + _n <= _s.cap) && "append: out of capacity"); \
-    memcpy((T*)_s.ptr + _s.len, _vals, sizeof(_vals));            \
-    _s.len += _n;                                                 \
-    _s;                                                           \
+#define so_append(T, s, ...) ({                        \
+    so_Slice _s = (s);                                 \
+    T _vals[] = {__VA_ARGS__};                         \
+    so_int _n = (so_int)(sizeof(_vals) / sizeof(T));   \
+    if (_s.len + _n > _s.cap)                          \
+        so_panic("append: out of capacity");           \
+    memcpy((T*)_s.ptr + _s.len, _vals, sizeof(_vals)); \
+    _s.len += _n;                                      \
+    _s;                                                \
 })
 
 // extend appends all elements from a source slice to a destination slice.
@@ -350,8 +355,8 @@ typedef struct {
 #define so_extend(T, dst, src) ({                       \
     so_Slice _dst = (dst);                              \
     so_Slice _src = (src);                              \
-    assert((_dst.len + _src.len <= _dst.cap) &&         \
-           "extend: out of capacity");                  \
+    if (_dst.len + _src.len > _dst.cap)                 \
+        so_panic("extend: out of capacity");            \
     if (_src.len > 0)                                   \
         memcpy((T*)_dst.ptr + _dst.len,                 \
                _src.ptr, (size_t)_src.len * sizeof(T)); \
@@ -380,12 +385,12 @@ static inline so_int so_copy_impl(so_Slice dst, so_Slice src, size_t elem_size) 
 
 // at returns a reference to the element at index i in a slice or string.
 #define so_at(T, s, i) (*so_at_ptr(T, s, i))
-#define so_at_ptr(T, s, i) ({                  \
-    so_auto _s_at = (s);                       \
-    so_int _i = (so_int)(i);                   \
-    assert((so_uint)_i < (so_uint)_s_at.len && \
-           "index out of bounds");             \
-    (T*)_s_at.ptr + _i;                        \
+#define so_at_ptr(T, s, i) ({                   \
+    so_auto _s_at = (s);                        \
+    so_int _i = (so_int)(i);                    \
+    so_assert((so_uint)_i < (so_uint)_s_at.len, \
+              "index out of bounds");           \
+    (T*)_s_at.ptr + _i;                         \
 })
 
 // len returns the length of a slice or string.
@@ -541,6 +546,19 @@ void so_print_trace(void);
     } while (0)
 
 #endif  // so_build_hosted
+
+// assert panics with the given message if the condition is false.
+// NDEBUG removes the check entirely, so cond must be free of side effects.
+#ifdef NDEBUG
+#define so_assert(cond, msg) ((void)0)
+#else
+#define so_assert(cond, msg) \
+    do {                     \
+        if (!(cond)) {       \
+            so_panic(msg);   \
+        }                    \
+    } while (0)
+#endif
 
 // --- Result types ---
 
@@ -721,7 +739,7 @@ static inline so_int so_map_cap(so_int n) {
 // make_map creates a zero-initialized map on the stack.
 #define so_make_map(K, V, n) ({                   \
     so_int _n = (n);                              \
-    assert(_n != 0 && "map: zero capacity");      \
+    so_assert(_n != 0, "map: zero capacity");     \
     so_int _cap = so_map_cap(_n);                 \
     size_t _ksz = sizeof(K) * (size_t)_cap;       \
     size_t _vsz = sizeof(V) * (size_t)_cap;       \

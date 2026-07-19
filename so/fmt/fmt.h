@@ -23,7 +23,7 @@ typedef struct {
 // NewBuffer creates a new stack-allocated Buffer of the given size.
 #define fmt_NewBuffer(size) ({                             \
     so_int _bsize = (size);                                \
-    assert(_bsize >= 0 && "fmt: negative buffer size");    \
+    so_assert(_bsize >= 0, "fmt: negative buffer size");   \
     (fmt_Buffer){.Ptr = so_alloca(_bsize), .Len = _bsize}; \
 })
 

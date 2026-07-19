@@ -87,13 +87,12 @@ func Alloca[T any](n int) *T {
 	return &v[0]
 }
 
-// Assert aborts the program with the given message
-// if the condition is not true.
-// If assertions are disabled, does nothing.
+// assert panics with the given message if the condition is false.
+// NDEBUG removes the check entirely, so cond must be free of side effects.
 //
-//	assert((cond) && msg)
+//	so_assert(cond, msg)
 //
-//so:extern
+//so:extern so_assert
 func Assert(cond bool, msg string) {
 	if !cond {
 		panic(msg)

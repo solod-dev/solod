@@ -43,6 +43,17 @@ var fn func(int) int = calc
 
 [d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
 
+**Diagnosable assertions**. Assertions (slice bounds, index out of range, slice-to-array length, ...) and `c.Assert` now panic instead of calling C's `assert`. They go through a single `so_assert` macro, so a failure reports the calling function and honors `--panic=trace`:
+
+```text
+panic: index out of bounds
+  main.c:10 (func boundsFail)
+0   app    0x00000001045f7264 boundsFail + 160
+1   app    0x00000001045f716c main + 448
+```
+
+Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append` beyond capacity, still panic.
+
 **Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
 
 [7f1bb70](https://github.com/solod-dev/solod/commit/7f1bb702ebb28e0fb6d941e428deb3d476eb7188)
