@@ -417,8 +417,10 @@ Utility routines for manipulating slash-separated paths. Based on Go's `path` pa
 Information about the environment where the program was compiled, and runtime utilities.
 
 - `GOOS` and `GOARCH` specify the target operating system and architecture.
-- `Version` returns So's compiler version (git commit hash or tag).
+- `FileName`, `Line` and `FuncName` report the current source location.
+- `NumCPU` NumCPU returns the number of logical CPUs usable by the program.
 - `Seed` returns a cryptographically secure random 64-bit seed.
+- `Version` returns So's compiler version (git commit hash or tag).
 
 ## [so/slices](https://pkg.go.dev/solod.dev/so/slices)
 

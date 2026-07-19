@@ -1,5 +1,22 @@
 // Package runtime provides information about
 // the environment where the program was compiled.
+//
+// # Source locations
+//
+// [FileName], [Line], and [FuncName] map to the C preprocessor's __FILE__,
+// __LINE__, and __func__. They expand at the place they're written, not where
+// the function is called. So if you use them inside a logging helper, they'll
+// show the helper's info, not the caller's:
+//
+//	// Always reports the line of the Printf below, not the caller's.
+//	func logf(msg string) {
+//	    fmt.Printf("%s:%d %s\n", runtime.FileName, runtime.Line, msg)
+//	}
+//
+// By default, they describe the generated C code: FileName is the name of
+// the .c file, and Line is the line number in that file. Use --track-source
+// to map both back to the original source. FuncName is always the generated
+// C function name, so a package-level function will look like "package_Func".
 package runtime
 
 //so:embed runtime.h
@@ -33,12 +50,20 @@ const GOARCH string = "unknown"
 //so:extern runtime_buildVersion
 var buildVersion string
 
-// Version returns the So tree's version string.
-// It is either the commit hash and date at the time of the build or,
-// when possible, a release tag like "v0.1.0".
-func Version() string {
-	return buildVersion
-}
+// FileName is the name of the source file at the point of use.
+//
+//so:extern so_str(__FILE__)
+var FileName string
+
+// Line is the line number at the point of use.
+//
+//so:extern __LINE__
+var Line int
+
+// FuncName is the name of the enclosing function at the point of use.
+//
+//so:extern so_str(__func__)
+var FuncName string
 
 // NumCPU returns the number of logical CPUs usable by the program.
 // The result is always >= 1. It reports the number of online CPUs and does
@@ -57,4 +82,11 @@ func NumCPU() int {
 //so:extern
 func Seed() uint64 {
 	return 0
+}
+
+// Version returns the So tree's version string.
+// It is either the commit hash and date at the time of the build or,
+// when possible, a release tag like "v0.1.0".
+func Version() string {
+	return buildVersion
 }

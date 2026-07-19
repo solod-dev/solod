@@ -83,6 +83,8 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 [54161e2](https://github.com/solod-dev/solod/commit/54161e27f5d7bf08a80cc50d21bb1c063c8ccf23)
 
+**Source locations**. The `runtime` package provides `FileName`, `Line` and `FuncName` to report the current source location.
+
 ### Tools
 
 **Tests**. The `so test` command runs tests from a package's `test` subdirectory. It discovers `TestXxx(t *testing.T)` functions, generates a runner that dispatches them via `testing.RunTests`, and runs them. See the [testing guide](testing.md).

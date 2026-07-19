@@ -9,9 +9,12 @@ import (
 
 func main() {
 	testing.RunTests("so/runtime", os.Args, []testing.Test{
-		{Name: "TestVersion", F: TestVersion},
 		{Name: "TestGOOS", F: TestGOOS},
 		{Name: "TestGOARCH", F: TestGOARCH},
+		{Name: "TestFileName", F: TestFileName},
+		{Name: "TestLine", F: TestLine},
+		{Name: "TestFuncName", F: TestFuncName},
 		{Name: "TestNumCPU", F: TestNumCPU},
+		{Name: "TestVersion", F: TestVersion},
 	})
 }
