@@ -1,5 +1,9 @@
 package main
 
+type counter struct {
+	val *int
+}
+
 func main() {
 	{
 		// Integer arithmetics.
@@ -51,6 +55,18 @@ func main() {
 		// b4 &^= 0b1010 // not supported
 		b5 := ^b4
 		_ = b5
+	}
+
+	{
+		// Increment/decrement through a pointer.
+		n := 1
+		p := &n
+		*p++
+		*p--
+		c := counter{val: &n}
+		*c.val++
+		*c.val--
+		_ = n
 	}
 
 	{

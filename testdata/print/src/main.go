@@ -15,6 +15,9 @@ func main() {
 	var vPtr = &alice
 	println(vInt, vFloat, vBool, vByte, vRune, vString, vPtr)
 
+	var pString = &vString
+	println(*pString)
+
 	print("a")
 	print()
 	print("b")

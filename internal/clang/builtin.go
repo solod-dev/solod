@@ -285,9 +285,9 @@ func (g *Generator) emitPrintCall(w io.Writer, call *ast.CallExpr, name string) 
 				fmt.Fprint(w, rawStringValue(lit))
 			} else {
 				// String expression: emit expr.len, expr.ptr
-				g.emitExpr(w, arg)
+				g.emitPostfixOperand(w, arg)
 				fmt.Fprint(w, ".len, ")
-				g.emitExpr(w, arg)
+				g.emitPostfixOperand(w, arg)
 				fmt.Fprint(w, ".ptr")
 			}
 		} else {

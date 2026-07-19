@@ -1,5 +1,13 @@
 #include "main.h"
 
+// -- Types --
+
+typedef struct counter counter;
+
+typedef struct counter {
+    so_int* val;
+} counter;
+
 // -- Implementation --
 
 int main(void) {
@@ -50,6 +58,17 @@ int main(void) {
         // b4 &^= 0b1010 // not supported
         so_int b5 = ~b4;
         (void)b5;
+    }
+    {
+        // Increment/decrement through a pointer.
+        so_int n = 1;
+        so_int* p = &n;
+        (*p)++;
+        (*p)--;
+        counter c = (counter){.val = &n};
+        (*c.val)++;
+        (*c.val)--;
+        (void)n;
     }
     {
         // Logical operations.

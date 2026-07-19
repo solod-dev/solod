@@ -487,6 +487,19 @@ func (g *Generator) emitStarExpr(w io.Writer, n *ast.StarExpr) {
 	g.emitNotNil(w, n.X)
 }
 
+// emitPostfixOperand emits an expression that a postfix operator (., [], ++)
+// will be appended to. C postfix operators bind tighter than unary *, so a
+// dereference must be parenthesized: *p++ parses as *(p++), not (*p)++.
+func (g *Generator) emitPostfixOperand(w io.Writer, expr ast.Expr) {
+	if _, ok := expr.(*ast.StarExpr); !ok {
+		g.emitExpr(w, expr)
+		return
+	}
+	fmt.Fprint(w, "(")
+	g.emitExpr(w, expr)
+	fmt.Fprint(w, ")")
+}
+
 // emitIndexExpr emits an index expression.
 // For arrays: a[i] directly. For slices/strings: so_at(T, s, i).
 func (g *Generator) emitIndexExpr(w io.Writer, n *ast.IndexExpr) {
