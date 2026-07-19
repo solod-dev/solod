@@ -160,6 +160,9 @@ func (g *Generator) emitMakeCall(w io.Writer, call *ast.CallExpr) {
 		fmt.Fprint(w, ")")
 
 	case *types.Map:
+		if len(call.Args) < 2 {
+			g.fail(call, "make(map) requires a capacity argument")
+		}
 		g.checkMapValueType(call, t.Elem())
 		keyType := g.mapTypeName(call, t.Key())
 		valType := g.mapTypeName(call, t.Elem())
