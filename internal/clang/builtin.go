@@ -147,6 +147,7 @@ func (g *Generator) emitMakeCall(w io.Writer, call *ast.CallExpr) {
 
 	switch t := typ.(type) {
 	case *types.Slice:
+		g.checkSliceElemType(call, t.Elem())
 		elemType := g.mapTypeName(call, t.Elem())
 		fmt.Fprintf(w, "so_make_slice(%s, ", elemType)
 		g.emitExpr(w, call.Args[1])
@@ -159,7 +160,7 @@ func (g *Generator) emitMakeCall(w io.Writer, call *ast.CallExpr) {
 		fmt.Fprint(w, ")")
 
 	case *types.Map:
-		g.validateMapValueType(call, t.Elem())
+		g.checkMapValueType(call, t.Elem())
 		keyType := g.mapTypeName(call, t.Key())
 		valType := g.mapTypeName(call, t.Elem())
 		fmt.Fprintf(w, "so_make_map(%s, %s, ", keyType, valType)

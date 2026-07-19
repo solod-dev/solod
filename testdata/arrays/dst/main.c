@@ -140,9 +140,20 @@ int main(void) {
     }
     {
         // Arrays can be struct fields.
-        box b = newBox();
-        if (b.nums[1] != 22) {
-            so_panic("want b.nums[1] == 22");
+        box b1 = newBox();
+        if (b1.nums[1] != 22) {
+            so_panic("want b1.nums[1] == 22");
+        }
+        box b2 = {0};
+        memcpy(b2.nums, (so_int[3]){1, 2, 3}, sizeof(b2.nums));
+        if (b2.nums[1] != 2) {
+            so_panic("want b2.nums[1] == 2");
+        }
+        box b3 = {0};
+        so_int arr[3] = {1, 2, 3};
+        memcpy(b3.nums, arr, sizeof(b3.nums));
+        if (b3.nums[1] != 2) {
+            so_panic("want b3.nums[1] == 2");
         }
     }
     {

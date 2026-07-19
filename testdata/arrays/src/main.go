@@ -133,9 +133,20 @@ func main() {
 	}
 	{
 		// Arrays can be struct fields.
-		b := newBox()
-		if b.nums[1] != 22 {
-			panic("want b.nums[1] == 22")
+		b1 := newBox()
+		if b1.nums[1] != 22 {
+			panic("want b1.nums[1] == 22")
+		}
+		var b2 box
+		b2.nums = [3]int{1, 2, 3}
+		if b2.nums[1] != 2 {
+			panic("want b2.nums[1] == 2")
+		}
+		var b3 box
+		arr := [3]int{1, 2, 3}
+		b3.nums = arr
+		if b3.nums[1] != 2 {
+			panic("want b3.nums[1] == 2")
 		}
 	}
 	{

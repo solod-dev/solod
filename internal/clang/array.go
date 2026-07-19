@@ -10,15 +10,17 @@ import (
 // emitArrayLit emits a fixed-size array literal as a C initializer list.
 // Example: [5]int{1, 2, 3, 4, 5} → {1, 2, 3, 4, 5}
 func (g *Generator) emitArrayLit(w io.Writer, n *ast.CompositeLit) {
+	elem := g.types.TypeOf(n).Underlying().(*types.Array).Elem()
 	fmt.Fprint(w, "{")
 
 	if hasKeyedElements(n) {
-		g.emitSparseArrayValues(w, n)
+		g.emitSparseArrayValues(w, n, elem)
 	} else {
 		for i, elt := range n.Elts {
 			if i > 0 {
 				fmt.Fprint(w, ", ")
 			}
+			g.checkArrayValue(elt, elem)
 			g.emitExpr(w, elt)
 		}
 	}
@@ -74,7 +76,7 @@ func (g *Generator) emitSliceLit(w io.Writer, n *ast.CompositeLit) {
 
 // emitSparseArrayValues emits array values using C99 designated initializers
 // for keyed elements. Example: [...]int{100, 3: 400, 500} → 100, [3] = 400, 500
-func (g *Generator) emitSparseArrayValues(w io.Writer, n *ast.CompositeLit) {
+func (g *Generator) emitSparseArrayValues(w io.Writer, n *ast.CompositeLit, elem types.Type) {
 	for i, elt := range n.Elts {
 		if i > 0 {
 			fmt.Fprint(w, ", ")
@@ -83,8 +85,10 @@ func (g *Generator) emitSparseArrayValues(w io.Writer, n *ast.CompositeLit) {
 			fmt.Fprint(w, "[")
 			g.emitExpr(w, kv.Key)
 			fmt.Fprint(w, "] = ")
+			g.checkArrayValue(kv.Value, elem)
 			g.emitExpr(w, kv.Value)
 		} else {
+			g.checkArrayValue(elt, elem)
 			g.emitExpr(w, elt)
 		}
 	}
@@ -191,6 +195,34 @@ func (g *Generator) emitSliceExpr(w io.Writer, n *ast.SliceExpr) {
 
 	default:
 		g.fail(n, "unsupported slice expression type: %T", t)
+	}
+}
+
+// checkArrayValue fails if expr initializes an array-typed target
+// with anything other than an array literal. C only allows a brace
+// initializer there, so an array value has no valid translation.
+func (g *Generator) checkArrayValue(expr ast.Expr, targetType types.Type) {
+	if _, ok := targetType.Underlying().(*types.Array); !ok {
+		return
+	}
+	if _, ok := expr.(*ast.CompositeLit); ok {
+		return
+	}
+	g.fail(expr, "cannot use an array value in a composite literal: use an array literal or assign the field separately")
+}
+
+// checkSliceElemType fails if the slice element type is not supported in C.
+// Unwraps nested slices, since [][][3]int is as unsupported as [][3]int.
+func (g *Generator) checkSliceElemType(node ast.Node, elem types.Type) {
+	for {
+		sl, ok := elem.Underlying().(*types.Slice)
+		if !ok {
+			break
+		}
+		elem = sl.Elem()
+	}
+	if _, ok := elem.Underlying().(*types.Array); ok {
+		g.fail(node, "slice of arrays is not supported")
 	}
 }
 

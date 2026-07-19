@@ -248,6 +248,17 @@ Arrays decay to pointers when passed to functions (no value semantics on calls).
 
 Array assignment uses `memcpy`.
 
+An array-typed element of a composite literal must be an array literal:
+
+```go
+b1 := Box{nums: [3]int{1, 2, 3}}  // ok
+b2 := Box{nums: arr}              // error: use an array literal
+var b3 Box; b3.nums = arr         // ok
+```
+
+Slices of arrays (`[][3]int`) are not supported. Use a slice of slices, or wrap
+the array in a struct.
+
 ## Slices
 
 Slices are represented as `so_Slice` type in C:

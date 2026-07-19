@@ -151,10 +151,10 @@ func (g *Generator) emitAnonStructLit(w io.Writer, n *ast.CompositeLit, st *ast.
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
 			fieldName := kv.Key.(*ast.Ident).Name
 			fmt.Fprintf(w, "%s    .%s = ", g.indent(), fieldName)
-			g.emitExprAsType(w, n, kv.Value, structFieldType(struc, fieldName))
+			g.emitFieldValue(w, n, kv.Value, structFieldType(struc, fieldName))
 		} else {
 			fmt.Fprintf(w, "%s    .%s = ", g.indent(), fields[i])
-			g.emitExprAsType(w, n, elt, struc.Field(i).Type())
+			g.emitFieldValue(w, n, elt, struc.Field(i).Type())
 		}
 	}
 	fmt.Fprint(w, ",\n")
@@ -189,17 +189,24 @@ func (g *Generator) emitBareStructInit(w io.Writer, n *ast.CompositeLit) {
 			if lit, ok := isAnonStructLit(kv.Value); ok {
 				g.emitBareStructInit(w, lit)
 			} else {
-				g.emitExprAsType(w, n, kv.Value, structFieldType(struc, fieldName))
+				g.emitFieldValue(w, n, kv.Value, structFieldType(struc, fieldName))
 			}
 		} else {
 			if lit, ok := isAnonStructLit(elt); ok {
 				g.emitBareStructInit(w, lit)
 			} else {
-				g.emitExprAsType(w, n, elt, struc.Field(i).Type())
+				g.emitFieldValue(w, n, elt, struc.Field(i).Type())
 			}
 		}
 	}
 	fmt.Fprint(w, "}")
+}
+
+// emitFieldValue emits a struct literal field value.
+// Unlike a plain assignment, an array field can only take an array literal.
+func (g *Generator) emitFieldValue(w io.Writer, n ast.Node, expr ast.Expr, fieldType types.Type) {
+	g.checkArrayValue(expr, fieldType)
+	g.emitExprAsType(w, n, expr, fieldType)
 }
 
 // emitMethodCall emits a method call.

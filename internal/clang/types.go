@@ -106,9 +106,13 @@ func (g *Generator) mapTypeName(node ast.Node, typ types.Type) string {
 		return g.mapTypeName(node, elem)
 
 	case *types.Slice:
+		g.checkSliceElemType(node, t.Elem())
 		return "so_Slice"
 
 	case *types.Map:
+		if _, ok := t.Elem().Underlying().(*types.Array); ok {
+			g.fail(node, "array as map value type is not supported")
+		}
 		return "so_Map*"
 
 	case *types.Interface:
