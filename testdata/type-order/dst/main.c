@@ -5,6 +5,8 @@
 typedef struct unode unode;
 typedef struct uemployee uemployee;
 typedef struct upet upet;
+typedef struct upoint upoint;
+typedef struct urect urect;
 
 // Unexported self-referencing struct type.
 typedef struct unode {
@@ -21,6 +23,17 @@ typedef struct uemployee {
 typedef struct upet {
     so_String name;
 } upet;
+
+typedef struct upoint {
+    so_int x;
+    so_int y;
+} upoint;
+
+// Unexported type using a type defined later by value.
+typedef struct urect {
+    upoint min;
+    upoint max;
+} urect;
 
 // -- Implementation --
 

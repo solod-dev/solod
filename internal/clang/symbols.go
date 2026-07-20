@@ -296,13 +296,7 @@ func (g *Generator) emitPackageVars(w io.Writer) {
 // emitUnexportedTypes writes full type definitions for all unexported types.
 // Emitted before package vars so that compound literals can reference them.
 func (g *Generator) emitUnexportedTypes(w io.Writer) {
-	var typeSyms []symbol
-	for _, sym := range g.symbols {
-		if sym.kind != symbolType || sym.exported {
-			continue
-		}
-		typeSyms = append(typeSyms, sym)
-	}
+	typeSyms := g.typeSymbols(false)
 	if len(typeSyms) == 0 {
 		return
 	}
@@ -316,6 +310,18 @@ func (g *Generator) emitUnexportedTypes(w io.Writer) {
 		}
 		g.emitTypeSpec(w, sym.typeSpec, sym.dirs)
 	}
+}
+
+// typeSymbols returns the type symbols with the given export status,
+// ordered so that each type follows the types it depends on.
+func (g *Generator) typeSymbols(exported bool) []symbol {
+	var syms []symbol
+	for _, sym := range g.symbols {
+		if sym.kind == symbolType && sym.exported == exported {
+			syms = append(syms, sym)
+		}
+	}
+	return g.sortTypes(syms)
 }
 
 // emitForwardTypeDecls writes forward declarations for struct types

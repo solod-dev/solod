@@ -6,6 +6,18 @@ This document outlines the main changes in different So versions.
 
 ### Language
 
+**Type declaration order**. Types are now emitted in dependency order, so a type can use a type declared later in the source:
+
+```go
+type Rect struct {
+    Min, Max Point // Point is declared below
+}
+
+type Point struct {
+    X, Y int
+}
+```
+
 **Escape analysis**. If a function tries to return a stack-allocated value, the program won't compile:
 
 ```go

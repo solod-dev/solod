@@ -1152,10 +1152,26 @@ double a = geom_RectArea(5, 10);
 (void)geom_Pi;
 ```
 
-There's no automatic order for declarations within a package. You need to declare constants, variables, and types in the order that C expects:
+Constants and variables are emitted in source order, so a constant or variable can't refer to one that's declared after it:
 
-- If a function F uses a constant C or a variable V, you must declare V and C before F.
-- If type B refers to type A, you must declare A before B.
+```go
+const a = b // won't compile: b is declared below
+const b = 1
+```
+
+Types are emitted in dependency order, so a type can refer to a type declared later in the source:
+
+```go
+type Rect struct {
+    Min, Max Point // Point is declared below
+}
+
+type Point struct {
+    X, Y int
+}
+```
+
+A recursive type only works if the cycle goes through a struct, because that's what C forward declarations support. For example, `type Node struct { next *Node }` is allowed, but `type StateFn func() StateFn` and `type Tree [2]*Tree` are not.
 
 ### Init functions
 

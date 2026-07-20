@@ -40,13 +40,7 @@ func (g *Generator) emitImports(w io.Writer) {
 // can reference them.
 func (g *Generator) emitHeaderDecls(w io.Writer) {
 	// Phase 1: exported types from collected symbols.
-	var typeSyms []symbol
-	for _, sym := range g.symbols {
-		if sym.kind != symbolType || !sym.exported {
-			continue
-		}
-		typeSyms = append(typeSyms, sym)
-	}
+	typeSyms := g.typeSymbols(true)
 	if len(typeSyms) > 0 {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "// -- Types --")
