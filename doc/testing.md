@@ -46,6 +46,7 @@ The `T` type records failure and skip state for one test:
 | Method             | Description                                                        |
 | ------------------ | ------------------------------------------------------------------ |
 | `Name() string`    | Name of the running test.                                          |
+| `Allocator()`      | Tracking allocator; see [Leak checking](#leak-checking).           |
 | `Fail()`           | Mark the test failed, keep running.                                |
 | `Failed() bool`    | Whether the test has failed.                                       |
 | `Log(msg)`         | Record a log line.                                                 |
@@ -54,6 +55,29 @@ The `T` type records failure and skip state for one test:
 | `Fatal(msg)`       | `Log` + `Fail`. The test must `return` afterwards (see below).     |
 | `Fatalf(msg, ...)` | `fmt.Sprintf` + `Log` + `Fail`. The test must `return` afterwards. |
 | `Skip(msg)`        | Mark the test skipped. The test must `return` afterwards.          |
+
+### Leak checking
+
+Allocate through `t.Allocator()` instead of `mem.System` to have the test fail if any of those allocations are not freed by the time the test function returns:
+
+```go
+func TestAlloc(t *testing.T) {
+	alloc := t.Allocator()
+	p := mem.Alloc[int](alloc)
+	defer mem.Free(alloc, p)
+	// ...
+}
+```
+
+`t.Allocator()` wraps the system allocator in a `mem.Tracker` and compares its allocation and free counts after the test:
+
+```
+=== RUN   TestAlloc
+    memory leak: 1 unfreed allocation(s), 16 byte(s)
+--- FAIL: TestAlloc
+```
+
+Only allocations made through `t.Allocator()` are tracked; anything allocated through `mem.System` or another allocator is ignored. The check runs only for a test that would otherwise pass (not for one that already failed or skipped).
 
 ## Running
 

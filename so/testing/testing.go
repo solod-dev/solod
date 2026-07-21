@@ -4,6 +4,7 @@ import (
 	"solod.dev/so/flag"
 	"solod.dev/so/fmt"
 	"solod.dev/so/io"
+	"solod.dev/so/mem"
 	"solod.dev/so/os"
 	"solod.dev/so/strings"
 )
@@ -42,10 +43,24 @@ type T struct {
 	w       io.Writer
 	failed  bool
 	skipped bool
+
+	alloc mem.Tracker
 }
 
 // Name returns the name of the running test.
 func (t *T) Name() string { return t.name }
+
+// Allocator returns the memory allocator for the test. Allocations made
+// through it are tracked, and after the test function returns the runner fails
+// the test if any of them were not freed. Use it in place of [mem.System] to
+// enable leak checking:
+//
+//	alloc := t.Allocator()
+//	p := mem.Alloc[int](alloc)
+//	defer mem.Free(alloc, p)
+//
+// Allocations made through any other allocator are not tracked.
+func (t *T) Allocator() mem.Allocator { return &t.alloc }
 
 // Failed reports whether the test has failed.
 func (t *T) Failed() bool { return t.failed }
@@ -122,8 +137,19 @@ func RunTests(pkg string, args []string, tests []Test) {
 		total++
 
 		t := &T{name: tc.Name, w: os.Stdout}
+		t.alloc.Allocator = mem.System
 		fmt.Fprintf(t.w, "=== RUN   %s\n", t.name)
 		tc.F(t)
+
+		// Fail a passing test that leaked memory allocated through t.Allocator().
+		if !t.failed && !t.skipped {
+			stats := t.alloc.Stats()
+			if stats.Mallocs != stats.Frees {
+				fmt.Fprintf(t.w, "    memory leak: %d unfreed allocation(s), %d byte(s)\n",
+					stats.Mallocs-stats.Frees, stats.Alloc)
+				t.failed = true
+			}
+		}
 
 		if t.skipped {
 			fmt.Fprintf(t.w, "--- SKIP: %s\n", t.name)

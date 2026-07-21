@@ -114,6 +114,8 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 **Source locations**. The `runtime` package provides `FileName`, `Line` and `FuncName` to report the current source location.
 
+**Test leak checking**. `testing.T` provides an `Allocator` method that returns a tracking allocator. A test fails if memory allocated through it is not freed by the time the test returns. See the [testing guide](testing.md).
+
 ### Tools
 
 **Tests**. The `so test` command runs tests from a package's `test` subdirectory. It discovers `TestXxx(t *testing.T)` functions, generates a runner that dispatches them via `testing.RunTests`, and runs them. See the [testing guide](testing.md).
