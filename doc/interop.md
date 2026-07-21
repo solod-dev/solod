@@ -109,6 +109,45 @@ func add(a, b int) int {
 
 The function body is emitted directly in the `.h` file and skipped from the `.c` file. Works with both functions and methods.
 
+## Promoting (v0.3)
+
+By default an unexported symbol (lowercase name) stays in the `.c` file with its bare name. You can promote it into the header with `//so:promote`, which also gives it the package prefix:
+
+```go
+//so:promote
+type counter struct { val int }
+
+//so:promote
+func newCounter() counter { ... }
+
+//so:promote
+func (e *counter) inc() { ... }
+```
+
+```c
+// pkg.h
+typedef struct pkg_counter { so_int val; } pkg_counter;
+pkg_counter pkg_newCounter(void);
+void pkg_counter_inc(void* self);
+```
+
+Types are emitted in full; functions and methods get a header prototype while their body stays in the `.c` file; variables become `extern`; constants are emitted with their value. A method's C name comes from its receiver type, so an `so:promote` method requires the receiver type to be exported or `so:promote` too; otherwise it is rejected.
+
+This is needed when an exported `so:inline` function (whose body lives in the header) calls an unexported helper, or when an exported type has a field of an unexported type:
+
+```go
+type Stats struct { c counter }
+
+//so:inline
+func NewStats() Stats {
+	return Stats{c: newCounter()}
+}
+```
+
+Without `so:promote`, the header would reference a name it never declares. The alternative (exporting the helper) pollutes the public API; `so:promote` keeps it out of the Go API while still making the C declaration visible.
+
+`so:promote` works on types, functions, methods, vars, and consts. It is rejected on exported declarations (already in the header, so redundant) and cannot combine with `so:inline` (which already emits the body in the header).
+
 ## Qualifiers (v0.2)
 
 ### Volatile

@@ -62,7 +62,10 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 	// Phase 2: exported const/var declarations from collected symbols.
 	var varSyms []symbol
 	for _, sym := range g.symbols {
-		if (sym.kind != symbolVar && sym.kind != symbolConst) || !sym.exported {
+		if sym.kind != symbolVar && sym.kind != symbolConst {
+			continue
+		}
+		if !sym.exported && !sym.dirs.promote {
 			continue
 		}
 		varSyms = append(varSyms, sym)
@@ -81,7 +84,7 @@ func (g *Generator) emitHeaderDecls(w io.Writer) {
 		if sym.kind != symbolFunc && sym.kind != symbolMethod {
 			continue
 		}
-		if !sym.exported && !sym.dirs.inline {
+		if !sym.exported && !sym.dirs.inline && !sym.dirs.promote {
 			continue
 		}
 		funcSyms = append(funcSyms, sym)
@@ -120,7 +123,7 @@ func (g *Generator) emitHeaderGenDecl(w io.Writer, decl *ast.GenDecl, dirs direc
 			continue
 		}
 		for i, name := range vs.Names {
-			if !ast.IsExported(name.Name) {
+			if !ast.IsExported(name.Name) && !dirs.promote {
 				continue
 			}
 			if !emitted {

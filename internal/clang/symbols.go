@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"io"
 	"maps"
 	"os"
@@ -40,6 +41,7 @@ type symbol struct {
 // - Include directives (so:include, so:include.c)
 // - Embed directives (so:embed) with file reads
 // - Extern symbols (so:extern, body-less functions)
+// - Promoted unexported symbols (so:promote) to be emitted in the header.
 // - Symbol list (types, vars, consts, functions) with parsed directives
 func (g *Generator) collect() {
 	g.comments = ast.CommentMap{}
@@ -86,7 +88,16 @@ func (g *Generator) collect() {
 		}
 	}
 
-	// Validate that exported functions don't use unexported types.
+	g.collectPromoted()
+	g.collectResultTypes()
+
+	g.validateExported()
+	g.validatePromoted()
+}
+
+// validateExported rejects exported functions and methods that use
+// unexported types, which would leak a .c-only type into the header.
+func (g *Generator) validateExported() {
 	for _, sym := range g.symbols {
 		if (sym.kind != symbolFunc && sym.kind != symbolMethod) || !sym.exported {
 			continue
@@ -96,8 +107,69 @@ func (g *Generator) collect() {
 			g.fail(decl.Name, "exported function %s uses unexported types", decl.Name.Name)
 		}
 	}
+}
 
-	g.collectResultTypes()
+// validatePromoted rejects so:promote on an exported declaration (redundant)
+// or combined with so:inline (which already emits the body in the header).
+func (g *Generator) validatePromoted() {
+	for _, sym := range g.symbols {
+		if !sym.dirs.promote {
+			continue
+		}
+		var node ast.Node
+		switch sym.kind {
+		case symbolType:
+			node = sym.typeSpec.Name
+		case symbolFunc, symbolMethod:
+			node = sym.funcDecl.Name
+		default:
+			node = sym.genDecl
+		}
+		if sym.dirs.inline {
+			g.fail(node, "so:promote cannot be combined with so:inline")
+		}
+		if sym.exported {
+			g.fail(node, "so:promote is forbidden on an exported declaration")
+		}
+		// A method's C name is built from its receiver type, so promoting the
+		// method without promoting the receiver would emit an unprefixed name
+		// in the header (see [Generator.symbolName]).
+		if sym.kind == symbolMethod {
+			recv := sym.funcDecl.Recv.List[0]
+			recvObj := g.recvTypeObj(recv)
+			if !ast.IsExported(recvObj.Name()) && !g.promoted[recvObj] {
+				g.fail(node, "so:promote method %s needs so:promote on its receiver type %s",
+					sym.funcDecl.Name.Name, recvTypeName(recv))
+			}
+		}
+	}
+}
+
+// collectPromoted records the C-name objects of unexported symbols marked
+// with so:promote. Such symbols are emitted in the header and get the package
+// prefix so the header can reference them without colliding across packages.
+func (g *Generator) collectPromoted() {
+	g.promoted = make(map[types.Object]bool)
+	for _, sym := range g.symbols {
+		if !sym.dirs.promote {
+			continue
+		}
+		switch sym.kind {
+		case symbolType:
+			g.promoted[g.types.Defs[sym.typeSpec.Name]] = true
+		case symbolFunc:
+			// Methods are named after their receiver type, so only a free
+			// function needs its own object in the set (see [Generator.symbolName]).
+			g.promoted[g.types.Defs[sym.funcDecl.Name]] = true
+		case symbolVar, symbolConst:
+			for _, spec := range sym.genDecl.Specs {
+				vs := spec.(*ast.ValueSpec)
+				for _, name := range vs.Names {
+					g.promoted[g.types.Defs[name]] = true
+				}
+			}
+		}
+	}
 }
 
 // collectGenDecl processes a GenDecl for externs, embeds, and symbol collection.
@@ -262,9 +334,9 @@ func (g *Generator) emitPackageVars(w io.Writer) {
 		if sym.kind != symbolVar && sym.kind != symbolConst {
 			continue
 		}
-		if sym.kind == symbolConst && !sym.unexported {
-			// All constants in the group are exported, skip the group.
-			// Exported package-level constants are emitted in the header.
+		if sym.kind == symbolConst && (!sym.unexported || sym.dirs.promote) {
+			// All constants in the group are exported, or the group is
+			// so:promote. Either way it is emitted in the header, not here.
 			continue
 		}
 		symbols = append(symbols, sym)
@@ -293,7 +365,8 @@ func (g *Generator) emitPackageVars(w io.Writer) {
 	}
 }
 
-// emitUnexportedTypes writes full type definitions for all unexported types.
+// emitUnexportedTypes writes full type definitions for unexported types that
+// stay in the .c file, i.e. those not marked with so:promote.
 // Emitted before package vars so that compound literals can reference them.
 func (g *Generator) emitUnexportedTypes(w io.Writer) {
 	typeSyms := g.typeSymbols(false)
@@ -312,12 +385,16 @@ func (g *Generator) emitUnexportedTypes(w io.Writer) {
 	}
 }
 
-// typeSymbols returns the type symbols with the given export status,
-// ordered so that each type follows the types it depends on.
-func (g *Generator) typeSymbols(exported bool) []symbol {
+// typeSymbols returns the type symbols emitted in the header (header == true)
+// or in the .c file (header == false), ordered so that each type follows the
+// types it depends on.
+func (g *Generator) typeSymbols(header bool) []symbol {
 	var syms []symbol
+	inHeader := func(sym symbol) bool {
+		return sym.exported || (sym.unexported && sym.dirs.promote)
+	}
 	for _, sym := range g.symbols {
-		if sym.kind == symbolType && sym.exported == exported {
+		if sym.kind == symbolType && inHeader(sym) == header {
 			syms = append(syms, sym)
 		}
 	}
@@ -348,7 +425,7 @@ func (g *Generator) emitForwardFuncDecls(w io.Writer) {
 		if sym.kind != symbolFunc && sym.kind != symbolMethod {
 			continue
 		}
-		if sym.exported || sym.dirs.inline {
+		if sym.exported || sym.dirs.inline || sym.dirs.promote {
 			continue
 		}
 		funcDecls = append(funcDecls, sym.funcDecl)

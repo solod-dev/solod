@@ -12,8 +12,8 @@ import (
 // emitFuncProto writes a full C function prototype (e.g. "static void main_foo(int x)")
 // without a terminator. Returns the function's type signature for callers that need it.
 func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signature {
-	// Specifier: static inline for so:inline, static for unexported,
-	// empty for exported and main.
+	// Specifier: static inline for so:inline; static for unexported;
+	// empty for exported, so:promote, and main.
 	dirs := g.funcDirs[decl]
 	spec := ""
 	if dirs.inline {
@@ -23,7 +23,7 @@ func (g *Generator) emitFuncProto(w io.Writer, decl *ast.FuncDecl) *types.Signat
 		if exported && decl.Recv != nil {
 			exported = ast.IsExported(recvTypeName(decl.Recv.List[0]))
 		}
-		if !exported {
+		if !exported && !dirs.promote {
 			spec = "static "
 		}
 	}

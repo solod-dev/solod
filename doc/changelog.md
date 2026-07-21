@@ -18,6 +18,23 @@ type Point struct {
 }
 ```
 
+**Promoted symbols**. The `//so:promote` directive promotes an unexported type, function, method, var, or const into the package header with the package prefix. This lets an exported inline function or type reference an unexported one without exporting it and polluting the public API:
+
+```go
+type Stats struct { c counter }
+
+//so:inline
+func NewStats() Stats {
+	return Stats{c: newCounter()}
+}
+
+//so:promote
+type counter struct { val int }
+
+//so:promote
+func newCounter() counter { ... }
+```
+
 **Escape analysis**. If a function tries to return a stack-allocated value, the program won't compile:
 
 ```go

@@ -296,19 +296,21 @@ func (g *Generator) declSymbolName(obj types.Object) string {
 
 // symbolName returns the C symbol name for a Go identifier.
 // Exported names are prefixed with the package name (e.g. RectArea -> geom_RectArea).
+// Unexported names marked with so:promote get the same prefix.
 // Extern symbols with a name override use the specified C name instead.
 func (g *Generator) symbolName(obj types.Object) string {
 	if info, ok := g.getExtern(obj); ok && info.name != "" {
 		return info.name
 	}
 	name := obj.Name()
-	if ast.IsExported(name) {
+	if ast.IsExported(name) || g.promoted[obj] {
 		return g.pkg.Name + "_" + name
 	}
 	return name
 }
 
-// isUnexportedType reports whether a type is unexported for the current package.
+// isUnexportedType reports whether a type lives only in the current package's
+// .c file. A promoted type is emitted in the header, so it does not count.
 func (g *Generator) isUnexportedType(typ types.Type) bool {
 	named, ok := types.Unalias(typ).(*types.Named)
 	if !ok {
@@ -318,7 +320,7 @@ func (g *Generator) isUnexportedType(typ types.Type) bool {
 	if obj.Pkg() != g.pkg.Types {
 		return false
 	}
-	return !ast.IsExported(obj.Name())
+	return !ast.IsExported(obj.Name()) && !g.promoted[obj]
 }
 
 // isAnonStruct reports whether typ is an anonymous struct type.

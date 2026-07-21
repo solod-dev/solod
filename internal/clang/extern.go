@@ -151,6 +151,7 @@ func (g *Generator) getExtern(obj types.Object) (externInfo, bool) {
 // directives holds parsed so-directive annotations from a comment group.
 type directives struct {
 	inline      bool
+	promote     bool
 	volatile    bool
 	threadLocal bool
 	attrs       []string
@@ -165,8 +166,7 @@ func (d directives) attrString() string {
 	return "__attribute__((" + strings.Join(d.attrs, ", ") + "))"
 }
 
-// parseDirectives scans a comment group for so:inline, so:volatile,
-// so:thread_local, and so:attr directives.
+// parseDirectives scans a comment group for so: directives.
 func parseDirectives(doc *ast.CommentGroup) directives {
 	var d directives
 	if doc == nil {
@@ -177,6 +177,8 @@ func parseDirectives(doc *ast.CommentGroup) directives {
 		switch {
 		case text == "//so:inline":
 			d.inline = true
+		case text == "//so:promote":
+			d.promote = true
 		case text == "//so:volatile":
 			d.volatile = true
 		case text == "//so:thread_local":

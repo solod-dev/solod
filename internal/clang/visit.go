@@ -373,7 +373,7 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 		specifier := ""
 		if g.state.indent == 0 {
 			// Package-level variable: build specifier with qualifiers.
-			if !ast.IsExported(name.Name) {
+			if !ast.IsExported(name.Name) && !dirs.promote {
 				specifier = "static "
 			}
 			if dirs.threadLocal {

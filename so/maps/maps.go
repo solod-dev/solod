@@ -14,14 +14,14 @@ var maps_h string
 // Map is a generic hashmap similar to Go's built-in map[K]V.
 // It automatically grows as needed, but does not shrink.
 type Map[K comparable, V any] struct {
-	bm ByteMap
+	bm byteMap
 }
 
 // New creates a new Map with the given minimal capacity.
 //
 //so:inline
 func New[K comparable, V any](a mem.Allocator, size int) Map[K, V] {
-	bm := NewByteMap(a, size, c.Sizeof[K](), c.Sizeof[V]())
+	bm := newByteMap(a, size, c.Sizeof[K](), c.Sizeof[V]())
 	return Map[K, V]{bm: bm}
 }
 

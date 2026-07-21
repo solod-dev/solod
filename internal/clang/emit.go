@@ -93,6 +93,7 @@ type Generator struct {
 	types       *types.Info
 	state       State
 	externs     map[types.Object]externInfo  // symbols provided by C headers
+	promoted    map[types.Object]bool        // unexported symbols forced into the header
 	includes    Includes                     // included headers from so:include
 	embeds      Embeds                       // embedded C files from so:embed
 	symbols     []symbol                     // pre-collected top-level declarations

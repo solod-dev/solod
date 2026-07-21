@@ -1130,6 +1130,8 @@ static double rectArea(double width, double height);
 
 Exported symbols are declared in the `.h` file (with `extern` for variables). Unexported symbols only appear in the `.c` file as forward declarations.
 
+You can promote an unexported symbol to the header using `//so:promote`, which also gives it the package prefix. This is necessary when an exported inline function or type needs to reference an unexported symbol. See the [interop guide](./interop.md) for details.
+
 Importing a package translates to a C `#include`:
 
 ```go
