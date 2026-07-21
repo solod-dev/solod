@@ -15,9 +15,8 @@ func TestUint64(t *testing.T) {
 	if a.Add(23) != 123 {
 		t.Error("add must return new value")
 	}
-	// Subtract 23 by adding its two's complement.
-	if a.Add(^uint64(23-1)) != 100 {
-		t.Error("subtract via two's complement failed")
+	if a.Sub(23) != 100 {
+		t.Error("sub must return new value")
 	}
 	if a.Swap(7) != 100 {
 		t.Error("swap must return old value")

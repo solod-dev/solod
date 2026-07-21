@@ -87,8 +87,9 @@ func (b *B) Allocator() mem.Allocator {
 // a call to [B.StopTimer].
 func (b *B) StartTimer() {
 	if !b.timerOn {
-		b.startAllocs = b.a.Stats.Mallocs
-		b.startBytes = b.a.Stats.TotalAlloc
+		stats := b.a.Stats()
+		b.startAllocs = stats.Mallocs
+		b.startBytes = stats.TotalAlloc
 		b.start = time.Now()
 		b.timerOn = true
 	}
@@ -99,8 +100,9 @@ func (b *B) StartTimer() {
 func (b *B) StopTimer() {
 	if b.timerOn {
 		b.duration += time.Since(b.start)
-		b.netAllocs += b.a.Stats.Mallocs - b.startAllocs
-		b.netBytes += b.a.Stats.TotalAlloc - b.startBytes
+		stats := b.a.Stats()
+		b.netAllocs += stats.Mallocs - b.startAllocs
+		b.netBytes += stats.TotalAlloc - b.startBytes
 		b.timerOn = false
 	}
 }
@@ -110,8 +112,9 @@ func (b *B) StopTimer() {
 // It does not affect whether the timer is running.
 func (b *B) ResetTimer() {
 	if b.timerOn {
-		b.startAllocs = b.a.Stats.Mallocs
-		b.startBytes = b.a.Stats.TotalAlloc
+		stats := b.a.Stats()
+		b.startAllocs = stats.Mallocs
+		b.startBytes = stats.TotalAlloc
 		b.start = time.Now()
 	}
 	b.duration = 0

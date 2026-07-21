@@ -324,6 +324,8 @@ Types:
 - `Allocator` interface - custom allocator support (`Alloc`, `Realloc`, `Free`).
 - `SystemAllocator` - default allocator backed by C `calloc`/`realloc`/`free`.
 - `Arena` - bump allocator backed by a fixed buffer (`Alloc`, `Realloc`, `Reset`).
+- `Tracker` - tracks all allocations and deallocations made through an allocator.
+- `Stats` - records statistics about the memory allocator.
 
 ## [so/net](https://pkg.go.dev/solod.dev/so/net)
 

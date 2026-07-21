@@ -17,9 +17,13 @@ func (x *Uint64) Store(val uint64) {
 }
 
 // Add atomically adds delta to x and returns the new value.
-// To subtract, add the two's complement of the operand (x.Add(^(x-1))).
 func (x *Uint64) Add(delta uint64) uint64 {
 	return add(&x.v, delta)
+}
+
+// Sub atomically subtracts delta from x and returns the new value.
+func (x *Uint64) Sub(delta uint64) uint64 {
+	return add(&x.v, ^(delta - 1))
 }
 
 // Swap atomically stores new into x and returns the previous value.

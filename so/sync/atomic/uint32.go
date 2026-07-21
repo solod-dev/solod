@@ -17,9 +17,13 @@ func (x *Uint32) Store(val uint32) {
 }
 
 // Add atomically adds delta to x and returns the new value.
-// To subtract, add the two's complement of the operand (x.Add(^(x-1))).
 func (x *Uint32) Add(delta uint32) uint32 {
 	return add(&x.v, delta)
+}
+
+// Sub atomically subtracts delta from x and returns the new value.
+func (x *Uint32) Sub(delta uint32) uint32 {
+	return add(&x.v, ^(delta - 1))
 }
 
 // Swap atomically stores new into x and returns the previous value.

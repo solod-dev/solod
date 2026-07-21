@@ -12,19 +12,18 @@ type Allocator interface {
 }
 
 // A Stats records statistics about the memory allocator.
+// The number of live objects is Mallocs - Frees.
 type Stats struct {
 	// Alloc is bytes of allocated heap objects.
 	Alloc uint64
 
 	// TotalAlloc is cumulative bytes allocated for heap objects.
 	//
-	// TotalAlloc increases as heap objects are allocated, but
-	// unlike Alloc, it does not decrease when
-	// objects are freed.
+	// TotalAlloc increases as heap objects are allocated, but unlike Alloc,
+	// it does not decrease when objects are freed.
 	TotalAlloc uint64
 
 	// Mallocs is the cumulative count of heap objects allocated.
-	// The number of live objects is Mallocs - Frees.
 	Mallocs uint64
 
 	// Frees is the cumulative count of heap objects freed.

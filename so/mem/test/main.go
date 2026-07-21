@@ -20,8 +20,16 @@ func main() {
 		{Name: "TestReallocSlice_Empty", F: TestReallocSlice_Empty},
 		{Name: "TestFreeNil", F: TestFreeNil},
 		{Name: "TestFreeString", F: TestFreeString},
-		{Name: "TestTracker", F: TestTracker},
 		{Name: "TestArena", F: TestArena},
 		{Name: "TestArray", F: TestArray},
+		{Name: "TestTrackerAlloc", F: TestTrackerAlloc},
+		{Name: "TestTrackerAllocMultiple", F: TestTrackerAllocMultiple},
+		{Name: "TestTrackerAllocError", F: TestTrackerAllocError},
+		{Name: "TestTrackerReallocGrow", F: TestTrackerReallocGrow},
+		{Name: "TestTrackerReallocShrink", F: TestTrackerReallocShrink},
+		{Name: "TestTrackerReallocSameSize", F: TestTrackerReallocSameSize},
+		{Name: "TestTrackerReallocError", F: TestTrackerReallocError},
+		{Name: "TestTrackerFree", F: TestTrackerFree},
+		{Name: "TestTrackerLifecycle", F: TestTrackerLifecycle},
 	})
 }

@@ -1,9 +1,10 @@
 package mem
 
-// Arena is a memory allocator that bump-allocates linearly
-// within a fixed buffer. Free reclaims the last allocation
-// if the pointer matches; otherwise it is a no-op.
-// Use Reset to reclaim all memory at once.
+// Arena is a memory allocator that bump-allocates linearly within a fixed
+// buffer. [Arena.Free] reclaims the last allocation if the pointer matches;
+// otherwise it is a no-op. Use [Arena.Reset] to reclaim all memory at once.
+//
+// Arena is not thread-safe.
 type Arena struct {
 	buf       []byte
 	offset    int

@@ -162,12 +162,3 @@ func TestFreeString(t *testing.T) {
 	s2 := ""
 	mem.FreeString(mem.System, s2)
 }
-
-func TestTracker(t *testing.T) {
-	track := &mem.Tracker{Allocator: mem.System}
-	p := mem.Alloc[Point](track)
-	mem.Free(track, p)
-	if track.Stats.Alloc != 0 {
-		t.Error("Tracker: Stats.Alloc != 0")
-	}
-}

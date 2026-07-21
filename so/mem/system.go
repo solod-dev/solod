@@ -4,10 +4,14 @@ import "solod.dev/so/c"
 
 // System is an instance of a memory allocator that uses
 // the system's malloc, realloc, and free functions.
+//
+// System is thread-safe.
 var System Allocator = &SystemAllocator{}
 
 // SystemAllocator uses the system's malloc, realloc, and free functions.
 // It zeros out new memory on allocation and reallocation.
+//
+// SystemAllocator is thread-safe.
 type SystemAllocator struct{}
 
 func (*SystemAllocator) Alloc(size int, align int) (any, error) {
