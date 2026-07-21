@@ -1,6 +1,6 @@
 # Testing
 
-So programs are tested with the `so test` command and the [so/testing](https://pkg.go.dev/solod.dev/so/testing) package. The model mirrors Go's `testing`, but stays deliberately small: no subtests, no parallelism, no formatted message helpers.
+So programs are tested with the `so test` command and the [so/testing](https://pkg.go.dev/solod.dev/so/testing) package. The model mirrors Go's `testing`, but stays deliberately small: no subtests and no parallelism.
 
 ## Layout
 

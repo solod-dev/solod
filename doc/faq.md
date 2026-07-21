@@ -14,9 +14,23 @@ Everything is stack-allocated by default. There's no garbage collector or refere
 
 _Is it safe?_
 
-So itself has few safeguards other than the default Go type checking. It will panic on out-of-bounds array access, and it won't let you return stack-allocated memory in many common situations. However, it won't catch memory leaks or use-after-free errors.
+So has extra safeguards beyond Go's default type checking:
 
-Most memory-related problems can be caught with AddressSanitizer in modern compilers, so I recommend enabling it during development by adding `-fsanitize=address` to your `CFLAGS`.
+- It will panic on out-of-bounds array access.
+- It won't let you return stack-allocated memory in common situations.
+- Tests can detect memory leaks with a tracking allocator.
+
+However, the leak check only reports an aggregate count, not which allocation leaked, and So won't catch double-free or use-after-free errors on its own.
+
+Most memory-related problems can be caught with AddressSanitizer in modern compilers. I strongly recommend turning on sanitizers in your `CFLAGS` while developing:
+
+```text
+-O1 -g -fsanitize=address -fsanitize=undefined
+```
+
+_What about concurrency?_
+
+Right now, concurrency tools like threads, channels, and worker pools are available through the standard library (the `so/conc` package), not built into the language itself. As the standard library matures, these features might eventually be accessible using Go's standard `go`, `chan` and `select` keywords.
 
 _Can I use So code from C (and vice versa)?_
 
