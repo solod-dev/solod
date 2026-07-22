@@ -87,8 +87,9 @@
 #define SO_CONCAT(a, b) a##b
 #define SO_NAME(a, b) SO_CONCAT(a, b)
 
-#define so_typeof __typeof__
 #define so_auto __auto_type
+#define so_typeof __typeof__
+#define so_unreachable() __builtin_unreachable()
 
 typedef uint8_t so_byte;
 typedef int32_t so_rune;
@@ -389,7 +390,8 @@ static inline so_int so_copy_impl(so_Slice dst, so_Slice src, size_t elem_size) 
     so_auto _s_at = (s);                        \
     so_int _i = (so_int)(i);                    \
     so_assert((so_uint)_i < (so_uint)_s_at.len, \
-              "index out of bounds");           \
+              "index out of range");            \
+    if (_s_at.ptr == NULL) so_unreachable();    \
     (T*)_s_at.ptr + _i;                         \
 })
 

@@ -48,7 +48,7 @@ func (a *Array) Store(i int, v any) {
 // At returns a pointer to the value at index i. The pointer stays
 // valid until the slot is overwritten or [Array.Free] is called.
 func (a *Array) At(i int) any {
-	c.Assert(i >= 0 && i < a.count, "mem.Array.At: index out of bounds")
+	c.Assert(i >= 0 && i < a.count, "mem.Array.At: index out of range")
 	vptr := unsafe.SliceData(a.vals)
 	return c.PtrAdd(vptr, i*a.vsize)
 }

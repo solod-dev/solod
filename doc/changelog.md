@@ -75,7 +75,7 @@ var fn func(int) int = calc
 **Diagnosable assertions**. Assertions (slice bounds, index out of range, slice-to-array length, ...) and `c.Assert` now panic instead of calling C's `assert`. They go through a single `so_assert` macro, so a failure reports the calling function and honors `--panic=trace`:
 
 ```text
-panic: index out of bounds
+panic: index out of range
   main.c:10 (func boundsFail)
 0   app    0x00000001045f7264 boundsFail + 160
 1   app    0x00000001045f716c main + 448
