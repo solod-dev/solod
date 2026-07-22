@@ -502,8 +502,10 @@ static inline so_String so_error_error(void* self) {
 
 // panic aborts the program with the given message.
 //
-// SO_PANIC_MODE selects how a hosted build terminates
-// after printing the message (default SO_PANIC_EXIT):
+// SO_PANIC_MODE selects how a hosted build terminates after printing
+// the message. The `so` toolchain defaults to SO_PANIC_TRACE (and adds
+// the -rdynamic it needs); compiling this C by hand without -D falls
+// back to SO_PANIC_EXIT, which needs no extra flags.
 //   - SO_PANIC_EXIT:  exit(1). Clean, deterministic exit code.
 //   - SO_PANIC_ABORT: abort(). Raises SIGABRT for a core dump or debugger.
 //   - SO_PANIC_TRACE: print a backtrace, then exit(1).

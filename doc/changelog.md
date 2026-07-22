@@ -41,19 +41,16 @@ func newCounter() counter { ... }
 type Point struct{ x, y int }
 
 func newPoint(x, y int) *Point {
-    return &Point{x: x, y: y} // dangling pointer
+    return &Point{x: x, y: y}
+	//     |
+	// compile-time error: stack-allocated
+	// value escapes function frame
 }
 
 func main() {
     p := newPoint(3, 4)
     println(p.x, p.y)
 }
-```
-
-```text
-so run: main.go:8:9: stack-allocated value escapes function frame
-	return &Point{x: x, y: y}
-	       ^here
 ```
 
 The check isn't thorough and only covers a few common cases.
@@ -129,7 +126,7 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 [e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1) ·
 [2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
 
-**Stack traces**. The `panic` flag controls how a panic terminates the program: `exit` (default) calls `exit(1)`, `abort` raises `SIGABRT` for a debugger or core dump, and `trace` prints a stack trace before exiting. See the [spec](spec.md#panic).
+**Stack traces**. The `panic` flag controls how a panic terminates the program: `trace` (default) prints a stack trace before exiting, `exit` calls `exit(1)`, and `abort` raises `SIGABRT` for a debugger or core dump. The default fits glibc and macOS; on musl (empty trace) or freestanding (always traps) pass `--panic=exit` or `--panic=abort`. See the [spec](spec.md#panic).
 
 [8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
 

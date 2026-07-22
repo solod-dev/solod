@@ -1048,11 +1048,11 @@ The `--panic` flag selects how a panic terminates the program after printing its
 so run --panic=trace .
 ```
 
-- `exit` (default): call `exit(1)`. Clean, deterministic exit code.
+- `trace` (default): print a symbolized backtrace, then `exit(1)`.
+- `exit`: call `exit(1)`. Clean, deterministic exit code.
 - `abort`: call `abort()`, raising `SIGABRT` so a debugger, AddressSanitizer, or core dump can report the stack.
-- `trace`: print a symbolized backtrace, then `exit(1)`.
 
-Trace mode is hosted-only and adds `-rdynamic -fno-omit-frame-pointer` to the C build so frames can be unwound and named. The trace shows C symbols (`package_Func`), which map directly onto So functions; combine it with `--track-source` to relate the panic site back to So source. On some libcs (e.g. musl) `backtrace` is a stub and the trace may be empty. Freestanding builds ignore the mode and always trap.
+Trace mode adds `-rdynamic -fno-omit-frame-pointer` to the C build so frames can be unwound and named. The trace shows C symbols (`package_Func`), which map directly onto So functions; combine it with `--track-source` to relate the panic site back to So source. The default fits glibc and macOS. Use `--panic=exit` or `--panic=abort` on musl, where the trace comes out empty, and on freestanding, which always traps.
 
 `recover` is not supported.
 

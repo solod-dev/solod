@@ -135,17 +135,17 @@ func compileC(includeDir string, cFiles []string, outFile string, copts compileO
 }
 
 // panicMode maps a panic mode name to the -DSO_PANIC_MODE define and any
-// extra C compiler flags the mode needs. An empty mode defaults to "exit".
-// Trace mode needs -rdynamic for symbol names and frame pointers to unwind.
+// extra C compiler flags the mode needs. An empty mode defaults to "trace".
 func panicMode(mode string) (define string, flags []string, err error) {
 	switch mode {
-	case "", "exit":
+	case "", "trace":
+		// Needs -rdynamic for symbol names and frame pointers to unwind.
+		return "-DSO_PANIC_MODE=SO_PANIC_TRACE",
+			[]string{"-rdynamic", "-fno-omit-frame-pointer"}, nil
+	case "exit":
 		return "-DSO_PANIC_MODE=SO_PANIC_EXIT", nil, nil
 	case "abort":
 		return "-DSO_PANIC_MODE=SO_PANIC_ABORT", nil, nil
-	case "trace":
-		return "-DSO_PANIC_MODE=SO_PANIC_TRACE",
-			[]string{"-rdynamic", "-fno-omit-frame-pointer"}, nil
 	default:
 		return "", nil, fmt.Errorf("invalid panic mode %q (want exit, abort, or trace)", mode)
 	}

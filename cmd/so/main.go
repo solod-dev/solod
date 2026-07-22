@@ -72,7 +72,7 @@ Run 'so <command> -h' for details.
 const (
 	checkNilUsage    = "check for nil pointer dereference"
 	trackSourceUsage = "track source locations for panics"
-	panicModeUsage   = "panic termination mode: exit, abort, or trace"
+	panicModeUsage   = "panic termination mode: trace (default), exit, or abort"
 )
 
 func translate(args []string) error {
@@ -106,7 +106,7 @@ func build(args []string) error {
 	outFile := flags.String("o", "", "output file (default: basename of package directory)")
 	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
-	panicMode := flags.String("panic", "exit", panicModeUsage)
+	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func test(args []string) error {
 	run := flags.String("run", "", "run only tests whose names start with this prefix")
 	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
-	panicMode := flags.String("panic", "exit", panicModeUsage)
+	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func bench(args []string) error {
 	run := flags.String("run", "", "run only benchmarks whose names start with this prefix")
 	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
-	panicMode := flags.String("panic", "exit", panicModeUsage)
+	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func run(args []string) error {
 	flags := flag.NewFlagSet("run", flag.ContinueOnError)
 	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
-	panicMode := flags.String("panic", "exit", panicModeUsage)
+	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}

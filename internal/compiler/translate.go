@@ -14,7 +14,7 @@ import (
 // Options holds the options for the compiler pipeline.
 type Options struct {
 	CheckNil    bool   // check for nil pointer dereference
-	PanicMode   string // panic termination mode: "exit" (default), "abort", or "trace"
+	PanicMode   string // panic termination mode: "trace" (default), "exit", or "abort"
 	TrackSource bool   // track source locations for panics
 }
 
