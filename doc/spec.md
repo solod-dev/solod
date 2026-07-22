@@ -1066,7 +1066,7 @@ Defining `NDEBUG` in a C build completely removes assertions. The condition insi
 
 Not every failure is an assertion. Other runtime checks, like calling `append` beyond capacity, always cause a panic and are not affected by `NDEBUG`, because they report situations the caller can't always predict ahead of time.
 
-Nil pointer dereference is checked separately, via the `--check-nil` flag (off by default) rather than `NDEBUG`.
+A nil pointer dereference (or other invalid memory access) is caught at runtime in hosted builds and reported as a panic that honors `--panic`: trace mode prints `panic: nil pointer dereference` and a backtrace, exit mode prints just the message, and abort mode leaves the fault untouched for a core dump. Unlike an explicit panic it carries no source line, so use the backtrace to locate it. Freestanding builds install no handler and fault like C.
 
 ## Defer
 

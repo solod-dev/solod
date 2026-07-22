@@ -70,7 +70,6 @@ Run 'so <command> -h' for details.
 }
 
 const (
-	checkNilUsage    = "check for nil pointer dereference"
 	trackSourceUsage = "track source locations for panics"
 	panicModeUsage   = "panic termination mode: trace (default), exit, or abort"
 )
@@ -78,7 +77,6 @@ const (
 func translate(args []string) error {
 	flags := flag.NewFlagSet("translate", flag.ContinueOnError)
 	outDir := flags.String("o", "", "output directory (default: current directory)")
-	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -95,7 +93,6 @@ func translate(args []string) error {
 	}
 
 	opts := compiler.Options{
-		CheckNil:    *checkNil,
 		TrackSource: *trackSource,
 	}
 	return compiler.Translate(pkg, out, opts)
@@ -104,7 +101,6 @@ func translate(args []string) error {
 func build(args []string) error {
 	flags := flag.NewFlagSet("build", flag.ContinueOnError)
 	outFile := flags.String("o", "", "output file (default: basename of package directory)")
-	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
 	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
@@ -126,7 +122,6 @@ func build(args []string) error {
 	}
 
 	opts := compiler.Options{
-		CheckNil:    *checkNil,
 		PanicMode:   *panicMode,
 		TrackSource: *trackSource,
 	}
@@ -136,7 +131,6 @@ func build(args []string) error {
 func test(args []string) error {
 	flags := flag.NewFlagSet("test", flag.ContinueOnError)
 	run := flags.String("run", "", "run only tests whose names start with this prefix")
-	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
 	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
@@ -155,7 +149,6 @@ func test(args []string) error {
 	}
 
 	opts := compiler.Options{
-		CheckNil:    *checkNil,
 		PanicMode:   *panicMode,
 		TrackSource: *trackSource,
 	}
@@ -165,7 +158,6 @@ func test(args []string) error {
 func bench(args []string) error {
 	flags := flag.NewFlagSet("bench", flag.ContinueOnError)
 	run := flags.String("run", "", "run only benchmarks whose names start with this prefix")
-	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
 	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
@@ -184,7 +176,6 @@ func bench(args []string) error {
 	}
 
 	opts := compiler.Options{
-		CheckNil:    *checkNil,
 		PanicMode:   *panicMode,
 		TrackSource: *trackSource,
 	}
@@ -193,7 +184,6 @@ func bench(args []string) error {
 
 func run(args []string) error {
 	flags := flag.NewFlagSet("run", flag.ContinueOnError)
-	checkNil := flags.Bool("check-nil", false, checkNilUsage)
 	trackSource := flags.Bool("track-source", false, trackSourceUsage)
 	panicMode := flags.String("panic", "trace", panicModeUsage)
 	if err := flags.Parse(args); err != nil {
@@ -208,7 +198,6 @@ func run(args []string) error {
 	}
 
 	opts := compiler.Options{
-		CheckNil:    *checkNil,
 		PanicMode:   *panicMode,
 		TrackSource: *trackSource,
 	}

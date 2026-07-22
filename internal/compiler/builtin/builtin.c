@@ -23,6 +23,53 @@ void so_print_trace(void) {
 }
 #endif
 
+// A memory-access fault becomes a panic in every hosted mode except abort,
+// which leaves the fault alone so it can dump a core.
+#if defined(so_build_hosted) && SO_PANIC_MODE != SO_PANIC_ABORT
+#include <signal.h>
+#include <unistd.h>
+
+// so_fault_handler turns a SIGSEGV or SIGBUS into a panic. A fault within the
+// first 64KB is reported as a nil pointer dereference (a nil base plus a small
+// field or index offset); any other address as an invalid access. In trace
+// mode it prints a backtrace, led by this handler and the signal-trampoline
+// frame before the faulting frame.
+static void so_fault_handler(int sig, siginfo_t* info, void* ctx) {
+    // Everything here is async-signal-safe: constant messages via write(), the
+    // _fd backtrace variant, and _exit(). No fprintf, so a fault raised while the
+    // stdio or malloc lock is held reports instead of deadlocking.
+    (void)sig;
+    (void)ctx;
+    static const char nil_msg[] = "panic: nil pointer dereference\n";
+    static const char bad_msg[] = "panic: invalid memory address\n";
+    const char* msg = nil_msg;
+    size_t len = sizeof(nil_msg) - 1;
+    if ((uintptr_t)info->si_addr >= 0x10000) {
+        msg = bad_msg;
+        len = sizeof(bad_msg) - 1;
+    }
+    ssize_t written = write(STDERR_FILENO, msg, len);
+    (void)written;
+#if SO_PANIC_MODE == SO_PANIC_TRACE
+    so_print_trace();
+#endif
+    _exit(1);
+}
+
+// so_install_fault_handler registers so_fault_handler for SIGSEGV and SIGBUS
+// before main runs. The handler runs on the normal stack, not a signal stack:
+// backtrace() cannot unwind from an alternate stack on macOS. This means a
+// stack overflow, which exhausts that stack, cannot be reported.
+__attribute__((constructor)) static void so_install_fault_handler(void) {
+    struct sigaction sa = {0};
+    sa.sa_sigaction = so_fault_handler;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGBUS, &sa, NULL);
+}
+#endif
+
 // Command-line arguments, populated by main().
 so_Slice os_Args = {0};
 

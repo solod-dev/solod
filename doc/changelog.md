@@ -130,6 +130,10 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 [8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
 
+**Nil checks**. A nil pointer dereference (or other invalid memory access) is now caught at runtime in hosted builds and reported as a panic that honors `--panic`, rather than emitting a per-dereference check that clutters the generated C.
+
+⚠️ This removes the `--check-nil` flag.
+
 ## v0.2
 
 Networking, new targets, and friendlier interop.

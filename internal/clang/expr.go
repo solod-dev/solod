@@ -473,7 +473,7 @@ func (g *Generator) emitSelectorExpr(w io.Writer, n *ast.SelectorExpr) {
 	xType := g.types.TypeOf(n.X)
 	_, isPtr := xType.Underlying().(*types.Pointer)
 	if isPtr {
-		g.emitNotNil(w, n.X)
+		g.emitExpr(w, n.X)
 		fmt.Fprintf(w, "->%s", n.Sel.Name)
 	} else {
 		g.emitExpr(w, n.X)
@@ -484,7 +484,7 @@ func (g *Generator) emitSelectorExpr(w io.Writer, n *ast.SelectorExpr) {
 // emitStarExpr emits a dereference expression (e.g. *p).
 func (g *Generator) emitStarExpr(w io.Writer, n *ast.StarExpr) {
 	fmt.Fprint(w, "*")
-	g.emitNotNil(w, n.X)
+	g.emitExpr(w, n.X)
 }
 
 // emitPostfixOperand emits an expression that a postfix operator (., [], ++)
@@ -615,21 +615,6 @@ func (g *Generator) emitExprAsType(w io.Writer, node ast.Node, expr ast.Expr, ta
 		return
 	}
 	g.emitExpr(w, expr)
-}
-
-// emitNotNil emits expr with a null pointer check if the CheckNil option is enabled.
-// Otherwise, it emits expr directly. The suffixes are appended to the emitted expression.
-func (g *Generator) emitNotNil(w io.Writer, expr ast.Expr, suffixes ...string) {
-	suffix := strings.Join(suffixes, "")
-	if !g.opts.CheckNil {
-		g.emitExpr(w, expr)
-		fmt.Fprint(w, suffix)
-		return
-	}
-	fmt.Fprint(w, "so_notnil(")
-	g.emitExpr(w, expr)
-	fmt.Fprint(w, suffix)
-	fmt.Fprint(w, ")")
 }
 
 // emitMacroArg emits an argument to a function-like macro.

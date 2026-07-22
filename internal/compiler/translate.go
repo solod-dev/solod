@@ -13,7 +13,6 @@ import (
 
 // Options holds the options for the compiler pipeline.
 type Options struct {
-	CheckNil    bool   // check for nil pointer dereference
 	PanicMode   string // panic termination mode: "trace" (default), "exit", or "abort"
 	TrackSource bool   // track source locations for panics
 }
@@ -39,7 +38,6 @@ func Translate(srcDir, outDir string, opts Options) error {
 		if err := clang.Emit(clang.EmitOptions{
 			Pkg:         pkg,
 			OutDir:      pkgOutDir,
-			CheckNil:    opts.CheckNil,
 			TrackSource: opts.TrackSource,
 		}); err != nil {
 			return err
