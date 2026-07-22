@@ -11,10 +11,9 @@ const (
 	maxEmptyRead   = 100  // give up on a reader that never makes progress
 )
 
-// Buffer is the byte source a [Decoder] scans. It gives the decoder a cursor
+// buffer is the byte source a [Decoder] scans. It gives the decoder a cursor
 // (peek/advance) and a way to bracket a token (hold/take), hiding where the
-// bytes come from. Buffer is an implementation detail; callers should use
-// Decoder instead.
+// bytes come from.
 //
 // There are two modes:
 //
@@ -28,7 +27,9 @@ const (
 // The mark is the key invariant: while a token is held, the bytes from the mark
 // to the cursor survive refills, so take can return them as one contiguous
 // slice. Everything before the mark may be discarded.
-type Buffer struct {
+//
+//so:promote
+type buffer struct {
 	alloc   mem.Allocator
 	rd      io.Reader // nil in fixed mode
 	buf     []byte
@@ -41,32 +42,32 @@ type Buffer struct {
 	err     error // sticky refill error (read failure or ErrTooLong)
 }
 
-// fixedBuffer returns a Buffer over a complete in-memory document. The document
+// fixedBuffer returns a buffer over a complete in-memory document. The document
 // is borrowed, not copied; alloc is only used for the decoder's scratch.
-func fixedBuffer(alloc mem.Allocator, doc []byte) Buffer {
-	return Buffer{alloc: alloc, buf: doc, end: len(doc)}
+func fixedBuffer(alloc mem.Allocator, doc []byte) buffer {
+	return buffer{alloc: alloc, buf: doc, end: len(doc)}
 }
 
-// streamBuffer returns a Buffer that pulls from rd into a buffer of its own:
+// streamBuffer returns a buffer that pulls from rd into a buffer of its own:
 // minSize bytes, allocated on first use and doubled as tokens demand it, up to
 // maxSize. A token that does not fit yields [ErrTooLong].
 //
 // maxSize is max(minSize, maxTok+1): a maxTok-byte token needs one extra byte
 // to detect its end, but the buffer is never shrunk below minSize to enforce a
 // smaller maxTok.
-func streamBuffer(alloc mem.Allocator, rd io.Reader, minSize, maxTok int) Buffer {
+func streamBuffer(alloc mem.Allocator, rd io.Reader, minSize, maxTok int) buffer {
 	maxTok = max(maxTok, minBufSize)
 	minSize = max(minSize, minBufSize)
 	maxSize := max(minSize, maxTok+1) // +1 to confirm the token is complete
 	if minSize >= maxTok {
 		minSize = maxSize // large enough for any token, so it never grows
 	}
-	return Buffer{alloc: alloc, rd: rd, minSize: minSize, maxSize: maxSize}
+	return buffer{alloc: alloc, rd: rd, minSize: minSize, maxSize: maxSize}
 }
 
 // peek returns the byte at the cursor as an int in 0..255, or -1 at EOF,
 // refilling first if the cursor has reached the end of the valid data.
-func (b *Buffer) peek() int {
+func (b *buffer) peek() int {
 	if b.cur < b.end {
 		return int(b.buf[b.cur])
 	}
@@ -77,12 +78,12 @@ func (b *Buffer) peek() int {
 }
 
 // advance consumes the current byte. It is only called after a successful peek.
-func (b *Buffer) advance() {
+func (b *buffer) advance() {
 	b.cur++
 }
 
 // hold anchors the start of a token at the cursor.
-func (b *Buffer) hold() {
+func (b *buffer) hold() {
 	b.mark = b.cur
 	b.holding = true
 }
@@ -90,7 +91,7 @@ func (b *Buffer) hold() {
 // take ends the held token and returns its bytes: the slice from the mark
 // to the cursor. The result is a view into the buffer, valid until the next
 // refill (i.e. until the next peek that needs more data).
-func (b *Buffer) take() []byte {
+func (b *buffer) take() []byte {
 	tok := b.buf[b.mark:b.cur]
 	b.holding = false
 	b.mark = b.cur
@@ -100,7 +101,7 @@ func (b *Buffer) take() []byte {
 // fill makes at least one more byte available past the cursor.
 // Returns false at EOF or on error. In fixed mode it's a no-op,
 // always returning false.
-func (b *Buffer) fill() bool {
+func (b *buffer) fill() bool {
 	if b.err != nil || b.rd == nil {
 		return false
 	}
@@ -154,7 +155,7 @@ func (b *Buffer) fill() bool {
 }
 
 // free releases an owned buffer. In fixed mode it's a no-op.
-func (b *Buffer) free() {
+func (b *buffer) free() {
 	if !b.owned() {
 		return
 	}
@@ -165,9 +166,9 @@ func (b *Buffer) free() {
 	b.holding = false
 }
 
-// owned reports whether the bytes take returns belong to the Buffer. In
+// owned reports whether the bytes take returns belong to the buffer. In
 // streaming mode they do, so the decoder may write to them. In fixed mode
 // they are the caller's document, which it must leave untouched.
-func (b *Buffer) owned() bool {
+func (b *buffer) owned() bool {
 	return b.rd != nil
 }

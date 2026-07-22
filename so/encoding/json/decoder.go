@@ -35,11 +35,10 @@ const (
 // string sets [ErrKind] rather than parsing it. Check [Decoder.Kind] first
 // wherever the document may not have the shape the code expects.
 //
-// The byte source is a [Buffer], which the Decoder treats as a black box: it
-// may be a complete in-memory document (see [NewDecoder]) or a stream pulled
-// from an [io.Reader] (see [NewReader]).
+// The byte source for a Decoder can be a complete in-memory document
+// (see [NewDecoder]) or a stream pulled from an [io.Reader] (see [NewReader]).
 type Decoder struct {
-	b   Buffer
+	b   buffer
 	knd Kind
 	tok []byte // raw bytes of the current string (unquoted) or number
 	scr []byte // scratch for unescaping; see Decoder.scratch
