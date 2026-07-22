@@ -19,5 +19,8 @@ func main() {
 		{Name: "TestMissing", F: TestMissing},
 		{Name: "TestGrow", F: TestGrow},
 		{Name: "TestReturnMap", F: TestReturnMap},
+		{Name: "TestClear", F: TestClear},
+		{Name: "TestDoubleFree", F: TestDoubleFree},
+		{Name: "TestDeleteAll", F: TestDeleteAll},
 	})
 }

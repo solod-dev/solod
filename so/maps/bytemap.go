@@ -25,11 +25,11 @@ import (
 
 const loadFactor = 0.85 // must be above 50%
 
-// byteMap is a Robin Hood hashmap operating on raw byte keys and values.
+// rawMap is a Robin Hood hashmap operating on raw byte keys and values.
 // It is the internal engine behind the generic [Map].
 //
 //so:promote
-type byteMap struct {
+type rawMap struct {
 	a mem.Allocator
 
 	hdib  []uint64 // one per bucket: bitfield { hash:48 dib:16 }
@@ -44,17 +44,17 @@ type byteMap struct {
 	growAt int    // length at which to grow the map
 }
 
-// newByteMap creates a new byteMap with the given initial capacity,
+// newRawMap creates a new rawMap with the given initial capacity,
 // key size, and value size, using the provided allocator (or the
 // default allocator if nil). The map automatically grows as needed.
 //
 // If the allocator is nil, uses the system allocator.
 // The caller is responsible for freeing map resources
-// with [byteMap.Free] when done using it.
+// with [rawMap.Free] when done using it.
 //
 //so:promote
-func newByteMap(a mem.Allocator, size, ksize, vsize int) byteMap {
-	m := byteMap{a: a, ksize: ksize, vsize: vsize, seed: runtime.Seed()}
+func newRawMap(a mem.Allocator, size, ksize, vsize int) rawMap {
+	m := rawMap{a: a, ksize: ksize, vsize: vsize, seed: runtime.Seed()}
 	sz := 8
 	// The map must be large enough to hold size entries without resizing.
 	for int(float64(sz)*loadFactor) < size {
@@ -71,7 +71,7 @@ func newByteMap(a mem.Allocator, size, ksize, vsize int) byteMap {
 // Len returns the number of key-value pairs in the map.
 //
 //so:promote
-func (m *byteMap) Len() int {
+func (m *rawMap) Len() int {
 	return m.len
 }
 
@@ -80,7 +80,7 @@ func (m *byteMap) Len() int {
 // the map can be reused after Clear.
 //
 //so:promote
-func (m *byteMap) Clear() {
+func (m *rawMap) Clear() {
 	clear(m.hdib)
 	m.len = 0
 }
@@ -90,7 +90,7 @@ func (m *byteMap) Clear() {
 // The map must not be used after Free.
 //
 //so:promote
-func (m *byteMap) Free() {
+func (m *rawMap) Free() {
 	if len(m.hdib) == 0 {
 		return
 	}
@@ -106,8 +106,8 @@ func (m *byteMap) Free() {
 // Resize grows or reallocates the map to hold at least size entries.
 //
 //so:promote
-func (m *byteMap) Resize(size int) {
-	nmap := newByteMap(m.a, size, m.ksize, m.vsize)
+func (m *rawMap) Resize(size int) {
+	nmap := newRawMap(m.a, size, m.ksize, m.vsize)
 	nmap.seed = m.seed // preserve seed so stored hashes remain valid
 	rehash(&nmap, m)
 	m.Free()
@@ -115,7 +115,7 @@ func (m *byteMap) Resize(size int) {
 }
 
 // rehash moves all entries from src into dst.
-func rehash(dst, src *byteMap) {
+func rehash(dst, src *rawMap) {
 	hdib := unsafe.SliceData(src.hdib)
 	keys := unsafe.SliceData(src.keys)
 	vals := unsafe.SliceData(src.vals)
@@ -135,7 +135,7 @@ func rehash(dst, src *byteMap) {
 
 // insert does byte-level Robin Hood insertion into a map.
 // Used during rehash only - skips equality check since keys are unique.
-func insert(m *byteMap, h int, key any, val any) {
+func insert(m *rawMap, h int, key any, val any) {
 	ehdib := (uint64(h) << 16) | 1
 	ksize := m.ksize
 	vsize := m.vsize

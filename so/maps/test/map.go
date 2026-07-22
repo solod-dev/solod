@@ -158,3 +158,56 @@ func TestReturnMap(t *testing.T) {
 		t.Error("want len = 4")
 	}
 }
+
+func TestClear(t *testing.T) {
+	m := maps.New[string, int](mem.System, 0)
+	defer m.Free()
+
+	m.Set("abc", 11)
+	m.Set("def", 22)
+	m.Clear()
+	if m.Len() != 0 {
+		t.Error("want len = 0 after clear")
+	}
+	if m.Has("abc") {
+		t.Error("want has(abc) == false after clear")
+	}
+	// reusable after Clear
+	m.Set("xyz", 33)
+	if m.Get("xyz") != 33 {
+		t.Error("want xyz = 33 after reuse")
+	}
+	if m.Len() != 1 {
+		t.Error("want len = 1 after reuse")
+	}
+}
+
+func TestDoubleFree(t *testing.T) {
+	_ = t
+	m := maps.New[string, int](mem.System, 0)
+	m.Free()
+	m.Free() // double Free is a no-op, not a crash
+}
+
+func TestDeleteAll(t *testing.T) {
+	m := maps.New[int, int](mem.System, 0)
+	defer m.Free()
+
+	for i := range 50 {
+		m.Set(i, i)
+	}
+	for i := range 50 {
+		m.Delete(i)
+	}
+	if m.Len() != 0 {
+		t.Error("want len = 0 after delete all")
+	}
+	// re-insert works over tombstones
+	m.Set(1, 100)
+	if m.Get(1) != 100 {
+		t.Error("want 1 = 100 after re-insert")
+	}
+	if m.Len() != 1 {
+		t.Error("want len = 1 after re-insert")
+	}
+}

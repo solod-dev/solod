@@ -14,15 +14,15 @@ var maps_h string
 // Map is a generic hashmap similar to Go's built-in map[K]V.
 // It automatically grows as needed, but does not shrink.
 type Map[K comparable, V any] struct {
-	bm byteMap
+	rm rawMap
 }
 
 // New creates a new Map with the given minimal capacity.
 //
 //so:inline
 func New[K comparable, V any](a mem.Allocator, size int) Map[K, V] {
-	bm := newByteMap(a, size, c.Sizeof[K](), c.Sizeof[V]())
-	return Map[K, V]{bm: bm}
+	rm := newRawMap(a, size, c.Sizeof[K](), c.Sizeof[V]())
+	return Map[K, V]{rm: rm}
 }
 
 // Has returns true if the given key is in the map.
@@ -31,7 +31,7 @@ func New[K comparable, V any](a mem.Allocator, size int) Map[K, V] {
 func (m *Map[K, V]) Has(key K) bool {
 	_key := key
 	_found := false
-	_m := m.bm
+	_m := m.rm
 	if len(_m.hdib) > 0 {
 		_hash := keyHash(&_key, _m.seed)
 		_i := _hash & _m.mask
@@ -62,7 +62,7 @@ func (m *Map[K, V]) Has(key K) bool {
 func (m *Map[K, V]) Get(key K) V {
 	_key := key
 	_val := c.Zero[V]()
-	_m := m.bm
+	_m := m.rm
 	if len(_m.hdib) > 0 {
 		_hash := keyHash(&_key, _m.seed)
 		_i := _hash & _m.mask
@@ -94,7 +94,7 @@ func (m *Map[K, V]) Get(key K) V {
 func (m *Map[K, V]) Set(key K, value V) {
 	_key := key
 	_val := value
-	_m := &m.bm
+	_m := &m.rm
 	if _m.len >= _m.growAt {
 		_m.Resize(len(_m.hdib) * 2)
 	}
@@ -136,7 +136,7 @@ func (m *Map[K, V]) Set(key K, value V) {
 //so:inline
 func (m *Map[K, V]) Delete(key K) {
 	_key := key
-	_m := &m.bm
+	_m := &m.rm
 	_hash := keyHash(&_key, _m.seed)
 	_i := _hash & _m.mask
 	_hdib := unsafe.SliceData(_m.hdib)
@@ -175,14 +175,14 @@ func (m *Map[K, V]) Delete(key K) {
 //
 //so:inline
 func (m *Map[K, V]) Iter() Iter[K, V] {
-	return Iter[K, V]{hdib: m.bm.hdib, keys: m.bm.keys, vals: m.bm.vals}
+	return Iter[K, V]{hdib: m.rm.hdib, keys: m.rm.keys, vals: m.rm.vals}
 }
 
 // Len returns the number of key-value pairs in the map.
 //
 //so:inline
 func (m *Map[K, V]) Len() int {
-	return m.bm.Len()
+	return m.rm.Len()
 }
 
 // Clear removes all key-value pairs from the map, resetting
@@ -191,7 +191,7 @@ func (m *Map[K, V]) Len() int {
 //
 //so:inline
 func (m *Map[K, V]) Clear() {
-	m.bm.Clear()
+	m.rm.Clear()
 }
 
 // Free frees internal resources used by the map.
@@ -200,7 +200,7 @@ func (m *Map[K, V]) Clear() {
 //
 //so:inline
 func (m *Map[K, V]) Free() {
-	m.bm.Free()
+	m.rm.Free()
 }
 
 //so:extern maps_keyHash
