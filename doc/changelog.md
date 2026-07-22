@@ -18,6 +18,8 @@ type Point struct {
 }
 ```
 
+[dd21515](https://github.com/solod-dev/solod/commit/dd21515ce358c3af0d815ac30178af63226d3e5a)
+
 **Promoted symbols**. The `//so:promote` directive promotes an unexported type, function, method, var, or const into the package header with the package prefix. This lets an exported inline function or type reference an unexported one without exporting it and polluting the public API:
 
 ```go
@@ -34,6 +36,22 @@ type counter struct { val int }
 //so:promote
 func newCounter() counter { ... }
 ```
+
+[4dc1364](https://github.com/solod-dev/solod/commit/4dc1364488e125f2e96b57d4cffcdce32aa8805a)
+
+**Anonymous functions**. You can now use anonymous functions as variable types and function parameters:
+
+```go
+// func parameter
+func apply(n int, f func(int) int) int { return f(n) }
+
+// func variable
+var fn func(int) int = calc
+```
+
+[d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
+
+### Safety
 
 **Escape analysis**. If a function tries to return a stack-allocated value, the program won't compile:
 
@@ -57,18 +75,6 @@ The check isn't thorough and only covers a few common cases.
 
 [3f2a2cc](https://github.com/solod-dev/solod/commit/3f2a2cc0afc13c2fc1eb66cbaa34c50581f72a97)
 
-**Anonymous functions**. You can now use anonymous functions as variable types and function parameters:
-
-```go
-// func parameter
-func apply(n int, f func(int) int) int { return f(n) }
-
-// func variable
-var fn func(int) int = calc
-```
-
-[d926b2a](https://github.com/solod-dev/solod/commit/d926b2a56f5f56fd22a9b580a929cb5159236b0c)
-
 **Diagnosable assertions**. Assertions (slice bounds, index out of range, slice-to-array length, ...) and `c.Assert` now panic instead of calling C's `assert`. They go through a single `so_assert` macro, so a failure reports the calling function and honors `--panic=trace`:
 
 ```text
@@ -79,6 +85,20 @@ panic: index out of range
 ```
 
 Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append` beyond capacity, still panic.
+
+[2f86ef3](https://github.com/solod-dev/solod/commit/2f86ef33f739f4d211ea33faf8bf517e9cf37b3b)
+
+**Stack traces**. The `panic` flag controls how a panic terminates the program: `trace` (default) prints a stack trace before exiting, `exit` calls `exit(1)`, and `abort` raises `SIGABRT` for a debugger or core dump. The default fits glibc and macOS; on musl (empty trace) or freestanding (always traps) pass `--panic=exit` or `--panic=abort`. See the [spec](spec.md#panic).
+
+[8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
+
+**Nil checks**. A nil pointer dereference (or other invalid memory access) is now caught at runtime in POSIX hosted builds and reported as a panic that honors `--panic`, rather than emitting a per-dereference check that clutters the generated C.
+
+⚠️ This removes the `--check-nil` flag.
+
+[b829c4f](https://github.com/solod-dev/solod/commit/b829c4f77bb2b8880ea5a3a96caf5a273c99e1b1)
+
+**Divide-by-zero checks**. Integer division or modulo by a zero divisor now panics instead of relying on hardware. This closes a portability gap: division by zero is undefined in C, and on arm64 it silently yields 0 rather than trapping.
 
 **Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
 
@@ -111,7 +131,11 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 **Source locations**. The `runtime` package provides `FileName`, `Line` and `FuncName` to report the current source location.
 
+[7f0a8c0](https://github.com/solod-dev/solod/commit/7f0a8c06483e133b499e207cceee0e866cdf404b)
+
 **Test leak checking**. `testing.T` provides an `Allocator` method that returns a tracking allocator. A test fails if memory allocated through it is not freed by the time the test returns. See the [testing guide](testing.md).
+
+[9440bf5](https://github.com/solod-dev/solod/commit/9440bf5ec011f0469aa0ff4d14386588304b499a)
 
 ### Tools
 
@@ -125,14 +149,6 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 [c374069](https://github.com/solod-dev/solod/commit/c37406988e712a7f266c87990107d6f491a566f7) ·
 [e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1) ·
 [2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
-
-**Stack traces**. The `panic` flag controls how a panic terminates the program: `trace` (default) prints a stack trace before exiting, `exit` calls `exit(1)`, and `abort` raises `SIGABRT` for a debugger or core dump. The default fits glibc and macOS; on musl (empty trace) or freestanding (always traps) pass `--panic=exit` or `--panic=abort`. See the [spec](spec.md#panic).
-
-[8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
-
-**Nil checks**. A nil pointer dereference (or other invalid memory access) is now caught at runtime in POSIX hosted builds and reported as a panic that honors `--panic`, rather than emitting a per-dereference check that clutters the generated C.
-
-⚠️ This removes the `--check-nil` flag.
 
 ## v0.2
 

@@ -10,7 +10,7 @@ static so_R_int_int forwardDivmod(void);
 
 // Same-type pair.
 static so_R_int_int divmod(so_int a, so_int b) {
-    return (so_R_int_int){.val = a / b, .val2 = a % b};
+    return (so_R_int_int){.val = so_div(a, b), .val2 = so_mod(a, b)};
 }
 
 // Mixed types.

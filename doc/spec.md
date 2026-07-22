@@ -1060,7 +1060,7 @@ Trace mode adds `-rdynamic -fno-omit-frame-pointer` to the C build so frames can
 
 _"Assertion" here means a precondition check. It is unrelated to a [type assertion](#interfaces)._
 
-An assertion checks a precondition the caller is required to satisfy. Assertions panic on failure, so they report a source location and honor `--panic`. They cover slice and string bounds, index-out-of-range, slice-to-array length, and zero map capacity. Since Go's syntax doesn't have a built-in `assert`, it's provided through the `c.Assert` function in the standard library.
+An assertion checks a precondition the caller is required to satisfy. Assertions panic on failure, so they report a source location and honor `--panic`. They cover slice and string bounds, index-out-of-range, slice-to-array length, zero map capacity, and integer division or modulo by a zero divisor. Since Go's syntax doesn't have a built-in `assert`, it's provided through the `c.Assert` function in the standard library.
 
 Defining `NDEBUG` in a C build completely removes assertions. The condition inside the assertion won't be checked at all, so it shouldn't have any side effects. Only use `NDEBUG` when you're sure your program is correct.
 

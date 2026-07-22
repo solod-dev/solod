@@ -67,7 +67,7 @@ static sub_PointResult makeSubPoint(so_int x, so_int y) {
 }
 
 static so_R_int_err divide(so_int a, so_int b) {
-    return (so_R_int_err){.val = a / b, .err = (so_Error){0}};
+    return (so_R_int_err){.val = so_div(a, b), .err = (so_Error){0}};
 }
 
 static so_R_int_err returnInt(void) {

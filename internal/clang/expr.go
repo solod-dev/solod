@@ -191,6 +191,20 @@ func (g *Generator) emitBinaryExpr(w io.Writer, n *ast.BinaryExpr) {
 		return
 	}
 
+	// Integer division/modulo: guard against a zero divisor.
+	if (n.Op == token.QUO || n.Op == token.REM) && g.needsIntDivGuard(n.X, n.Y) {
+		if n.Op == token.QUO {
+			fmt.Fprint(w, "so_div(")
+		} else {
+			fmt.Fprint(w, "so_mod(")
+		}
+		g.emitExpr(w, n.X)
+		fmt.Fprint(w, ", ")
+		g.emitExpr(w, n.Y)
+		fmt.Fprint(w, ")")
+		return
+	}
+
 	// Regular binary expression.
 	g.emitExpr(w, n.X)
 	fmt.Fprintf(w, " %s ", n.Op.String())
@@ -671,6 +685,20 @@ func (g *Generator) needsVoidParens(expr ast.Expr) bool {
 		}
 	}
 	// Binary expression - needs parentheses.
+	return true
+}
+
+// needsIntDivGuard reports whether a division or modulo of x by y needs a
+// runtime zero-divisor guard. Floating-point division is well-defined (IEEE
+// infinities/NaN), and a constant divisor is known nonzero because Go rejects
+// a constant zero divisor at compile time.
+func (g *Generator) needsIntDivGuard(x, y ast.Expr) bool {
+	if !isIntegerType(g.types.TypeOf(x)) {
+		return false
+	}
+	if tv, ok := g.types.Types[y]; ok && tv.Value != nil {
+		return false
+	}
 	return true
 }
 

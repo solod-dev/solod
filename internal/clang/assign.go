@@ -36,6 +36,22 @@ func (g *Generator) emitAssignStmt(w io.Writer, stmt *ast.AssignStmt) {
 			fmt.Fprint(w, ");\n")
 			return
 		}
+		// Integer /= and %= guard against a zero divisor.
+		if (stmt.Tok == token.QUO_ASSIGN || stmt.Tok == token.REM_ASSIGN) &&
+			g.needsIntDivGuard(stmt.Lhs[0], stmt.Rhs[0]) {
+			fmt.Fprint(w, g.indent())
+			g.emitExpr(w, stmt.Lhs[0])
+			if stmt.Tok == token.QUO_ASSIGN {
+				fmt.Fprint(w, " = so_div(")
+			} else {
+				fmt.Fprint(w, " = so_mod(")
+			}
+			g.emitExpr(w, stmt.Lhs[0])
+			fmt.Fprint(w, ", ")
+			g.emitExpr(w, stmt.Rhs[0])
+			fmt.Fprint(w, ");\n")
+			return
+		}
 		fmt.Fprint(w, g.indent())
 		g.emitExpr(w, stmt.Lhs[0])
 		fmt.Fprintf(w, " %s ", stmt.Tok)

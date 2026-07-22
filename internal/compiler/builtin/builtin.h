@@ -130,6 +130,24 @@ typedef uint64_t so_uint;
     _size ? alloca(_size) : NULL;                         \
 })
 
+// --- Integer division ---
+
+// div and mod evaluate a/b and a%b, panicking on a zero divisor. Integer
+// division by zero is undefined in C: x86 traps it, but arm64 silently yields
+// 0, so the compiler emits an explicit guard instead of relying on a signal.
+// so_typeof keeps the divisor's exact type (signedness and width).
+#define so_div(a, b) ({                               \
+    so_typeof(b) _div_b = (b);                        \
+    so_assert(_div_b != 0, "integer divide by zero"); \
+    (a) / _div_b;                                     \
+})
+
+#define so_mod(a, b) ({                               \
+    so_typeof(b) _div_b = (b);                        \
+    so_assert(_div_b != 0, "integer divide by zero"); \
+    (a) % _div_b;                                     \
+})
+
 // --- Comparison ---
 
 // mem_eq returns true if two memory blocks are equal.

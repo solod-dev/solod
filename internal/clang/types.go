@@ -343,3 +343,9 @@ func isNilType(t types.Type) bool {
 	basic, ok := t.(*types.Basic)
 	return ok && basic.Kind() == types.UntypedNil
 }
+
+// isIntegerType reports whether t is an integer type (named or not).
+func isIntegerType(t types.Type) bool {
+	b, ok := t.Underlying().(*types.Basic)
+	return ok && b.Info()&types.IsInteger != 0
+}

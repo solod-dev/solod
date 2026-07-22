@@ -14,7 +14,7 @@ int main(void) {
     {
         // Integer arithmetics.
         so_int a = 11, b = 22, c = 33;
-        so_int d = b / a + (a - c) * a + c % b;
+        so_int d = so_div(b, a) + (a - c) * a + so_mod(c, b);
         d += 10;
         d -= 10;
         d *= 10;
