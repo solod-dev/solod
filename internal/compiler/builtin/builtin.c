@@ -24,8 +24,9 @@ void so_print_trace(void) {
 #endif
 
 // A memory-access fault becomes a panic in every hosted mode except abort,
-// which leaves the fault alone so it can dump a core.
-#if defined(so_build_hosted) && SO_PANIC_MODE != SO_PANIC_ABORT
+// which leaves the fault alone so it can dump a core. The handler is POSIX
+// only (sigaction/SIGBUS); Windows has no handler and faults like C.
+#if defined(so_build_hosted) && !defined(so_build_windows) && SO_PANIC_MODE != SO_PANIC_ABORT
 #include <signal.h>
 #include <unistd.h>
 
