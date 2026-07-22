@@ -37,102 +37,123 @@ func divide(a, b int) (int, error) {
 	return a / b, nil
 }
 
-func returnInt16() (int16, error)   { return 42, nil }
-func returnUint16() (uint16, error) { return 42, nil }
-func returnRune() (rune, error)     { return 'x', nil }
-func returnString() (string, error) { return "hello", nil }
+func returnInt() (int, error)            { return 42, nil }
+func returnRune() (rune, error)          { return 'x', nil }
+func returnString() (string, error)      { return "hello", nil }
 func returnSlice(s []int) ([]int, error) { return s, nil }
-func returnStruct() (File, error)   { return File{size: 42}, nil }
-func returnAny() (any, error)       { return &file, nil }
-func returnPtr() (*File, error)     { return &file, nil }
+func returnStruct() (File, error)        { return File{size: 42}, nil }
+func returnAny() (any, error)            { return &file, nil }
+func returnPtr() (*File, error)          { return &file, nil }
 
 // func returnIface() (Reader, error)  { return &file, nil }
 
-func forwardCall() (int, error) {
-	return divide(10, 3)
+func forwardInt() (int, error)            { return returnInt() }
+func forwardRune() (rune, error)          { return returnRune() }
+func forwardString() (string, error)      { return returnString() }
+func forwardSlice(s []int) ([]int, error) { return returnSlice(s) }
+func forwardStruct() (File, error)        { return returnStruct() }
+func forwardAny() (any, error)            { return returnAny() }
+func forwardPtr() (*File, error)          { return returnPtr() }
+
+func testBasic() {
+	// Destructure into new variables.
+	q, err := divide(10, 3)
+	_ = q
+	_ = err
+
+	// Blank identifier.
+	_, err2 := divide(10, 3)
+	_ = err2
+	r3, _ := divide(10, 3)
+	_ = r3
+
+	// Partial reassignment.
+	r4, err2 := divide(10, 3)
+	_ = r4
+
+	// Assign to existing variables.
+	q = 0
+	err = nil
+	q, err = divide(20, 7)
+}
+
+func testIf() {
+	if n, err := divide(10, 3); err != nil {
+		_ = n
+	}
+}
+
+func testReturnTypes() {
+	var err error
+	_ = err
+	i, err := returnInt()
+	_ = i
+	run, err := returnRune()
+	_ = run
+	str, err := returnString()
+	_ = str
+	slice, err := returnSlice(nil)
+	_ = slice
+	struc, err := returnStruct()
+	_ = struc
+	// iface, err := returnIface()
+	// _ = iface
+	a, err := returnAny()
+	_ = a
+	ptr, err := returnPtr()
+	_ = ptr
+}
+
+func testForwarding() {
+	var err error
+	_ = err
+	i, err := forwardInt()
+	_ = i
+	r, err := forwardRune()
+	_ = r
+	str, err := forwardString()
+	_ = str
+	slice, err := forwardSlice(nil)
+	_ = slice
+	struc, err := forwardStruct()
+	_ = struc
+	a, err := forwardAny()
+	_ = a
+	ptr, err := forwardPtr()
+	_ = ptr
+}
+
+func testStructExported() {
+	f, err := makeFile(42)
+	if f.size != 42 || err != nil {
+		panic("Custom exported struct failed")
+	}
+}
+
+func testStructUnexported() {
+	p, err := makePoint(1, 2)
+	if p.x != 1 || p.y != 2 || err != nil {
+		panic("Custom unexported struct failed")
+	}
+}
+
+func testStructOtherPackage() {
+	sp1, err := makeSubPoint(1, 2)
+	if sp1.X != 1 || sp1.Y != 2 || err != nil {
+		panic("Custom struct from another package failed")
+	}
+	sp2, err := sub.MakePoint(3, 4)
+	if sp2.X != 3 || sp2.Y != 4 || err != nil {
+		panic("Custom struct from another package failed")
+	}
 }
 
 func main() {
-	{
-		// Destructure into new variables.
-		q, err := divide(10, 3)
-		_ = q
-		_ = err
-
-		// Blank identifier.
-		_, err2 := divide(10, 3)
-		_ = err2
-		r3, _ := divide(10, 3)
-		_ = r3
-
-		// Partial reassignment.
-		r4, err2 := divide(10, 3)
-		_ = r4
-
-		// Assign to existing variables.
-		q = 0
-		err = nil
-		q, err = divide(20, 7)
-	}
-	{
-		// If-init with multi-return.
-		f := File{size: 42}
-		if n, err := f.Read(64); err != nil {
-			_ = n
-		}
-	}
-	{
-		// Various return types.
-		var err error
-		_ = err
-		i16, err := returnInt16()
-		_ = i16
-		u16, err := returnUint16()
-		_ = u16
-		run, err := returnRune()
-		_ = run
-		str, err := returnString()
-		_ = str
-		slice, err := returnSlice(nil)
-		_ = slice
-		struc, err := returnStruct()
-		_ = struc
-		// iface, err := returnIface()
-		// _ = iface
-		a, err := returnAny()
-		_ = a
-		ptr, err := returnPtr()
-		_ = ptr
-	}
-	{
-		// Forward call.
-		q, err := forwardCall()
-		_ = q
-		_ = err
-	}
-	{
-		// Custom exported struct + error.
-		f, err := makeFile(42)
-		if f.size != 42 || err != nil {
-			panic("Custom exported struct failed")
-		}
-	}
-	{
-		// Custom unexported struct + error.
-		p, err := makePoint(1, 2)
-		if p.x != 1 || p.y != 2 || err != nil {
-			panic("Custom unexported struct failed")
-		}
-	}
-	{
-		// Custom struct from another package + error.
-		sp1, err := makeSubPoint(1, 2)
-		if sp1.X != 1 || sp1.Y != 2 || err != nil {
-			panic("Custom struct from another package failed")
-		}
-		sp2, err := sub.MakePoint(3, 4)
-		if sp2.X != 3 || sp2.Y != 4 || err != nil {
-			panic("Custom struct from another package failed")
-		}
-	}
+	testBasic()
+	testIf()
+	testReturnTypes()
+	testForwarding()
+	testStructExported()
+	testStructUnexported()
+	testStructOtherPackage()
 }

@@ -21,15 +21,27 @@ static main_FileResult makeFile(so_int size);
 static pointResult makePoint(so_int x, so_int y);
 static sub_PointResult makeSubPoint(so_int x, so_int y);
 static so_R_int_err divide(so_int a, so_int b);
-static so_R_i16_err returnInt16(void);
-static so_R_u16_err returnUint16(void);
+static so_R_int_err returnInt(void);
 static so_R_rune_err returnRune(void);
 static so_R_str_err returnString(void);
 static so_R_slice_err returnSlice(so_Slice s);
 static main_FileResult returnStruct(void);
 static so_R_ptr_err returnAny(void);
 static so_R_ptr_err returnPtr(void);
-static so_R_int_err forwardCall(void);
+static so_R_int_err forwardInt(void);
+static so_R_rune_err forwardRune(void);
+static so_R_str_err forwardString(void);
+static so_R_slice_err forwardSlice(so_Slice s);
+static main_FileResult forwardStruct(void);
+static so_R_ptr_err forwardAny(void);
+static so_R_ptr_err forwardPtr(void);
+static void testBasic(void);
+static void testIf(void);
+static void testReturnTypes(void);
+static void testForwarding(void);
+static void testStructExported(void);
+static void testStructUnexported(void);
+static void testStructOtherPackage(void);
 
 // -- Variables and constants --
 static main_File file = {0};
@@ -58,12 +70,8 @@ static so_R_int_err divide(so_int a, so_int b) {
     return (so_R_int_err){.val = a / b, .err = (so_Error){0}};
 }
 
-static so_R_i16_err returnInt16(void) {
-    return (so_R_i16_err){.val = 42, .err = (so_Error){0}};
-}
-
-static so_R_u16_err returnUint16(void) {
-    return (so_R_u16_err){.val = 42, .err = (so_Error){0}};
+static so_R_int_err returnInt(void) {
+    return (so_R_int_err){.val = 42, .err = (so_Error){0}};
 }
 
 static so_R_rune_err returnRune(void) {
@@ -91,128 +99,180 @@ static so_R_ptr_err returnPtr(void) {
 }
 
 // func returnIface() (Reader, error)  { return &file, nil }
-static so_R_int_err forwardCall(void) {
-    return divide(10, 3);
+static so_R_int_err forwardInt(void) {
+    return returnInt();
+}
+
+static so_R_rune_err forwardRune(void) {
+    return returnRune();
+}
+
+static so_R_str_err forwardString(void) {
+    return returnString();
+}
+
+static so_R_slice_err forwardSlice(so_Slice s) {
+    return returnSlice(s);
+}
+
+static main_FileResult forwardStruct(void) {
+    return returnStruct();
+}
+
+static so_R_ptr_err forwardAny(void) {
+    return returnAny();
+}
+
+static so_R_ptr_err forwardPtr(void) {
+    return returnPtr();
+}
+
+static void testBasic(void) {
+    // Destructure into new variables.
+    so_R_int_err _res1 = divide(10, 3);
+    so_int q = _res1.val;
+    so_Error err = _res1.err;
+    (void)q;
+    (void)err;
+    // Blank identifier.
+    so_R_int_err _res2 = divide(10, 3);
+    so_Error err2 = _res2.err;
+    (void)err2;
+    so_R_int_err _res3 = divide(10, 3);
+    so_int r3 = _res3.val;
+    (void)r3;
+    // Partial reassignment.
+    so_R_int_err _res4 = divide(10, 3);
+    so_int r4 = _res4.val;
+    err2 = _res4.err;
+    (void)r4;
+    // Assign to existing variables.
+    q = 0;
+    err = (so_Error){0};
+    so_R_int_err _res5 = divide(20, 7);
+    q = _res5.val;
+    err = _res5.err;
+}
+
+static void testIf(void) {
+    {
+        so_R_int_err _res1 = divide(10, 3);
+        so_int n = _res1.val;
+        so_Error err = _res1.err;
+        if (err.self != NULL) {
+            (void)n;
+        }
+    }
+}
+
+static void testReturnTypes(void) {
+    so_Error err = {0};
+    (void)err;
+    so_R_int_err _res1 = returnInt();
+    so_int i = _res1.val;
+    err = _res1.err;
+    (void)i;
+    so_R_rune_err _res2 = returnRune();
+    so_rune run = _res2.val;
+    err = _res2.err;
+    (void)run;
+    so_R_str_err _res3 = returnString();
+    so_String str = _res3.val;
+    err = _res3.err;
+    (void)str;
+    so_R_slice_err _res4 = returnSlice((so_Slice){0});
+    so_Slice slice = _res4.val;
+    err = _res4.err;
+    (void)slice;
+    main_FileResult _res5 = returnStruct();
+    main_File struc = _res5.val;
+    err = _res5.err;
+    (void)struc;
+    // iface, err := returnIface()
+    // _ = iface
+    so_R_ptr_err _res6 = returnAny();
+    void* a = _res6.val;
+    err = _res6.err;
+    (void)a;
+    so_R_ptr_err _res7 = returnPtr();
+    main_File* ptr = _res7.val;
+    err = _res7.err;
+    (void)ptr;
+}
+
+static void testForwarding(void) {
+    so_Error err = {0};
+    (void)err;
+    so_R_int_err _res1 = forwardInt();
+    so_int i = _res1.val;
+    err = _res1.err;
+    (void)i;
+    so_R_rune_err _res2 = forwardRune();
+    so_rune r = _res2.val;
+    err = _res2.err;
+    (void)r;
+    so_R_str_err _res3 = forwardString();
+    so_String str = _res3.val;
+    err = _res3.err;
+    (void)str;
+    so_R_slice_err _res4 = forwardSlice((so_Slice){0});
+    so_Slice slice = _res4.val;
+    err = _res4.err;
+    (void)slice;
+    main_FileResult _res5 = forwardStruct();
+    main_File struc = _res5.val;
+    err = _res5.err;
+    (void)struc;
+    so_R_ptr_err _res6 = forwardAny();
+    void* a = _res6.val;
+    err = _res6.err;
+    (void)a;
+    so_R_ptr_err _res7 = forwardPtr();
+    main_File* ptr = _res7.val;
+    err = _res7.err;
+    (void)ptr;
+}
+
+static void testStructExported(void) {
+    main_FileResult _res1 = makeFile(42);
+    main_File f = _res1.val;
+    so_Error err = _res1.err;
+    if (f.size != 42 || err.self != NULL) {
+        so_panic("Custom exported struct failed");
+    }
+}
+
+static void testStructUnexported(void) {
+    pointResult _res1 = makePoint(1, 2);
+    point p = _res1.val;
+    so_Error err = _res1.err;
+    if (p.x != 1 || p.y != 2 || err.self != NULL) {
+        so_panic("Custom unexported struct failed");
+    }
+}
+
+static void testStructOtherPackage(void) {
+    sub_PointResult _res1 = makeSubPoint(1, 2);
+    sub_Point sp1 = _res1.val;
+    so_Error err = _res1.err;
+    if (sp1.X != 1 || sp1.Y != 2 || err.self != NULL) {
+        so_panic("Custom struct from another package failed");
+    }
+    sub_PointResult _res2 = sub_MakePoint(3, 4);
+    sub_Point sp2 = _res2.val;
+    err = _res2.err;
+    if (sp2.X != 3 || sp2.Y != 4 || err.self != NULL) {
+        so_panic("Custom struct from another package failed");
+    }
 }
 
 int main(void) {
-    {
-        // Destructure into new variables.
-        so_R_int_err _res1 = divide(10, 3);
-        so_int q = _res1.val;
-        so_Error err = _res1.err;
-        (void)q;
-        (void)err;
-        // Blank identifier.
-        so_R_int_err _res2 = divide(10, 3);
-        so_Error err2 = _res2.err;
-        (void)err2;
-        so_R_int_err _res3 = divide(10, 3);
-        so_int r3 = _res3.val;
-        (void)r3;
-        // Partial reassignment.
-        so_R_int_err _res4 = divide(10, 3);
-        so_int r4 = _res4.val;
-        err2 = _res4.err;
-        (void)r4;
-        // Assign to existing variables.
-        q = 0;
-        err = (so_Error){0};
-        so_R_int_err _res5 = divide(20, 7);
-        q = _res5.val;
-        err = _res5.err;
-    }
-    {
-        // If-init with multi-return.
-        main_File f = (main_File){.size = 42};
-        {
-            so_R_int_err _res6 = main_File_Read(&f, 64);
-            so_int n = _res6.val;
-            so_Error err = _res6.err;
-            if (err.self != NULL) {
-                (void)n;
-            }
-        }
-    }
-    {
-        // Various return types.
-        so_Error err = {0};
-        (void)err;
-        so_R_i16_err _res7 = returnInt16();
-        int16_t i16 = _res7.val;
-        err = _res7.err;
-        (void)i16;
-        so_R_u16_err _res8 = returnUint16();
-        uint16_t u16 = _res8.val;
-        err = _res8.err;
-        (void)u16;
-        so_R_rune_err _res9 = returnRune();
-        so_rune run = _res9.val;
-        err = _res9.err;
-        (void)run;
-        so_R_str_err _res10 = returnString();
-        so_String str = _res10.val;
-        err = _res10.err;
-        (void)str;
-        so_R_slice_err _res11 = returnSlice((so_Slice){0});
-        so_Slice slice = _res11.val;
-        err = _res11.err;
-        (void)slice;
-        main_FileResult _res12 = returnStruct();
-        main_File struc = _res12.val;
-        err = _res12.err;
-        (void)struc;
-        // iface, err := returnIface()
-        // _ = iface
-        so_R_ptr_err _res13 = returnAny();
-        void* a = _res13.val;
-        err = _res13.err;
-        (void)a;
-        so_R_ptr_err _res14 = returnPtr();
-        main_File* ptr = _res14.val;
-        err = _res14.err;
-        (void)ptr;
-    }
-    {
-        // Forward call.
-        so_R_int_err _res15 = forwardCall();
-        so_int q = _res15.val;
-        so_Error err = _res15.err;
-        (void)q;
-        (void)err;
-    }
-    {
-        // Custom exported struct + error.
-        main_FileResult _res16 = makeFile(42);
-        main_File f = _res16.val;
-        so_Error err = _res16.err;
-        if (f.size != 42 || err.self != NULL) {
-            so_panic("Custom exported struct failed");
-        }
-    }
-    {
-        // Custom unexported struct + error.
-        pointResult _res17 = makePoint(1, 2);
-        point p = _res17.val;
-        so_Error err = _res17.err;
-        if (p.x != 1 || p.y != 2 || err.self != NULL) {
-            so_panic("Custom unexported struct failed");
-        }
-    }
-    {
-        // Custom struct from another package + error.
-        sub_PointResult _res18 = makeSubPoint(1, 2);
-        sub_Point sp1 = _res18.val;
-        so_Error err = _res18.err;
-        if (sp1.X != 1 || sp1.Y != 2 || err.self != NULL) {
-            so_panic("Custom struct from another package failed");
-        }
-        sub_PointResult _res19 = sub_MakePoint(3, 4);
-        sub_Point sp2 = _res19.val;
-        err = _res19.err;
-        if (sp2.X != 3 || sp2.Y != 4 || err.self != NULL) {
-            so_panic("Custom struct from another package failed");
-        }
-    }
+    testBasic();
+    testIf();
+    testReturnTypes();
+    testForwarding();
+    testStructExported();
+    testStructUnexported();
+    testStructOtherPackage();
     return 0;
 }

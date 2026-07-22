@@ -591,6 +591,13 @@ func (g *Generator) emitReturnStmt(w io.Writer, stmt *ast.ReturnStmt) {
 func (g *Generator) emitReturnExpr(w io.Writer, stmt *ast.ReturnStmt) {
 	// Single return value: emit directly.
 	if len(stmt.Results) == 1 {
+		// Forwarding a multi-value call ("return f()" where f returns a tuple):
+		// the call already yields the whole result struct, so emit it as-is
+		// without per-result type conversion.
+		if _, ok := g.types.TypeOf(stmt.Results[0]).(*types.Tuple); ok {
+			g.emitExpr(w, stmt.Results[0])
+			return
+		}
 		retType := g.state.funcSig.Results().At(0).Type()
 		g.emitExprAsType(w, stmt, stmt.Results[0], retType)
 		return
