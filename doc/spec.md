@@ -1033,35 +1033,7 @@ panic(err)
 
 In C, this is emitted as a macro call `so_panic(...)`.
 
-By default, panic messages report the C file and line number. Use the `--track-source` flag to print the original So source locations instead:
-
-```
-so build --track-source .
-so run --track-source .
-```
-
-When `--track-source` is enabled, the reported source location may be off by a few lines for panics that occur inside complex statements (e.g., multi-line expressions or nested calls).
-
-The `--panic` flag selects how a panic terminates the program after printing its message (`build`, `run`, `test`, and `bench`):
-
-```
-so run --panic=trace .
-```
-
-- `trace` (default): print a symbolized backtrace, then `exit(1)`.
-- `exit`: call `exit(1)`. Clean, deterministic exit code.
-- `abort`: call `abort()`, raising `SIGABRT` so a debugger, AddressSanitizer, or core dump can report the stack.
-
-Trace mode adds `-rdynamic -fno-omit-frame-pointer` to the C build so frames can be unwound and named. The trace shows C symbols (`package_Func`), which map directly onto So functions; combine it with `--track-source` to relate the panic site back to So source. The default fits glibc and macOS. Use `--panic=exit` or `--panic=abort` on musl, where the trace comes out empty, and on freestanding, which always traps.
-
-The `--sanitize` flag turns on C sanitizers for a build so memory errors like out-of-bounds access, use-after-free, and undefined behavior are caught at runtime:
-
-```
-so test --sanitize .              # address,undefined
-so test --sanitize=address .      # a specific set
-```
-
-Bare `--sanitize` enables `address,undefined`; passing a comma-separated list selects a specific set. The flag also adds `-g` and `-fno-omit-frame-pointer` so reports carry readable `file:line` stack traces. Pair `--sanitize` with `--panic=abort` to hand a failing check straight to the sanitizer's own reporter.
+A panic prints its message with a source location, then terminates the program. How it terminates (the panic mode), how traces are symbolized, and how to report the original So source location are build options; see [Building](building.md).
 
 `recover` is not supported.
 
@@ -1069,13 +1041,13 @@ Bare `--sanitize` enables `address,undefined`; passing a comma-separated list se
 
 _"Assertion" here means a precondition check. It is unrelated to a [type assertion](#interfaces)._
 
-An assertion checks a precondition the caller is required to satisfy. Assertions panic on failure, so they report a source location and honor `--panic`. They cover slice and string bounds, index-out-of-range, slice-to-array length, zero map capacity, and integer division or modulo by a zero divisor. Since Go's syntax doesn't have a built-in `assert`, it's provided through the `c.Assert` function in the standard library.
+An assertion checks a precondition the caller is required to satisfy. Assertions panic on failure, so they report a source location and honor the panic mode. They cover slice and string bounds, index-out-of-range, slice-to-array length, zero map capacity, and integer division or modulo by a zero divisor. Since Go's syntax doesn't have a built-in `assert`, it's provided through the `c.Assert` function in the standard library.
 
 Defining `NDEBUG` in a C build completely removes assertions. The condition inside the assertion won't be checked at all, so it shouldn't have any side effects. Only use `NDEBUG` when you're sure your program is correct.
 
 Not every failure is an assertion. Other runtime checks, like calling `append` beyond capacity, always cause a panic and are not affected by `NDEBUG`, because they report situations the caller can't always predict ahead of time.
 
-A nil pointer dereference (or other invalid memory access) is caught at runtime in POSIX hosted builds and reported as a panic that honors `--panic`: trace mode prints `panic: nil pointer dereference` and a backtrace, exit mode prints just the message, and abort mode leaves the fault untouched for a core dump. Unlike an explicit panic it carries no source line, so use the backtrace to locate it. Freestanding builds and Windows install no handler and fault like C.
+A nil pointer dereference (or other invalid memory access) is caught at runtime in POSIX hosted builds and reported as a panic that honors the panic mode: trace mode prints `panic: nil pointer dereference` and a backtrace, exit mode prints just the message, and abort mode leaves the fault untouched for a core dump. Unlike an explicit panic it carries no source line, so use the backtrace to locate it. Freestanding builds and Windows install no handler and fault like C.
 
 ## Defer
 

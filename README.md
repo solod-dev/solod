@@ -15,12 +15,12 @@ So supports structs, methods, interfaces, slices, maps, multiple returns, and de
 So is for Go developers who want systems-level control without learning a new language. And for C programmers who like Go's safety, structure, and tooling.
 
 [Example](#example) •
-[Installation](#installation) •
-[Usage](#usage) •
-[Documentation](#documentation-and-examples) •
-[Benchmarks](#testing-and-benchmarks) •
+[Install](#installation) •
+[Use](#usage) •
+[Learn](#learn-the-language) •
+[Build&test](#build-test-benchmark) •
+[FAQ](#design-principles-and-faq) •
 [Compatibility](#compatibility) •
-[Design](#design-principles-and-faq) •
 [Roadmap](#roadmap) •
 [Contributing](#contributing)
 
@@ -175,15 +175,7 @@ so run .
 
 All commands work with Go modules, not individual files (`so run .`, not `so run main.go`).
 
-You can pass additional compiler and linker flags via `CFLAGS` and `LDFLAGS`:
-
-```
-CFLAGS="-O2" LDFLAGS="-lm" so build -o main .
-```
-
-Keep in mind that So is new, so it's still a bit rough around the edges.
-
-## Documentation and examples
+## Learn the language
 
 **[Language tour](./doc/spec.md)**. To learn about So's features and limitations, check out the brief overview of the language.
 
@@ -193,11 +185,19 @@ Keep in mind that So is new, so it's still a bit rough around the edges.
 
 **[So by example](https://github.com/solod-dev/example)**. If you like learning by doing, try a hands-on introduction to So with annotated example programs.
 
-**[AI skill](https://github.com/solod-dev/ai)**. You can have a clanker write So code for you. But where's the fun in that?
+## Build, test, benchmark
 
-## Testing and benchmarks
+**[Building](./doc/building.md)**. Compile So programs with `so build` and manage safety features.
 
 **[Testing](doc/testing.md)**. Write tests with the `so test` command and the `so/testing` package. Since So code is also valid Go code, you can still use `go test` where it fits — those tests are never transpiled, so they can use all Go features.
+
+**[AI skill](https://github.com/solod-dev/ai)**. You can have a clanker write So code for you. But where's the fun in that?
+
+## Design principles and FAQ
+
+**[Principles](doc/design.md)**. So is highly opinionated. Simplicity is key. Heap allocations are explicit. Strictly Go syntax.
+
+**[Frequently asked questions](doc/faq.md)**. I have heard these several times, so it's worth answering.
 
 **[Benchmarks](doc/benchmarks.md)**. So truly shines when it comes to C interop, but it's also quite fast on regular Go code — typically on par with or faster than Go.
 
@@ -219,12 +219,6 @@ Supported operating systems: Linux, macOS, and Windows (core language only).
 Supported platforms: amd64, arm64, riscv64, i386, and wasm32.
 
 So can also target [freestanding](doc/freestanding.md) environments.
-
-## Design principles and FAQ
-
-**[Principles](doc/design.md)**. So is highly opinionated. Simplicity is key. Heap allocations are explicit. Strictly Go syntax.
-
-**[Frequently asked questions](doc/faq.md)**. I have heard these several times, so it's worth answering.
 
 ## Roadmap
 

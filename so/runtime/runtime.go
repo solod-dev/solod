@@ -14,7 +14,7 @@
 //	}
 //
 // By default, they describe the generated C code: FileName is the name of
-// the .c file, and Line is the line number in that file. Use --track-source
+// the .c file, and Line is the line number in that file. Use -track-source
 // to map both back to the original source. FuncName is always the generated
 // C function name, so a package-level function will look like "package_Func".
 package runtime

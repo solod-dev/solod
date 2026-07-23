@@ -75,7 +75,7 @@ The check isn't thorough and only covers a few common cases.
 
 [3f2a2cc](https://github.com/solod-dev/solod/commit/3f2a2cc0afc13c2fc1eb66cbaa34c50581f72a97)
 
-**Diagnosable assertions**. Assertions (slice bounds, index out of range, slice-to-array length, ...) and `c.Assert` now panic instead of calling C's `assert`. They go through a single `so_assert` macro, so a failure reports the calling function and honors `--panic=trace`:
+**Diagnosable assertions**. Assertions (slice bounds, index out of range, slice-to-array length, ...) and `c.Assert` now panic instead of calling C's `assert`. They go through a single `so_assert` macro, so a failure reports the calling function and honors `-panic=trace`:
 
 ```text
 panic: index out of range
@@ -88,19 +88,19 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 [2f86ef3](https://github.com/solod-dev/solod/commit/2f86ef33f739f4d211ea33faf8bf517e9cf37b3b)
 
-**Stack traces**. The `panic` flag controls how a panic terminates the program: `trace` (default) prints a stack trace before exiting, `exit` calls `exit(1)`, and `abort` raises `SIGABRT` for a debugger or core dump. The default fits glibc and macOS; on musl (empty trace) or freestanding (always traps) pass `--panic=exit` or `--panic=abort`. See the [spec](spec.md#panic).
+**Stack traces**. The `panic` flag controls how a panic terminates the program: `trace` (default) prints a stack trace before exiting, `exit` calls `exit(1)`, and `abort` raises `SIGABRT` for a debugger or core dump. The default fits glibc and macOS; on musl (empty trace) or freestanding (always traps) pass `-panic=exit` or `-panic=abort`. See [building](building.md).
 
 [8ed7f48](https://github.com/solod-dev/solod/commit/8ed7f48e66d2632d55309f810072617ee22b80ac)
 
-**Nil checks**. A nil pointer dereference (or other invalid memory access) is now caught at runtime in POSIX hosted builds and reported as a panic that honors `--panic`, rather than emitting a per-dereference check that clutters the generated C.
+**Nil checks**. A nil pointer dereference (or other invalid memory access) is now caught at runtime in POSIX hosted builds and reported as a panic that honors `-panic`, rather than emitting a per-dereference check that clutters the generated C.
 
-⚠️ This removes the `--check-nil` flag.
+⚠️ This removes the `-check-nil` flag.
 
 [b829c4f](https://github.com/solod-dev/solod/commit/b829c4f77bb2b8880ea5a3a96caf5a273c99e1b1)
 
 **Divide-by-zero checks**. Integer division or modulo by a zero divisor now panics instead of relying on hardware. This closes a portability gap: division by zero is undefined in C, and on arm64 it silently yields 0 rather than trapping.
 
-**Sanitizer flag**. The `--sanitize` flag turns on C sanitizers for `build` and other commands. Bare `--sanitize` enables `address,undefined`; a comma-separated list picks a specific set. See the [spec](spec.md#panic).
+**Sanitizer flag**. The `-sanitize` flag turns on C sanitizers for `build` and other commands. Bare `-sanitize` enables `address,undefined`; a comma-separated list picks a specific set. See [building](building.md).
 
 **Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
 

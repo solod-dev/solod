@@ -22,7 +22,7 @@ So has extra safeguards beyond Go's default type checking:
 
 However, the leak check only reports an aggregate count, not which allocation leaked, and So won't catch double-free or use-after-free errors on its own.
 
-Most memory-related problems can be caught with AddressSanitizer in modern compilers. I strongly recommend turning on sanitizers with the `--sanitize` flag while developing. Or set the flags in `CFLAGS` yourself:
+Most memory-related problems can be caught with AddressSanitizer in modern compilers. I strongly recommend turning on sanitizers with the `-sanitize` flag while developing. Or set the flags in `CFLAGS` yourself:
 
 ```text
 -g -fno-omit-frame-pointer -fsanitize=address,undefined
