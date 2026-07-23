@@ -100,7 +100,11 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 **Divide-by-zero checks**. Integer division or modulo by a zero divisor now panics instead of relying on hardware. This closes a portability gap: division by zero is undefined in C, and on arm64 it silently yields 0 rather than trapping.
 
+[af173d8](https://github.com/solod-dev/solod/commit/af173d8e7975327a0994a4bc8eb982a3aa24995d)
+
 **Sanitizer flag**. The `-sanitize` flag turns on C sanitizers for `build` and other commands. Bare `-sanitize` enables `address,undefined`; a comma-separated list picks a specific set. See [building](building.md).
+
+[f87f8f4](https://github.com/solod-dev/solod/commit/f87f8f4abc421661fefc0d5cdd8b25d43025939a)
 
 **Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
 
@@ -153,6 +157,8 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 [2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
 
 **Automatic linking**. The `so:link` directive declares which C library a package requires. `so build` and other commands collect these across all transpiled packages and pass them to the C compiler. The standard library already uses `so:link`, so importing `so/math` links `-lm` and `so/sync` or `so/conc` links `-lpthread` without setting `LDFLAGS` by hand. See the [interop guide](interop.md#linking).
+
+[4cb27cd](https://github.com/solod-dev/solod/commit/4cb27cd4eed149348c84a9a01eff9df7c0e5d67f)
 
 ## v0.2
 

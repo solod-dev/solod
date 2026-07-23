@@ -18,8 +18,8 @@ So is for Go developers who want systems-level control without learning a new la
 [Install](#installation) •
 [Use](#usage) •
 [Learn](#learn-the-language) •
-[Build&test](#build-test-benchmark) •
-[FAQ](#design-principles-and-faq) •
+[Build&test](#build-and-test) •
+[FAQ](#frequently-asked-questions) •
 [Compatibility](#compatibility) •
 [Roadmap](#roadmap) •
 [Contributing](#contributing)
@@ -185,7 +185,7 @@ All commands work with Go modules, not individual files (`so run .`, not `so run
 
 **[So by example](https://github.com/solod-dev/example)**. If you like learning by doing, try a hands-on introduction to So with annotated example programs.
 
-## Build, test, benchmark
+## Build and test
 
 **[Building](./doc/building.md)**. Compile So programs with `so build` and manage safety features.
 
@@ -193,13 +193,13 @@ All commands work with Go modules, not individual files (`so run .`, not `so run
 
 **[AI skill](https://github.com/solod-dev/ai)**. You can have a clanker write So code for you. But where's the fun in that?
 
-## Design principles and FAQ
+## Frequently asked questions
 
 **[Principles](doc/design.md)**. So is highly opinionated. Simplicity is key. Heap allocations are explicit. Strictly Go syntax.
 
-**[Frequently asked questions](doc/faq.md)**. I have heard these several times, so it's worth answering.
-
 **[Benchmarks](doc/benchmarks.md)**. So truly shines when it comes to C interop, but it's also quite fast on regular Go code — typically on par with or faster than Go.
+
+**[FAQ](doc/faq.md)**. I have heard these several times, so it's worth answering.
 
 ## Compatibility
 
