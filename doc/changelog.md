@@ -100,6 +100,8 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 
 **Divide-by-zero checks**. Integer division or modulo by a zero divisor now panics instead of relying on hardware. This closes a portability gap: division by zero is undefined in C, and on arm64 it silently yields 0 rather than trapping.
 
+**Sanitizer flag**. The `--sanitize` flag turns on C sanitizers for `build` and other commands. Bare `--sanitize` enables `address,undefined`; a comma-separated list picks a specific set. See the [spec](spec.md#panic).
+
 **Reserved names**. Local variables and parameters whose names conflict with C keywords or macros (`long`, `bool`, ...) are now mangled automatically instead of producing invalid C. Reserved names as struct fields or package-level declarations are rejected instead.
 
 [7f1bb70](https://github.com/solod-dev/solod/commit/7f1bb702ebb28e0fb6d941e428deb3d476eb7188)

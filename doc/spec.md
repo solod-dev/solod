@@ -1054,6 +1054,15 @@ so run --panic=trace .
 
 Trace mode adds `-rdynamic -fno-omit-frame-pointer` to the C build so frames can be unwound and named. The trace shows C symbols (`package_Func`), which map directly onto So functions; combine it with `--track-source` to relate the panic site back to So source. The default fits glibc and macOS. Use `--panic=exit` or `--panic=abort` on musl, where the trace comes out empty, and on freestanding, which always traps.
 
+The `--sanitize` flag turns on C sanitizers for a build so memory errors like out-of-bounds access, use-after-free, and undefined behavior are caught at runtime:
+
+```
+so test --sanitize .              # address,undefined
+so test --sanitize=address .      # a specific set
+```
+
+Bare `--sanitize` enables `address,undefined`; passing a comma-separated list selects a specific set. The flag also adds `-g` and `-fno-omit-frame-pointer` so reports carry readable `file:line` stack traces. Pair `--sanitize` with `--panic=abort` to hand a failing check straight to the sanitizer's own reporter.
+
 `recover` is not supported.
 
 ### Assertions

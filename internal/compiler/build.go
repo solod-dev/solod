@@ -106,9 +106,10 @@ func newCompileOptions(opts Options) (compileOptions, error) {
 	if err != nil {
 		return compileOptions{}, err
 	}
+	flags := append(panicFlags, sanitizeFlags(opts.Sanitize)...)
 	return compileOptions{
 		defines: []string{panicDef},
-		flags:   panicFlags,
+		flags:   flags,
 	}, nil
 }
 
@@ -159,6 +160,21 @@ func panicMode(mode string) (define string, flags []string, err error) {
 	}
 }
 
+// sanitizeFlags returns the C compiler flags for the requested sanitizers.
+// list is a comma-separated set (e.g. "address,undefined"); empty enables none.
+func sanitizeFlags(list string) []string {
+	names := splitList(list)
+	if len(names) == 0 {
+		return nil
+	}
+	// Add these so reports carry readable file:line stack traces.
+	flags := []string{"-g", "-fno-omit-frame-pointer"}
+	for _, name := range names {
+		flags = append(flags, "-fsanitize="+name)
+	}
+	return flags
+}
+
 // splitFlags splits a space-separated flags string into individual args.
 func splitFlags(s string) []string {
 	s = strings.TrimSpace(s)
@@ -166,4 +182,15 @@ func splitFlags(s string) []string {
 		return nil
 	}
 	return strings.Fields(s)
+}
+
+// splitList splits a comma-separated string into trimmed, non-empty items.
+func splitList(s string) []string {
+	var items []string
+	for item := range strings.SplitSeq(s, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			items = append(items, item)
+		}
+	}
+	return items
 }
