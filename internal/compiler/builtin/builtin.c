@@ -6,9 +6,10 @@
 #endif
 
 #if defined(so_build_hosted) && SO_PANIC_MODE == SO_PANIC_TRACE
+// backtrace lives in execinfo.h, a glibc/BSD extension. musl (Alpine) omits it.
+#if defined(__has_include) && __has_include(<execinfo.h>)
 #include <execinfo.h>
 #include <unistd.h>
-
 // print_trace writes a symbolized backtrace of the current call stack to
 // stderr. The top frame (this function itself) is dropped so the panic site
 // appears first. Needs -rdynamic for symbol names; frames-only otherwise.
@@ -21,7 +22,10 @@ void so_print_trace(void) {
         backtrace_symbols_fd(frames, n, STDERR_FILENO);
     }
 }
-#endif
+#else
+void so_print_trace(void) {}
+#endif  // __has_include(<execinfo.h>)
+#endif  // so_build_hosted && SO_PANIC_MODE == SO_PANIC_TRACE
 
 // A memory-access fault becomes a panic in every hosted mode except abort,
 // which leaves the fault alone so it can dump a core. The handler is POSIX
