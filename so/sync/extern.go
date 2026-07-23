@@ -4,6 +4,7 @@ import "solod.dev/so/c"
 
 //so:include <pthread.h>
 //so:include.c <errno.h>
+//so:link pthread
 
 //so:embed sync.h
 var sync_h string

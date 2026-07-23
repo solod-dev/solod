@@ -35,7 +35,7 @@ func testPackage(t *testing.T, testDir string) {
 	be.Err(t, err, nil)
 	defer os.RemoveAll(tempOut)
 
-	err = Translate(srcDir, tempOut, Options{})
+	_, err = Translate(srcDir, tempOut, Options{})
 	be.Err(t, err, nil)
 
 	// Compare output with expected (recursively)
@@ -92,7 +92,7 @@ func TestTrackSource(t *testing.T) {
 	be.Err(t, err, nil)
 	defer os.RemoveAll(tempOut)
 
-	err = Translate(srcDir, tempOut, Options{TrackSource: true})
+	_, err = Translate(srcDir, tempOut, Options{TrackSource: true})
 	be.Err(t, err, nil)
 
 	content, err := os.ReadFile(filepath.Join(tempOut, "main.c"))
@@ -115,6 +115,29 @@ func TestTrackSource(t *testing.T) {
 	if !found {
 		t.Fatal("no #line directives found")
 	}
+}
+
+func TestTranslateLinks(t *testing.T) {
+	// The fixture imports so/math, which declares //so:link m.
+	srcDir := "testdata/link"
+	tempOut, err := os.MkdirTemp("", "so_link")
+	be.Err(t, err, nil)
+	defer os.RemoveAll(tempOut)
+
+	libs, err := Translate(srcDir, tempOut, Options{})
+	be.Err(t, err, nil)
+	be.Equal(t, libs, []string{"m"})
+}
+
+func TestTranslateLinkEmpty(t *testing.T) {
+	// A so:link directive without a library name must be rejected.
+	srcDir := "testdata/link_empty"
+	tempOut, err := os.MkdirTemp("", "so_link_empty")
+	be.Err(t, err, nil)
+	defer os.RemoveAll(tempOut)
+
+	_, err = Translate(srcDir, tempOut, Options{})
+	be.True(t, err != nil)
 }
 
 func isDir(path string) bool {

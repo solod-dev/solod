@@ -181,12 +181,6 @@ You can pass additional compiler and linker flags via `CFLAGS` and `LDFLAGS`:
 CFLAGS="-O2" LDFLAGS="-lm" so build -o main .
 ```
 
-On Linux (and some BSDs), the math library is not linked by default. If your program imports `so/math` — directly or through other packages like `so/log/slog` — you'll need to add `-lm`:
-
-```
-LDFLAGS="-lm" so build -o main .
-```
-
 Keep in mind that So is new, so it's still a bit rough around the edges.
 
 ## Documentation and examples
@@ -247,7 +241,7 @@ Networking, uuids and more targets: WebAssembly, 32-bit, freestanding.
 - Atomics.
 - Low-level JSON API.
 - CLI commands to run tests and benchmarks.
-- Basic escape analysis.
+- Escape analysis, leak checking, and stack traces.
 
 Future plans:
 

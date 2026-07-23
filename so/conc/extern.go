@@ -3,6 +3,7 @@ package conc
 import "solod.dev/so/c"
 
 //so:include <pthread.h>
+//so:link pthread
 
 //so:embed conc.h
 var conc_h string

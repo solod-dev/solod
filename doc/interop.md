@@ -3,10 +3,12 @@
 So provides several tools for easy C interop.
 
 [Includes](#includes) •
+[Linking](#linking-v03) •
 [Extern declarations](#extern-declarations) •
 [Extern options](#extern-options) •
 [Inlining](#inlining) •
-[Qualifiers](#qualifiers-v02) •
+[Promoting](#promoting-v03) •
+[Qualifiers](#qualifiers) •
 [Embeds](#embeds) •
 [Raw C](#raw-c) •
 [Helpers](#helpers)
@@ -24,6 +26,21 @@ Use `so:include.c` when the include is purely an implementation detail that shou
 ```go
 //so:include.c "internal_helper.h"
 ```
+
+## Linking (v0.3)
+
+When a package uses a C library that must be linked explicitly, declare it with `so:link`. The name is the library as passed to the linker's `-l` flag, without the prefix:
+
+```go
+//so:include <pthread.h>
+//so:link pthread
+```
+
+`so build`, `so run`, and `so test` collect the `so:link` libraries from every transpiled package, deduplicate them, and pass them to the C compiler (`-lpthread` above) after your `LDFLAGS`.
+
+The standard library already uses `so:link` for its packages. For example, importing `so/math` automatically links `-lm`, and importing `so/sync` or `so/conc` automatically links `-lpthread`.
+
+The flags are always emitted. On platforms where a library is already part of libc (for example pthreads and libm on macOS) the extra `-l` is a harmless no-op.
 
 ## Extern declarations
 
@@ -148,7 +165,7 @@ Without `so:promote`, the header would reference a name it never declares. The a
 
 `so:promote` works on types, functions, methods, vars, and consts. It is rejected on exported declarations (already in the header, so redundant) and cannot combine with `so:inline` (which already emits the body in the header).
 
-## Qualifiers (v0.2)
+## Qualifiers
 
 ### Volatile
 

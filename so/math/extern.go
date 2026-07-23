@@ -14,6 +14,7 @@ var math_h string
 //so:include.c <limits.h>
 //so:include.c <math.h>
 //so:include.c <stdint.h>
+//so:link m
 
 // Floating-point limit values.
 // Max is the largest finite value representable by the type.

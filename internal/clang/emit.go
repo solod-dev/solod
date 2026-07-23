@@ -19,10 +19,17 @@ type EmitOptions struct {
 	TrackSource bool // track source locations for panics
 }
 
+// EmitResult holds information produced by Emit for later pipeline steps.
+type EmitResult struct {
+	// Libs lists the C libraries the package must link against, taken from
+	// its so:link directives. Names are given without the -l prefix.
+	Libs []string
+}
+
 // Emit generates C code for the given Go package and all its subpackages,
 // and writes it to the specified output directory. Creates a single header
 // file with typedefs (.h) and a single implementation file (.c) for each package.
-func Emit(opts EmitOptions) (err error) {
+func Emit(opts EmitOptions) (res EmitResult, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			f, ok := r.(*failure)
@@ -34,7 +41,7 @@ func Emit(opts EmitOptions) (err error) {
 	}()
 
 	if err = os.MkdirAll(opts.OutDir, 0o755); err != nil {
-		return fmt.Errorf("create output directory %s: %w", opts.OutDir, err)
+		return res, fmt.Errorf("create output directory %s: %w", opts.OutDir, err)
 	}
 
 	// Initialize the generator with package information.
@@ -45,7 +52,7 @@ func Emit(opts EmitOptions) (err error) {
 	hPath := filepath.Join(opts.OutDir, g.pkg.Name+".h")
 	hFile, err := os.Create(hPath)
 	if err != nil {
-		return fmt.Errorf("create header file %s: %w", hPath, err)
+		return res, fmt.Errorf("create header file %s: %w", hPath, err)
 	}
 	defer hFile.Close()
 	g.emitHeader(hFile)
@@ -54,12 +61,13 @@ func Emit(opts EmitOptions) (err error) {
 	cPath := filepath.Join(opts.OutDir, g.pkg.Name+".c")
 	cFile, err := os.Create(cPath)
 	if err != nil {
-		return fmt.Errorf("create C file %s: %w", cPath, err)
+		return res, fmt.Errorf("create C file %s: %w", cPath, err)
 	}
 	defer cFile.Close()
 	g.emitImpl(cFile)
 
-	return nil
+	res.Libs = g.links
+	return res, nil
 }
 
 // State holds the code generation state for the current scope.
@@ -94,6 +102,7 @@ type Generator struct {
 	externs     map[types.Object]externInfo  // symbols provided by C headers
 	promoted    map[types.Object]bool        // unexported symbols forced into the header
 	includes    Includes                     // included headers from so:include
+	links       []string                     // link libraries from so:link
 	embeds      Embeds                       // embedded C files from so:embed
 	symbols     []symbol                     // pre-collected top-level declarations
 	funcDirs    map[*ast.FuncDecl]directives // parsed directives per function decl

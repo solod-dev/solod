@@ -23,7 +23,8 @@ func Build(srcDir, outFile string, opts Options) error {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	if err := Translate(srcDir, tmpDir, opts); err != nil {
+	libs, err := Translate(srcDir, tmpDir, opts)
+	if err != nil {
 		return err
 	}
 
@@ -32,6 +33,7 @@ func Build(srcDir, outFile string, opts Options) error {
 		return err
 	}
 
+	copts.libs = libs
 	return compileC(tmpDir, cFiles, outFile, copts)
 }
 
@@ -95,6 +97,7 @@ func findCFiles(dir string) ([]string, error) {
 type compileOptions struct {
 	defines []string // preprocessor -D flags
 	flags   []string // additional C compiler flags
+	libs    []string // libraries to link (without -l)
 }
 
 // newCompileOptions derives the C defines and flags from opts.
@@ -123,6 +126,11 @@ func compileC(includeDir string, cFiles []string, outFile string, copts compileO
 	args = append(args, splitFlags(os.Getenv("CFLAGS"))...)
 	args = append(args, cFiles...)
 	args = append(args, "-o", outFile)
+	// Link libraries the packages declared, then any user LDFLAGS. Both come
+	// after the object files so the linker resolves their symbols.
+	for _, lib := range copts.libs {
+		args = append(args, "-l"+lib)
+	}
 	args = append(args, splitFlags(os.Getenv("LDFLAGS"))...)
 
 	cmd := exec.Command(cc, args...)

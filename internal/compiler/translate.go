@@ -2,8 +2,10 @@ package compiler
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"golang.org/x/tools/go/packages"
@@ -18,38 +20,49 @@ type Options struct {
 }
 
 // Translate loads all Go packages from srcDir (including So stdlib dependencies),
-// translates them to C, and writes the output to outDir.
-func Translate(srcDir, outDir string, opts Options) error {
+// translates them to C, and writes the output to outDir. It returns the C
+// libraries the transpiled packages must link against, deduplicated and sorted,
+// without the -l prefix.
+func Translate(srcDir, outDir string, opts Options) ([]string, error) {
 	pkgs, err := loadPackages(srcDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(pkgs) == 0 {
-		return fmt.Errorf("no packages found")
+		return nil, fmt.Errorf("no packages found")
 	}
 
 	// Walk import graph and collect transpilable packages in topological order
 	entry := pkgs[0]
 	ordered := topoSort(entry)
 
-	// Translate each package
+	// Translate each package, collecting the union of their link libraries.
+	libSet := make(map[string]bool)
 	for _, pkg := range ordered {
 		pkgOutDir := packageOutDir(pkg, entry, outDir)
-		if err := clang.Emit(clang.EmitOptions{
+		res, err := clang.Emit(clang.EmitOptions{
 			Pkg:         pkg,
 			OutDir:      pkgOutDir,
 			TrackSource: opts.TrackSource,
-		}); err != nil {
-			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, lib := range res.Libs {
+			libSet[lib] = true
 		}
 	}
 
 	// Write embedded builtin files into the output directory
 	builtinDir := filepath.Join(outDir, "so", "builtin")
 	if err := os.MkdirAll(builtinDir, 0o755); err != nil {
-		return fmt.Errorf("create builtin output directory %s: %w", builtinDir, err)
+		return nil, fmt.Errorf("create builtin output directory %s: %w", builtinDir, err)
 	}
-	return writeBuiltin(builtinDir)
+	if err := writeBuiltin(builtinDir); err != nil {
+		return nil, err
+	}
+
+	return slices.Sorted(maps.Keys(libSet)), nil
 }
 
 // loadPackages uses go/packages to load the entry package and all dependencies.

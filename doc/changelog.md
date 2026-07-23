@@ -150,6 +150,8 @@ Defining `NDEBUG` removes assertions. Other runtime checks, like calling `append
 [e042c23](https://github.com/solod-dev/solod/commit/e042c233b77c32d4e6e05e7dfbea8a9661e598c1) ·
 [2bc8dd9](https://github.com/solod-dev/solod/commit/2bc8dd90ce321b6bd36f9ac9cb13350021bc0e3f)
 
+**Automatic linking**. The `so:link` directive declares which C library a package requires. `so build` and other commands collect these across all transpiled packages and pass them to the C compiler. The standard library already uses `so:link`, so importing `so/math` links `-lm` and `so/sync` or `so/conc` links `-lpthread` without setting `LDFLAGS` by hand. See the [interop guide](interop.md#linking).
+
 ## v0.2
 
 Networking, new targets, and friendlier interop.
@@ -195,7 +197,7 @@ Numeric C types in the `so/c` package for better interop.<br>
 
 ### Tools
 
-Support for third-party packages (`go install` or vendoring) and multi-module projects.<br>
+Support for third-party packages (`go get` or vendoring) and multi-module projects.<br>
 [bba8265](https://github.com/solod-dev/solod/commit/bba8265883b10814803510518693b224b70d2d98)
 
 Report So source location (file and line number) instead of C source location when panicking (`track-source` flag, off by default).<br>

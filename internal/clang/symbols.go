@@ -39,6 +39,7 @@ type symbol struct {
 // collect performs a single pass over all package files, collecting:
 // - Comment map (for doc comment emission)
 // - Include directives (so:include, so:include.c)
+// - Link directives (so:link)
 // - Embed directives (so:embed) with file reads
 // - Extern symbols (so:extern, body-less functions)
 // - Promoted unexported symbols (so:promote) to be emitted in the header.
@@ -58,13 +59,15 @@ func (g *Generator) collect() {
 		fileComments := ast.NewCommentMap(g.pkg.Fset, file, file.Comments)
 		maps.Copy(g.comments, fileComments)
 
-		// Collect include directives from file-level comments.
+		// Collect include and link directives from file-level comments.
 		for _, cg := range file.Comments {
 			for _, c := range cg.List {
-				if path, ok := strings.CutPrefix(c.Text, "//so:include.c"); ok {
-					g.includes.impl = append(g.includes.impl, strings.TrimSpace(path))
-				} else if path, ok := strings.CutPrefix(c.Text, "//so:include"); ok {
-					g.includes.header = append(g.includes.header, strings.TrimSpace(path))
+				if path, ok := g.parseDirective(c, "//so:include.c"); ok {
+					g.includes.impl = append(g.includes.impl, path)
+				} else if path, ok := g.parseDirective(c, "//so:include"); ok {
+					g.includes.header = append(g.includes.header, path)
+				} else if lib, ok := g.parseDirective(c, "//so:link"); ok {
+					g.links = append(g.links, lib)
 				}
 			}
 		}
@@ -439,6 +442,21 @@ func (g *Generator) emitForwardFuncDecls(w io.Writer) {
 		g.emitFuncProto(w, decl)
 		fmt.Fprintln(w, ";")
 	}
+}
+
+// parseDirective matches a file-level directive comment against prefix and
+// returns its trimmed argument. ok reports whether the prefix matched. It
+// fails when the prefix matches but no argument follows.
+func (g *Generator) parseDirective(c *ast.Comment, prefix string) (arg string, ok bool) {
+	arg, ok = strings.CutPrefix(c.Text, prefix)
+	if !ok {
+		return "", false
+	}
+	arg = strings.TrimSpace(arg)
+	if arg == "" {
+		g.fail(c, "%s requires an argument", strings.TrimPrefix(prefix, "//"))
+	}
+	return arg, true
 }
 
 // detectExported reports whether a GenDecl contains at least one

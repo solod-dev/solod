@@ -95,7 +95,8 @@ func translate(args []string) error {
 	opts := compiler.Options{
 		TrackSource: *trackSource,
 	}
-	return compiler.Translate(pkg, out, opts)
+	_, err := compiler.Translate(pkg, out, opts)
+	return err
 }
 
 func build(args []string) error {
