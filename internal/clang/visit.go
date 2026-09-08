@@ -286,63 +286,6 @@ func (g *Generator) emitVarSpec(w io.Writer, spec *ast.ValueSpec, dirs directive
 		}
 	}
 
-	// Local multi-variable declaration: group consecutive same-type variables,
-	// but emit separate declarations for different types
-	// (e.g. `int a = 1, b = 2; float c = 3.14;`).
-	if !g.state.atTopLevel() && len(spec.Names) > 1 {
-		// emitInit emits the i-th initializer, or the zero value if absent.
-		emitInit := func(i int, typ types.Type) {
-			if len(spec.Values) > i {
-				g.emitExprAsType(w, spec, spec.Values[i], typ)
-			} else {
-				fmt.Fprint(w, g.zeroValue(spec, typ))
-			}
-		}
-		i := 0
-		for i < len(spec.Names) {
-			name := spec.Names[i]
-			if name.Name == "_" {
-				// Blank identifier - the value is still evaluated.
-				g.emitDiscardVar(w, spec, i)
-				i++
-				continue
-			}
-			typ := g.types.Defs[name].Type()
-			ct := g.mapVarType(spec, typ, len(spec.Values) > i)
-
-			// An array with an initializer needs a declaration of its own.
-			if _, isArr := arrayType(typ); isArr && len(spec.Values) > i {
-				g.emitArrayVarDecl(w, ct, name.Name, spec.Values[i])
-				i++
-				continue
-			}
-
-			// Emit the leading declarator: "T name = init".
-			fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(name.Name))
-			emitInit(i, typ)
-			i++
-			if !groupable(ct, typ) {
-				fmt.Fprint(w, ";\n")
-				continue
-			}
-
-			// Group the following variables of the same type.
-			for i < len(spec.Names) {
-				next := spec.Names[i]
-				nextType, ok := g.groupType(spec, next, ct, len(spec.Values) > i)
-				if !ok {
-					break
-				}
-				fmt.Fprintf(w, ", %s = ", next.Name)
-				emitInit(i, nextType)
-				i++
-			}
-			fmt.Fprint(w, ";\n")
-		}
-		return
-	}
-
-	// Single variable or package-level declaration.
 	for i, name := range spec.Names {
 		if name.Name == "_" {
 			// Blank identifier - the value is still evaluated.

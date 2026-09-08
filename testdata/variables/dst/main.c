@@ -141,27 +141,34 @@ int main(void) {
     }
     {
         // Multiple typed variable declaration.
-        so_int a = 11, b = 22, c = 33;
+        so_int a = 11;
+        so_int b = 22;
+        so_int c = 33;
         (void)a;
         (void)b;
         (void)c;
-        so_byte b1 = 'a', b2 = 'b';
+        so_byte b1 = 'a';
+        so_byte b2 = 'b';
         (void)b1;
         (void)b2;
-        so_String s1 = so_str("foo"), s2 = so_str("bar");
+        so_String s1 = so_str("foo");
+        so_String s2 = so_str("bar");
         (void)s1;
         (void)s2;
-        so_Slice a1 = (so_Slice){(so_int[2]){1, 2}, 2, 2}, a2 = (so_Slice){(so_int[2]){3, 4}, 2, 2};
+        so_Slice a1 = (so_Slice){(so_int[2]){1, 2}, 2, 2};
+        so_Slice a2 = (so_Slice){(so_int[2]){3, 4}, 2, 2};
         (void)a1;
         (void)a2;
-        person p1 = (person){.age = 42}, p2 = (person){.age = 43};
+        person p1 = (person){.age = 42};
+        person p2 = (person){.age = 43};
         (void)p1;
         (void)p2;
         person* ptr1 = &p1;
         person* ptr2 = &p2;
         (void)ptr1;
         (void)ptr2;
-        number n1 = &p1.age, n2 = &p2.age;
+        number n1 = &p1.age;
+        number n2 = &p2.age;
         (void)n1;
         (void)n2;
     }
@@ -173,7 +180,8 @@ int main(void) {
         (void)vInt;
         (void)vFloat;
         (void)vBool;
-        so_rune vByte = 'x', vRune = 0x672c;
+        so_rune vByte = 'x';
+        so_rune vRune = 0x672c;
         so_String vString = so_str("hello");
         (void)vByte;
         (void)vRune;
@@ -186,7 +194,8 @@ int main(void) {
         person* ptr2 = &vStruct;
         (void)ptr1;
         (void)ptr2;
-        number n1 = (number)(&vStruct.age), n2 = (number)(&vStruct.age);
+        number n1 = (number)(&vStruct.age);
+        number n2 = (number)(&vStruct.age);
         (void)n1;
         (void)n2;
     }
@@ -198,7 +207,8 @@ int main(void) {
         (void)vInt;
         (void)vFloat;
         (void)vBool;
-        so_rune vByte = 'x', vRune = 0x672c;
+        so_rune vByte = 'x';
+        so_rune vRune = 0x672c;
         so_String vString = so_str("hello");
         (void)vByte;
         (void)vRune;
@@ -211,7 +221,8 @@ int main(void) {
         person* ptr2 = &vStruct;
         (void)ptr1;
         (void)ptr2;
-        number n1 = (number)(&vStruct.age), n2 = (number)(&vStruct.age);
+        number n1 = (number)(&vStruct.age);
+        number n2 = (number)(&vStruct.age);
         (void)n1;
         (void)n2;
         void* u1 = (void*)(&vStruct);
@@ -221,7 +232,8 @@ int main(void) {
     }
     {
         // Partial redeclaration with short variable declaration.
-        so_int a = 11, x = 100;
+        so_int a = 11;
+        so_int x = 100;
         so_int b = 22;
         x = 200;
         x = 300;
@@ -233,10 +245,12 @@ int main(void) {
     }
     {
         // Multiple assignment.
-        so_int a = 11, b = 22;
+        so_int a = 11;
+        so_int b = 22;
         a = 33;
         b = 44;
-        so_int x = 55, y = 66;
+        so_int x = 55;
+        so_int y = 66;
         a = x;
         b = y;
         if (a != 55 || b != 66) {
@@ -249,7 +263,8 @@ int main(void) {
         ptr2 = &p;
         (void)ptr1;
         (void)ptr2;
-        number n1 = NULL, n2 = NULL;
+        number n1 = NULL;
+        number n2 = NULL;
         n1 = (number)(&p.age);
         n2 = (number)(&p.age);
         (void)n1;
@@ -258,7 +273,8 @@ int main(void) {
     {
         // Evaluates the whole right side before it assigns anything,
         // so a swap works and a call sees the values from before.
-        so_int a = 11, b = 22;
+        so_int a = 11;
+        so_int b = 22;
         so_int _asg1 = b;
         so_int _asg2 = a;
         a = _asg1;
@@ -267,7 +283,8 @@ int main(void) {
             so_panic("swap failed");
         }
         so_Slice s = (so_Slice){(so_int[2]){10, 20}, 2, 2};
-        so_int i = 0, j = 1;
+        so_int i = 0;
+        so_int j = 1;
         so_int _asg3 = so_at(so_int, s, j);
         so_int _asg4 = so_at(so_int, s, i);
         so_at(so_int, s, i) = _asg3;

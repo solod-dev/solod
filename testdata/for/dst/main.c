@@ -78,7 +78,8 @@ static void testClause(void) {
     {
         // Init statements that go before the loop.
         {
-            so_int i = 0, j = 3;
+            so_int i = 0;
+            so_int j = 3;
             for (; i < j; i++) {
                 (void)i;
             }

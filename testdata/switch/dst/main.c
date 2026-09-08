@@ -247,7 +247,8 @@ int main(void) {
     }
     {
         // Case expressions that C groups differently than Go.
-        so_int a = 1, b = 2;
+        so_int a = 1;
+        so_int b = 2;
         bool ok = true;
         {
             bool _sw12 = ok;
@@ -280,7 +281,8 @@ int main(void) {
     }
     {
         // A binary case expression on a string tag compares with a call.
-        so_String s1 = so_str("he"), s2 = so_str("llo");
+        so_String s1 = so_str("he");
+        so_String s2 = so_str("llo");
         {
             so_String _sw16 = so_str("hello");
             if (so_string_eq(_sw16, (so_string_add(s1, s2)))) {
@@ -291,7 +293,8 @@ int main(void) {
     }
     {
         // Nested switches use separate tag temporaries.
-        so_int x = 1, y = 2;
+        so_int x = 1;
+        so_int y = 2;
         {
             so_int _sw17 = x;
             if (_sw17 == 1) {

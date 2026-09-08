@@ -13,7 +13,9 @@ typedef struct counter {
 int main(void) {
     {
         // Integer arithmetics.
-        so_int a = 11, b = 22, c = 33;
+        so_int a = 11;
+        so_int b = 22;
+        so_int c = 33;
         so_int d = so_div(b, a) + (a - c) * a + so_mod(c, b);
         d += 10;
         d -= 10;
@@ -44,7 +46,8 @@ int main(void) {
         }
         // An unsigned divisor never reaches the guard, because -1
         // converts to the maximum value of the type.
-        uint32_t u1 = 7, u2 = 4294967295;
+        uint32_t u1 = 7;
+        uint32_t u2 = 4294967295;
         if (so_div(u1, u2) != 0 || so_mod(u1, u2) != 7) {
             so_panic("expected u1/u2 == 0 && u1%u2 == 7");
         }
@@ -85,7 +88,9 @@ int main(void) {
     }
     {
         // Floating-point arithmetics.
-        double x = 1.1, y = 2.2, z = 3.3;
+        double x = 1.1;
+        double y = 2.2;
+        double z = 3.3;
         double f = x / y + (y - z) * x;
         f += 1.0;
         f -= 1.0;
@@ -102,7 +107,8 @@ int main(void) {
     }
     {
         // Bitwise operations.
-        so_int b1 = 0b1010, b2 = 0b1100;
+        so_int b1 = 0b1010;
+        so_int b2 = 0b1100;
         so_int b3 = (((b1 | b2) & (b1 & b2)) | (b1 ^ b2));
         b3 = (b3 << 2);
         b3 = (b3 >> 1);
@@ -122,7 +128,8 @@ int main(void) {
         // Arithmetic on a type narrower than int. C promotes the operands to
         // int and computes at that width, so every result needs a conversion
         // back to the narrow type.
-        so_byte n1 = 3, n2 = 10;
+        so_byte n1 = 3;
+        so_byte n2 = 10;
         so_byte n3 = (so_byte)(n1 - n2);
         (void)n3;
         so_int n4 = (so_int)((so_byte)(n1 - n2));
@@ -135,7 +142,8 @@ int main(void) {
         (void)n7;
         so_int n8 = (so_int)((so_byte)(-n1));
         (void)n8;
-        int16_t s1 = 30000, s2 = 30000;
+        int16_t s1 = 30000;
+        int16_t s2 = 30000;
         so_int n9 = (so_int)((int16_t)(s1 + s2));
         (void)n9;
     }
@@ -152,13 +160,17 @@ int main(void) {
     }
     {
         // Logical operations.
-        bool a = true, b = false, c = true;
+        bool a = true;
+        bool b = false;
+        bool c = true;
         bool d = ((a && b) || (b || c)) && !a;
         (void)d;
     }
     {
         // Number comparison.
-        so_int x = 10, y = 20, z = 30;
+        so_int x = 10;
+        so_int y = 20;
+        so_int z = 30;
         bool e1 = ((x < y) && (y > z)) || (x == z);
         (void)e1;
         bool e2 = ((x <= y) && (y >= z)) || (x != z);
@@ -166,7 +178,9 @@ int main(void) {
     }
     {
         // Byte comparison.
-        so_byte b1 = 'a', b2 = 'b', b3 = 'c';
+        so_byte b1 = 'a';
+        so_byte b2 = 'b';
+        so_byte b3 = 'c';
         bool e1 = ((b1 < b2) && (b2 > b3)) || (b1 == b3);
         (void)e1;
         bool e2 = ((b1 <= b2) && (b2 >= b3)) || (b1 != b3);
@@ -174,7 +188,9 @@ int main(void) {
     }
     {
         // Rune comparison.
-        so_rune r1 = 'a', r2 = 'b', r3 = 0x672c;
+        so_rune r1 = 'a';
+        so_rune r2 = 'b';
+        so_rune r3 = 0x672c;
         bool e1 = ((r1 < r2) && (r2 > r3)) || (r1 == r3);
         (void)e1;
         bool e2 = ((r1 <= r2) && (r2 >= r3)) || (r1 != r3);
@@ -182,7 +198,9 @@ int main(void) {
     }
     {
         // String comparison.
-        so_String s1 = so_str("hello"), s2 = so_str("world"), s3 = so_str("hello");
+        so_String s1 = so_str("hello");
+        so_String s2 = so_str("world");
+        so_String s3 = so_str("hello");
         bool e1 = ((so_string_lt(s1, s2)) || (so_string_gt(s1, s3))) && ((so_string_eq(s1, s3)) || (so_string_ne(s2, s3)));
         (void)e1;
         bool e2 = ((so_string_lte(s1, s2)) && (so_string_gte(s1, s3))) || (so_string_ne(s1, s3));

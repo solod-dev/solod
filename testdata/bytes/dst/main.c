@@ -5,14 +5,18 @@
 int main(void) {
     {
         // Byte literals.
-        so_byte b1 = 'a', b2 = 'b', b3 = 'c';
+        so_byte b1 = 'a';
+        so_byte b2 = 'b';
+        so_byte b3 = 'c';
         if (b1 != 'a' || b2 != 'b' || b3 != 'c') {
             so_panic("unexpected byte");
         }
     }
     {
         // Rune literals.
-        so_rune r1 = 0x4e16, r2 = 0x754c, r3 = '!';
+        so_rune r1 = 0x4e16;
+        so_rune r2 = 0x754c;
+        so_rune r3 = '!';
         if (r1 != 0x4e16 || r2 != 0x754c || r3 != '!') {
             so_panic("unexpected rune");
         }

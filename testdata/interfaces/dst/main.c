@@ -164,7 +164,8 @@ int main(void) {
     {
         // Multi-var interface declaration.
         main_Rect r2 = (main_Rect){.width = 3, .height = 4};
-        main_Shape s1 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim}, s2 = (main_Shape){.self = &r2, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
+        main_Shape s1 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
+        main_Shape s2 = (main_Shape){.self = &r2, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
         if (main_Shape_Area(s1) != 50) {
             so_panic("s1.Area() != 50");
         }

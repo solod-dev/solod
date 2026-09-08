@@ -52,7 +52,8 @@ int main(void) {
         if (!equal(so_int, (1), (1)) || equal(so_int, (1), (2))) {
             so_panic("unexpected int result");
         }
-        so_int v1 = 1, v2 = 1;
+        so_int v1 = 1;
+        so_int v2 = 1;
         so_int* p1 = &v1;
         so_int* p2 = &v2;
         if (!equal(so_int*, (p1), (p1)) || equal(so_int*, (p1), (p2))) {

@@ -84,20 +84,17 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 		}
 	}
 
-	// Regular define: group consecutive variables by type.
 	rhs := stmt.Rhs
 	if g.needsRhsTemps(stmt) {
 		rhs = g.hoistRhs(w, stmt)
 	}
-	i := 0
-	for i < len(stmt.Lhs) {
-		ident := stmt.Lhs[i].(*ast.Ident)
+	for i, lhs := range stmt.Lhs {
+		ident := lhs.(*ast.Ident)
 		if ident.Name == "_" {
 			// Blank identifier - the value is still evaluated.
 			if rhs[i] != nil {
 				g.emitDiscard(w, rhs[i])
 			}
-			i++
 			continue
 		}
 
@@ -108,7 +105,6 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 			fmt.Fprintf(w, "%s%s = ", g.indent(), ident.Name)
 			g.emitExprAsType(w, stmt, rhs[i], typ)
 			fmt.Fprint(w, ";\n")
-			i++
 			continue
 		}
 
@@ -117,29 +113,11 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 		if _, isArr := arrayType(typ); isArr {
 			// C cannot assign an array, so it needs a declaration of its own.
 			g.emitArrayVarDecl(w, ct, ident.Name, rhs[i])
-			i++
 			continue
 		}
 
-		// Emit the leading declarator: "T name = init".
 		fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(ident.Name))
 		g.emitExpr(w, rhs[i])
-		i++
-		if !groupable(ct, typ) {
-			fmt.Fprint(w, ";\n")
-			continue
-		}
-
-		// Group the following variables of the same type.
-		for i < len(stmt.Lhs) {
-			next := stmt.Lhs[i].(*ast.Ident)
-			if _, ok := g.groupType(stmt, next, ct, true); !ok {
-				break
-			}
-			fmt.Fprintf(w, ", %s = ", next.Name)
-			g.emitExpr(w, rhs[i])
-			i++
-		}
 		fmt.Fprint(w, ";\n")
 	}
 }

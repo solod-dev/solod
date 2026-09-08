@@ -87,7 +87,8 @@ static so_int resultTemp(void) {
 // Conflicting local function variables.
 static so_int varDecl(void) {
     so_int double_ = 5;
-    so_int union_ = 1, enum_ = 2;
+    so_int union_ = 1;
+    so_int enum_ = 2;
     return double_ + union_ + enum_;
 }
 

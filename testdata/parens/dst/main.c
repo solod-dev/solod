@@ -84,7 +84,8 @@ int main(void) {
         if (n != 2) {
             so_panic("want n == 2");
         }
-        so_int a = 0, b = 0;
+        so_int a = 0;
+        so_int b = 0;
         a = 3;
         b = 4;
         if (a != 3 || b != 4) {
@@ -123,7 +124,8 @@ int main(void) {
     }
     {
         // Parentheses around a range key and a range value.
-        so_int i = 0, v = 0;
+        so_int i = 0;
+        so_int v = 0;
         so_int sum = 0;
         so_Slice sl = (so_Slice){(so_int[3]){10, 20, 30}, 3, 3};
         for (so_int _ii = 0; _ii < so_len(sl); _ii++) {
