@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"go/types"
 	"io"
+	"maps"
 	"slices"
 )
 
@@ -67,34 +68,14 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 	if g.emitAssignSpecial(w, stmt, true) {
 		return
 	}
-	// Detect self-shadowing - a variable x is defined using a variable with
-	// the same name from an outer scope, eg. `x := x + 1`. C does not support
-	// this (the right-hand x refers to the new variable, not the outer one).
-	rhsNames := collectIdents(stmt.Rhs...)
-	for _, lhs := range stmt.Lhs {
-		ident, ok := lhs.(*ast.Ident)
-		if !ok || ident.Name == "_" {
-			continue
-		}
-		if g.types.Defs[ident] == nil {
-			continue
-		}
-		if rhsNames[ident.Name] {
-			g.fail(stmt, "self-shadowing variable %q is not supported", ident.Name)
-		}
-	}
-
-	rhs := stmt.Rhs
-	if g.needsRhsTemps(stmt) {
-		rhs = g.hoistRhs(w, stmt)
-	}
+	a := g.assignment(w, stmt)
+	a.check()
+	a.hoist()
 	for i, lhs := range stmt.Lhs {
 		ident := lhs.(*ast.Ident)
 		if ident.Name == "_" {
 			// Blank identifier - the value is still evaluated.
-			if rhs[i] != nil {
-				g.emitDiscard(w, rhs[i])
-			}
+			a.discardValue(i)
 			continue
 		}
 
@@ -103,7 +84,7 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 			// Redeclared variable - emit plain assignment.
 			typ := g.types.Uses[ident].Type()
 			fmt.Fprintf(w, "%s%s = ", g.indent(), ident.Name)
-			g.emitExprAsType(w, stmt, rhs[i], typ)
+			g.emitExprAsType(w, stmt, a.value(i), typ)
 			fmt.Fprint(w, ";\n")
 			continue
 		}
@@ -112,41 +93,36 @@ func (g *Generator) emitDefine(w io.Writer, stmt *ast.AssignStmt) {
 		ct := g.mapVarType(stmt, typ, true)
 		if _, isArr := arrayType(typ); isArr {
 			// C cannot assign an array, so it needs a declaration of its own.
-			g.emitArrayVarDecl(w, ct, ident.Name, rhs[i])
+			g.emitArrayVarDecl(w, ct, ident.Name, a.value(i))
 			continue
 		}
 
 		fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(ident.Name))
-		g.emitExpr(w, rhs[i])
+		g.emitExpr(w, a.value(i))
 		fmt.Fprint(w, ";\n")
 	}
 }
 
 // emitAssign emits a regular assignment (=).
 func (g *Generator) emitAssign(w io.Writer, stmt *ast.AssignStmt) {
-	g.checkAssignTargets(stmt)
-	g.checkAssignAnonStruct(stmt)
+	a := g.assignment(w, stmt)
+	a.check()
 	if g.emitAssignSpecial(w, stmt, false) {
 		return
 	}
 	// Regular assignment.
-	rhs := stmt.Rhs
-	if g.needsRhsTemps(stmt) {
-		rhs = g.hoistRhs(w, stmt)
-	}
+	a.hoist()
 	for i, lhs := range stmt.Lhs {
 		// Blank identifier - emit a void expression.
 		if ident, ok := lhs.(*ast.Ident); ok && ident.Name == "_" {
-			if rhs[i] != nil {
-				g.emitDiscard(w, rhs[i])
-			}
+			a.discardValue(i)
 			continue
 		}
 
 		// Map index assignment uses so_map_set.
 		if idx, ok := lhs.(*ast.IndexExpr); ok {
 			if isMapType(g.types.TypeOf(idx.X)) {
-				g.emitMapIndexAssign(w, stmt, idx, rhs[i])
+				g.emitMapIndexAssign(w, stmt, idx, a.value(i))
 				continue
 			}
 		}
@@ -160,7 +136,7 @@ func (g *Generator) emitAssign(w io.Writer, stmt *ast.AssignStmt) {
 			fmt.Fprintf(w, "%smemcpy(", g.indent())
 			g.emitExpr(w, lhs)
 			fmt.Fprint(w, ", ")
-			g.emitArrayValue(w, stmt, rhs[i], arr)
+			g.emitArrayValue(w, stmt, a.value(i), arr)
 			fmt.Fprintf(w, ", sizeof(%s));\n", arrCType)
 			continue
 		}
@@ -169,7 +145,7 @@ func (g *Generator) emitAssign(w io.Writer, stmt *ast.AssignStmt) {
 		fmt.Fprint(w, g.indent())
 		g.emitExpr(w, lhs)
 		fmt.Fprint(w, " = ")
-		g.emitExprAsType(w, stmt, rhs[i], lhsType)
+		g.emitExprAsType(w, stmt, a.value(i), lhsType)
 		fmt.Fprint(w, ";\n")
 	}
 }
@@ -187,6 +163,11 @@ func (g *Generator) emitAssignSpecial(w io.Writer, stmt *ast.AssignStmt, define 
 		}
 		// Comma-ok map read: v, ok := m[key]
 		if idx, ok := stmt.Rhs[0].(*ast.IndexExpr); ok && isMapType(g.types.TypeOf(idx.X)) {
+			if define {
+				// The map read is inlined into the declaration of v, so a
+				// self-shadowing key reads v instead of the outer variable.
+				g.assignment(w, stmt).checkSelfShadow()
+			}
 			g.emitMapCommaOk(w, stmt, idx, define)
 			return true
 		}
@@ -218,119 +199,6 @@ func (g *Generator) checkAssignCall(stmt *ast.AssignStmt) {
 		g.fail(call, "call in the left side of a compound assignment is not supported")
 		return false
 	})
-}
-
-// checkAssignTargets rejects a multiple assignment where a target on the left
-// reads a variable the same statement assigns.
-func (g *Generator) checkAssignTargets(stmt *ast.AssignStmt) {
-	if len(stmt.Lhs) < 2 {
-		return
-	}
-	assigned := g.assignedVars(stmt)
-	for _, lhs := range stmt.Lhs {
-		// A plain identifier has no operand to evaluate.
-		if _, ok := lhs.(*ast.Ident); ok {
-			continue
-		}
-		for name := range collectIdents(lhs) {
-			if assigned[name] {
-				g.fail(stmt, "multiple assignment reads and assigns %q in the same statement", name)
-			}
-		}
-	}
-}
-
-// checkAssignAnonStruct rejects an assignment to an anonymous struct variable
-// or field. Every anonymous struct declaration emits a separate C struct type,
-// and C does not assign between two separate struct types.
-func (g *Generator) checkAssignAnonStruct(stmt *ast.AssignStmt) {
-	for _, lhs := range stmt.Lhs {
-		// A blank target is not emitted, so its type is irrelevant.
-		if ident, ok := lhs.(*ast.Ident); ok && ident.Name == "_" {
-			continue
-		}
-		if isAnonStruct(g.types.TypeOf(lhs)) {
-			g.fail(stmt, "cannot assign an anonymous struct; declare a named struct type instead")
-		}
-	}
-}
-
-// needsRhsTemps reports whether a multiple assignment must evaluate its right
-// side into temporaries to match Go's semantics (evaluate the whole right side
-// before assigning any variable on the left).
-func (g *Generator) needsRhsTemps(stmt *ast.AssignStmt) bool {
-	if len(stmt.Lhs) < 2 || len(stmt.Rhs) < 2 {
-		return false
-	}
-	assigned := g.changedNames(stmt)
-	if len(assigned) == 0 {
-		return false
-	}
-	if slices.ContainsFunc(stmt.Rhs, g.callsFunc) {
-		return true
-	}
-	for name := range collectIdents(stmt.Rhs...) {
-		if assigned[name] {
-			return true
-		}
-	}
-	return false
-}
-
-// changedNames returns the names of the variables a multiple assignment
-// changes. It adds the root of every target that writes into memory: arr in
-// arr[i], p in *p and p.f.
-func (g *Generator) changedNames(stmt *ast.AssignStmt) map[string]bool {
-	names := g.assignedVars(stmt)
-	for _, lhs := range stmt.Lhs {
-		if _, ok := lhs.(*ast.Ident); ok {
-			continue
-		}
-		if ident := rootIdent(lhs); ident != nil {
-			names[ident.Name] = true
-		}
-	}
-	return names
-}
-
-// assignedVars returns the names of the variables a multiple assignment sets.
-func (g *Generator) assignedVars(stmt *ast.AssignStmt) map[string]bool {
-	names := map[string]bool{}
-	for _, lhs := range stmt.Lhs {
-		// Only a plain identifier target sets a variable. Any other target
-		// writes into memory, and the variable itself keeps its value.
-		ident, ok := lhs.(*ast.Ident)
-		if !ok || ident.Name == "_" {
-			continue
-		}
-		// Redeclaration does not introduce a new variable.
-		if stmt.Tok == token.DEFINE && g.types.Defs[ident] != nil {
-			continue
-		}
-		names[ident.Name] = true
-	}
-	return names
-}
-
-// rootIdent returns the identifier at the root of an assignment target:
-// arr in arr[i], p in *p and p.f. It returns nil for any other target.
-func rootIdent(expr ast.Expr) *ast.Ident {
-	for {
-		switch e := expr.(type) {
-		case *ast.Ident:
-			return e
-		case *ast.IndexExpr:
-			expr = e.X
-		case *ast.StarExpr:
-			expr = e.X
-		case *ast.SelectorExpr:
-			expr = e.X
-		case *ast.ParenExpr:
-			expr = e.X
-		default:
-			return nil
-		}
-	}
 }
 
 // callsFunc reports whether an expression calls a function with side effects.
@@ -368,67 +236,247 @@ func (g *Generator) isPureCall(call *ast.CallExpr) bool {
 	return ok && (b.Name() == "len" || b.Name() == "cap")
 }
 
-// hoistRhs evaluates the right side of a multiple assignment into temporaries
-// and returns a reference for each value.
+// assignment emits the values of an assignment statement. Go evaluates the
+// whole right side before it assigns any target, so a statement that reads
+// what it assigns needs a temporary for every value.
+type assignment struct {
+	g    *Generator
+	w    io.Writer
+	stmt *ast.AssignStmt
+	// values holds the value for each target. hoist replaces a value with
+	// the temporary that holds it, or with nil for a discarded value.
+	values []ast.Expr
+	// assigned holds the names of the variables the statement sets.
+	assigned map[string]bool
+}
+
+// assignment returns an emitter for a define or a plain assignment.
+func (g *Generator) assignment(w io.Writer, stmt *ast.AssignStmt) *assignment {
+	return &assignment{g: g, w: w, stmt: stmt, values: stmt.Rhs}
+}
+
+// check rejects an unsupported assignment.
+func (a *assignment) check() {
+	if a.stmt.Tok == token.DEFINE {
+		a.checkSelfShadow()
+		return
+	}
+	a.checkTargets()
+	a.checkAnonStruct()
+}
+
+// checkSelfShadow rejects a definition of a variable x that reads a variable
+// with the same name from an outer scope, eg. `x := x + 1`.
+func (a *assignment) checkSelfShadow() {
+	rhsNames := collectIdents(a.stmt.Rhs...)
+	for _, lhs := range a.stmt.Lhs {
+		ident, ok := lhs.(*ast.Ident)
+		if !ok || ident.Name == "_" {
+			continue
+		}
+		if a.g.types.Defs[ident] == nil {
+			continue
+		}
+		if rhsNames[ident.Name] {
+			a.g.fail(a.stmt, "self-shadowing variable %q is not supported", ident.Name)
+		}
+	}
+}
+
+// checkTargets rejects a multiple assignment where a target on the left
+// reads a variable the same statement assigns.
+func (a *assignment) checkTargets() {
+	if len(a.stmt.Lhs) < 2 {
+		return
+	}
+	assigned := a.assignedVars()
+	for _, lhs := range a.stmt.Lhs {
+		// A plain identifier has no operand to evaluate.
+		if _, ok := lhs.(*ast.Ident); ok {
+			continue
+		}
+		for name := range collectIdents(lhs) {
+			if assigned[name] {
+				a.g.fail(a.stmt, "multiple assignment reads and assigns %q in the same statement", name)
+			}
+		}
+	}
+}
+
+// checkAnonStruct rejects an assignment to an anonymous struct variable or field.
+func (a *assignment) checkAnonStruct() {
+	for _, lhs := range a.stmt.Lhs {
+		// A blank target is not emitted, so its type is irrelevant.
+		if ident, ok := lhs.(*ast.Ident); ok && ident.Name == "_" {
+			continue
+		}
+		if isAnonStruct(a.g.types.TypeOf(lhs)) {
+			a.g.fail(a.stmt, "cannot assign an anonymous struct; declare a named struct type instead")
+		}
+	}
+}
+
+// value returns the value for the i-th target.
+func (a *assignment) value(i int) ast.Expr {
+	return a.values[i]
+}
+
+// discardValue emits the value for a blank target. hoist discards the value
+// in place, so this emits nothing after a hoist.
+func (a *assignment) discardValue(i int) {
+	if a.values[i] == nil {
+		return
+	}
+	a.g.emitDiscard(a.w, a.values[i])
+}
+
+// hoist evaluates the right side into temporaries and replaces each value with
+// a reference to its temporary. It does nothing when the statement keeps Go's
+// evaluation order without temporaries.
 //
-// A blank identifier gets no temporary and no reference. Its value is discarded
-// in place, which keeps the calls on the right in order.
-func (g *Generator) hoistRhs(w io.Writer, stmt *ast.AssignStmt) []ast.Expr {
-	refs := make([]ast.Expr, len(stmt.Rhs))
+// A blank target gets no temporary and no reference. Its value is discarded in
+// place, which keeps the calls on the right in order.
+func (a *assignment) hoist() {
+	if !a.needsTemps() {
+		return
+	}
+	g, stmt := a.g, a.stmt
+	values := make([]ast.Expr, len(stmt.Rhs))
 	for i, rhs := range stmt.Rhs {
 		// A constant needs no temporary. No assignment can change it.
 		if tv, ok := g.types.Types[rhs]; ok && tv.Value != nil {
-			refs[i] = rhs
+			values[i] = rhs
 			continue
 		}
-		typ := g.assignTargetType(stmt, i)
+		typ := a.targetType(i)
 		if typ == nil {
-			g.emitDiscard(w, rhs)
+			g.emitDiscard(a.w, rhs)
 			continue
 		}
 		ref := &ast.Ident{NamePos: rhs.Pos(), Name: g.newTemp(stmt, tempAssign)}
 		// The reference has no declaration to look up, so record its type directly.
 		g.types.Types[ref] = types.TypeAndValue{Type: typ}
-		refs[i] = ref
+		values[i] = ref
 
 		ct := g.mapVarType(stmt, typ, true)
 		if !ct.IsArray() {
-			fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(ref.Name))
-			g.emitExprAsType(w, stmt, rhs, typ)
-			fmt.Fprint(w, ";\n")
+			fmt.Fprintf(a.w, "%s%s = ", g.indent(), ct.Decl(ref.Name))
+			g.emitExprAsType(a.w, stmt, rhs, typ)
+			fmt.Fprint(a.w, ";\n")
 			continue
 		}
 		// C cannot assign an array, so a composite literal initializes the
 		// temporary and any other value is copied into it.
 		if lit, isLit := ast.Unparen(rhs).(*ast.CompositeLit); isLit {
-			fmt.Fprintf(w, "%s%s = ", g.indent(), ct.Decl(ref.Name))
-			g.emitExpr(w, lit)
-			fmt.Fprint(w, ";\n")
+			fmt.Fprintf(a.w, "%s%s = ", g.indent(), ct.Decl(ref.Name))
+			g.emitExpr(a.w, lit)
+			fmt.Fprint(a.w, ";\n")
 			continue
 		}
-		fmt.Fprintf(w, "%s%s;\n", g.indent(), ct.Decl(ref.Name))
-		fmt.Fprintf(w, "%smemcpy(%s, ", g.indent(), ref.Name)
-		g.emitExpr(w, rhs)
-		fmt.Fprintf(w, ", sizeof(%s));\n", ref.Name)
+		fmt.Fprintf(a.w, "%s%s;\n", g.indent(), ct.Decl(ref.Name))
+		fmt.Fprintf(a.w, "%smemcpy(%s, ", g.indent(), ref.Name)
+		g.emitExpr(a.w, rhs)
+		fmt.Fprintf(a.w, ", sizeof(%s));\n", ref.Name)
 	}
-	return refs
+	a.values = values
 }
 
-// assignTargetType returns the type of the i-th target of an assignment.
+// needsTemps reports whether a multiple assignment must evaluate its right
+// side into temporaries to match Go's semantics (evaluate the whole right side
+// before assigning any variable on the left).
+func (a *assignment) needsTemps() bool {
+	if len(a.stmt.Lhs) < 2 || len(a.stmt.Rhs) < 2 {
+		return false
+	}
+	changed := a.changedNames()
+	if len(changed) == 0 {
+		return false
+	}
+	if slices.ContainsFunc(a.stmt.Rhs, a.g.callsFunc) {
+		return true
+	}
+	for name := range collectIdents(a.stmt.Rhs...) {
+		if changed[name] {
+			return true
+		}
+	}
+	return false
+}
+
+// changedNames returns the names of the variables the statement changes. It
+// adds the root of every target that writes into memory: arr in arr[i], p in
+// *p and p.f.
+func (a *assignment) changedNames() map[string]bool {
+	names := maps.Clone(a.assignedVars())
+	for _, lhs := range a.stmt.Lhs {
+		if _, ok := lhs.(*ast.Ident); ok {
+			continue
+		}
+		if ident := rootIdent(lhs); ident != nil {
+			names[ident.Name] = true
+		}
+	}
+	return names
+}
+
+// assignedVars returns the names of the variables the statement sets.
+func (a *assignment) assignedVars() map[string]bool {
+	if a.assigned != nil {
+		return a.assigned
+	}
+	a.assigned = map[string]bool{}
+	for _, lhs := range a.stmt.Lhs {
+		// Only a plain identifier target sets a variable. Any other target
+		// writes into memory, and the variable itself keeps its value.
+		ident, ok := lhs.(*ast.Ident)
+		if !ok || ident.Name == "_" {
+			continue
+		}
+		// Redeclaration does not introduce a new variable.
+		if a.stmt.Tok == token.DEFINE && a.g.types.Defs[ident] != nil {
+			continue
+		}
+		a.assigned[ident.Name] = true
+	}
+	return a.assigned
+}
+
+// targetType returns the type of the i-th target of an assignment.
 // It returns nil for a blank identifier, which has no type.
-func (g *Generator) assignTargetType(stmt *ast.AssignStmt, i int) types.Type {
-	lhs := stmt.Lhs[i]
+func (a *assignment) targetType(i int) types.Type {
+	lhs := a.stmt.Lhs[i]
 	ident, isIdent := lhs.(*ast.Ident)
 	if isIdent && ident.Name == "_" {
 		return nil
 	}
-	if stmt.Tok != token.DEFINE {
-		return g.types.TypeOf(lhs)
+	if a.stmt.Tok != token.DEFINE {
+		return a.g.types.TypeOf(lhs)
 	}
-	if def := g.types.Defs[ident]; def != nil {
+	if def := a.g.types.Defs[ident]; def != nil {
 		return def.Type()
 	}
-	return g.types.Uses[ident].Type()
+	return a.g.types.Uses[ident].Type()
+}
+
+// rootIdent returns the identifier at the root of an assignment target:
+// arr in arr[i], p in *p and p.f. It returns nil for any other target.
+func rootIdent(expr ast.Expr) *ast.Ident {
+	for {
+		switch e := expr.(type) {
+		case *ast.Ident:
+			return e
+		case *ast.IndexExpr:
+			expr = e.X
+		case *ast.StarExpr:
+			expr = e.X
+		case *ast.SelectorExpr:
+			expr = e.X
+		case *ast.ParenExpr:
+			expr = e.X
+		default:
+			return nil
+		}
+	}
 }
 
 // collectIdents returns the set of identifier names in the given expressions.

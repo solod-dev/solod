@@ -1,0 +1,3 @@
+main.go:7:3: self-shadowing variable "v" is not supported
+		v, ok := m[v]
+		^here
