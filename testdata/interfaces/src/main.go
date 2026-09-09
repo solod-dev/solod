@@ -34,27 +34,8 @@ func calcShape(s Shape) int {
 	return s.Perim(2) + s.Area()
 }
 
-func shapeIsRect(s Shape) bool {
-	_, ok := s.(*Rect)
-	return ok
-}
-
-func shapeAsRect(s Shape) *Rect {
-	if _, ok := s.(*Rect); !ok {
-		return nil
-	}
-	r := s.(*Rect)
-	return r
-}
-
 func rectAsShape(r *Rect) Shape {
 	return r
-}
-
-func shapeCheckAssign(s Shape) bool {
-	var ok bool
-	_, ok = s.(*Rect)
-	return ok
 }
 
 func nilShape() Shape {
@@ -79,11 +60,6 @@ func main() {
 		calcShape(s)
 		calcShape(Shape(&r)) // also works
 		calcShape(&r)        // also works
-
-		_ = shapeIsRect(s)
-		_ = shapeCheckAssign(s)
-		rval := shapeAsRect(s)
-		_ = rval
 	}
 	{
 		// Wrap Rect value into Shape via function.
@@ -110,10 +86,6 @@ func main() {
 		s5 := Shape(nil)
 		if s5 != nil {
 			panic("want nil interface")
-		}
-		isRect := shapeIsRect(nil)
-		if isRect {
-			panic("want isRect == false")
 		}
 		var r Rect
 		var s4 Shape = &r

@@ -10,6 +10,7 @@ This document lists the main changes in the Solod version in development.
   [Interface methods](#interface-methods) ·
   [Interface dispatch](#interface-dispatch) ·
   [Interface comparison](#interface-comparison) ·
+  [Type assertions](#type-assertions) ·
   [Type embedding](#type-embedding) ·
   [Switch statement](#switch-statement) ·
   [Multiple assignment](#multiple-assignment) ·
@@ -163,6 +164,20 @@ if a == n { }    // not supported
 ```
 
 [06b8ab8](https://github.com/solod-dev/solod/commit/06b8ab85bf4cb065b760c5a0e750b1bf6658d076)
+
+### Type assertions
+
+A comma-ok type assertion is now fully supported for non-empty interfaces:
+
+```go
+var s1 Shape = &rect
+r, ok := s1.(*Rect)   // r is &rect, ok is true
+
+var s2 Shape = &circle
+c, ok := s2.(*Rect)   // c is nil, ok is false
+```
+
+Previously, the only two supported forms were a direct assertion like `r := s.(*Rect)` and a check-only form like `_, ok := s.(*Rect)`.
 
 ### Type embedding
 

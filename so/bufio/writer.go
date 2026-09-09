@@ -28,12 +28,9 @@ type Writer struct {
 // size, it returns the underlying [Writer].
 func NewWriterSize(a mem.Allocator, w io.Writer, size int) Writer {
 	// Is it already a Writer?
-	_, ok := w.(*Writer)
-	if ok {
-		b := w.(*Writer)
-		if len(b.buf) >= size {
-			return *b
-		}
+	b, ok := w.(*Writer)
+	if ok && len(b.buf) >= size {
+		return *b
 	}
 	if size <= 0 {
 		size = DefaultBufSize
@@ -61,8 +58,7 @@ func (b *Writer) Size() int { return len(b.buf) }
 // Calling w.Reset(w) (that is, resetting a [Writer] to itself) does nothing.
 func (b *Writer) Reset(w io.Writer) {
 	// Avoid no-op reset to self.
-	_, ok := w.(*Writer)
-	if ok && b == w.(*Writer) {
+	if wb, ok := w.(*Writer); ok && wb == b {
 		return
 	}
 	if b.buf == nil {

@@ -2,10 +2,7 @@
 
 // -- Forward declarations --
 static so_int calcShape(main_Shape s);
-static bool shapeIsRect(main_Shape s);
-static main_Rect* shapeAsRect(main_Shape s);
 static main_Shape rectAsShape(main_Rect* r);
-static bool shapeCheckAssign(main_Shape s);
 static main_Shape nilShape(void);
 static main_Shape countShape(main_Rect* r);
 
@@ -38,30 +35,8 @@ static so_int calcShape(main_Shape s) {
     return main_Shape_Perim(s, 2) + main_Shape_Area(s);
 }
 
-static bool shapeIsRect(main_Shape s) {
-    bool ok = (s.Area == main_Rect_Area);
-    return ok;
-}
-
-static main_Rect* shapeAsRect(main_Shape s) {
-    {
-        bool ok = (s.Area == main_Rect_Area);
-        if (!ok) {
-            return NULL;
-        }
-    }
-    main_Rect* r = (main_Rect*)s.self;
-    return r;
-}
-
 static main_Shape rectAsShape(main_Rect* r) {
     return (main_Shape){.self = r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};
-}
-
-static bool shapeCheckAssign(main_Shape s) {
-    bool ok = false;
-    ok = (s.Area == main_Rect_Area);
-    return ok;
 }
 
 static main_Shape nilShape(void) {
@@ -86,10 +61,6 @@ int main(void) {
         calcShape((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
         // also works
         calcShape((main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim});
-        (void)shapeIsRect(s);
-        (void)shapeCheckAssign(s);
-        main_Rect* rval = shapeAsRect(s);
-        (void)rval;
     }
     {
         // Wrap Rect value into Shape via function.
@@ -116,10 +87,6 @@ int main(void) {
         main_Shape s5 = (main_Shape){};
         if (s5.self != NULL) {
             so_panic("want nil interface");
-        }
-        bool isRect = shapeIsRect((main_Shape){});
-        if (isRect) {
-            so_panic("want isRect == false");
         }
         main_Rect r = {};
         main_Shape s4 = (main_Shape){.self = &r, .Area = main_Rect_Area, .Perim = main_Rect_Perim};

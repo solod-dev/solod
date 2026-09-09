@@ -1,0 +1,3 @@
+main.go:19:3: self-shadowing variable "s" is not supported
+		s, ok := s.(*Rect)
+		^here

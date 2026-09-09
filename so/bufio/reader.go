@@ -34,11 +34,9 @@ const maxConsecutiveEmptyReads = 100
 // size, it returns the underlying [Reader].
 func NewReaderSize(a mem.Allocator, rd io.Reader, size int) Reader {
 	// Is it already a Reader?
-	if _, ok := rd.(*Reader); ok {
-		b := rd.(*Reader)
-		if len(b.buf) >= size {
-			return *b
-		}
+	b, ok := rd.(*Reader)
+	if ok && len(b.buf) >= size {
+		return *b
 	}
 	sz := max(size, minReadBufferSize)
 	buf := mem.AllocSlice[byte](a, sz, sz)
@@ -62,8 +60,7 @@ func (b *Reader) Size() int { return len(b.buf) }
 // Calling b.Reset(b) (that is, resetting a [Reader] to itself) does nothing.
 func (b *Reader) Reset(r io.Reader) {
 	// Avoid no-op reset to self.
-	_, ok := r.(*Reader)
-	if ok && b == r.(*Reader) {
+	if rb, ok := r.(*Reader); ok && rb == b {
 		return
 	}
 	if b.buf == nil {

@@ -1,0 +1,3 @@
+main.go:20:2: comma-ok type assertion requires a variable target
+	p, m["x"] = s.(*Rect)
+	^here

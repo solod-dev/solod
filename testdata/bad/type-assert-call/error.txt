@@ -1,0 +1,3 @@
+main.go:22:11: comma-ok type assertion of a call result is not supported; assign the call to a variable first
+	p, ok := get(s).(*Rect)
+	         ^here

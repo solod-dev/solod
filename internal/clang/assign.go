@@ -156,18 +156,21 @@ func (g *Generator) emitAssign(w io.Writer, stmt *ast.AssignStmt) {
 // statement declares the variables of its left side.
 func (g *Generator) emitAssignSpecial(w io.Writer, stmt *ast.AssignStmt, define bool) bool {
 	if len(stmt.Lhs) == 2 && len(stmt.Rhs) == 1 {
-		// Comma-ok type assertion: v, ok := s.(Rect)
-		if ta, ok := stmt.Rhs[0].(*ast.TypeAssertExpr); ok {
+		ta, isAssert := stmt.Rhs[0].(*ast.TypeAssertExpr)
+		idx, isIndex := stmt.Rhs[0].(*ast.IndexExpr)
+		isMapRead := isIndex && isMapType(g.types.TypeOf(idx.X))
+		if define && (isAssert || isMapRead) {
+			// Both forms inline the right side into the declaration, so a self-
+			// shadowing operand reads the new variable instead of the outer one.
+			g.assignment(w, stmt).checkSelfShadow()
+		}
+		// Comma-ok type assertion: v, ok := s.(*Rect)
+		if isAssert {
 			g.emitTypeAssertion(w, stmt, ta)
 			return true
 		}
 		// Comma-ok map read: v, ok := m[key]
-		if idx, ok := stmt.Rhs[0].(*ast.IndexExpr); ok && isMapType(g.types.TypeOf(idx.X)) {
-			if define {
-				// The map read is inlined into the declaration of v, so a
-				// self-shadowing key reads v instead of the outer variable.
-				g.assignment(w, stmt).checkSelfShadow()
-			}
+		if isMapRead {
 			g.emitMapCommaOk(w, stmt, idx, define)
 			return true
 		}

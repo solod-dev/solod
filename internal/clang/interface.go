@@ -151,8 +151,7 @@ func (g *Generator) emitInterfaceLit(w io.Writer, ifaceType types.Type, expr ast
 	fmt.Fprint(w, "}")
 }
 
-// emitTypeAssertion emits a comma-ok type assertion (e.g. _, ok := s.(Rect)).
-// Uses function pointer comparison to identify the concrete type.
+// emitTypeAssertion emits a comma-ok type assertion (e.g. r, ok := s.(*Rect)).
 func (g *Generator) emitTypeAssertion(w io.Writer, stmt *ast.AssignStmt, ta *ast.TypeAssertExpr) {
 	sourceType := g.types.TypeOf(ta.X)
 	if isEmptyInterface(sourceType) {
@@ -163,18 +162,68 @@ func (g *Generator) emitTypeAssertion(w io.Writer, stmt *ast.AssignStmt, ta *ast
 	firstMethod := iface.Method(0).Name()
 
 	// Get value type, dereferencing if it's a pointer.
-	assertedType, _ := ptrElem(g.types.TypeOf(ta.Type))
+	assertedType, isPtr := ptrElem(g.types.TypeOf(ta.Type))
 	concreteNamed := assertedType.(*types.Named)
 	cConcrete := g.mapTypeName(ta, concreteNamed)
 
-	okIdent := stmt.Lhs[1].(*ast.Ident)
-	if stmt.Tok == token.DEFINE {
-		fmt.Fprintf(w, "%sbool %s = (", g.indent(), okIdent.Name)
-	} else {
-		fmt.Fprintf(w, "%s%s = (", g.indent(), okIdent.Name)
+	valIdent := g.assertTarget(stmt, 0)
+	okIdent := g.assertTarget(stmt, 1)
+	if valIdent != nil {
+		if !isPtr {
+			g.fail(ta, "comma-ok type assertion to a value type is not supported")
+		}
+		if g.callsFunc(ta.X) {
+			g.fail(ta, "comma-ok type assertion of a call result is not supported; assign the call to a variable first")
+		}
 	}
-	g.emitExpr(w, ta.X)
-	fmt.Fprintf(w, ".%s == %s_%s);\n", firstMethod, cConcrete, firstMethod)
+
+	// The test compares the first method of the interface value with the
+	// method of the asserted type.
+	var test strings.Builder
+	g.emitExpr(&test, ta.X)
+	fmt.Fprintf(&test, ".%s == %s_%s", firstMethod, cConcrete, firstMethod)
+
+	if okIdent != nil {
+		fmt.Fprintf(w, "%s%s = (%s);\n", g.indent(), g.assertDecl(stmt, okIdent), test.String())
+	}
+	if valIdent == nil {
+		return
+	}
+	// A failed assertion gives the zero value, so the cast runs only when
+	// the test succeeds. The ok target already holds the result of the test.
+	cond := "(" + test.String() + ")"
+	if okIdent != nil {
+		cond = okIdent.Name
+	}
+	var value strings.Builder
+	fmt.Fprintf(&value, "(%s*)", cConcrete)
+	g.emitExpr(&value, ta.X)
+	value.WriteString(".self")
+	fmt.Fprintf(w, "%s%s = %s ? %s : NULL;\n",
+		g.indent(), g.assertDecl(stmt, valIdent), cond, value.String())
+}
+
+// assertTarget returns the i-th target of a comma-ok type assertion.
+// It returns nil for a blank target.
+func (g *Generator) assertTarget(stmt *ast.AssignStmt, i int) *ast.Ident {
+	ident, ok := stmt.Lhs[i].(*ast.Ident)
+	if !ok {
+		g.fail(stmt, "comma-ok type assertion requires a variable target")
+	}
+	if ident.Name == "_" {
+		return nil
+	}
+	return ident
+}
+
+// assertDecl returns the left side of an assignment to a comma-ok target.
+// A new variable gets its declaration, and any other target gets its name.
+func (g *Generator) assertDecl(stmt *ast.AssignStmt, ident *ast.Ident) string {
+	def := g.types.Defs[ident]
+	if stmt.Tok != token.DEFINE || def == nil {
+		return ident.Name
+	}
+	return g.mapVarType(stmt, def.Type(), true).Decl(ident.Name)
 }
 
 // emitTypeAssertExpr emits a type assertion.

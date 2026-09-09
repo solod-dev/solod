@@ -82,15 +82,11 @@ var ErrWhence = errors.New("io: invalid whence")
 // Copy allocates a buffer on the stack to hold data during the copy.
 func Copy(dst Writer, src Reader) (int64, error) {
 	size := defaultBufSize
-	_, ok := src.(*LimitedReader)
-	if ok {
-		l := src.(*LimitedReader)
-		if int64(size) > l.N {
-			if l.N < 1 {
-				size = 1
-			} else {
-				size = int(l.N)
-			}
+	if l, ok := src.(*LimitedReader); ok && int64(size) > l.N {
+		if l.N < 1 {
+			size = 1
+		} else {
+			size = int(l.N)
 		}
 	}
 	buf := make([]byte, size)

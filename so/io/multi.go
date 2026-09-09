@@ -24,8 +24,7 @@ func (mr *MultiReader) Read(p []byte) (int, error) {
 		// Optimization to flatten nested multiReaders (Issue 13558).
 		if len(mr.readers) == 1 {
 			r0 := mr.readers[0]
-			if _, ok := r0.(*MultiReader); ok {
-				mr0 := r0.(*MultiReader)
+			if mr0, ok := r0.(*MultiReader); ok {
 				mr.readers = mr0.readers
 				continue
 			}
@@ -57,8 +56,7 @@ func (mr *MultiReader) writeToWithBuffer(w Writer, buf []byte) (int64, error) {
 	var err error
 	for i, r := range mr.readers {
 		var n int64
-		if _, ok := r.(*MultiReader); ok { // reuse buffer with nested multiReaders
-			subMr := r.(*MultiReader)
+		if subMr, ok := r.(*MultiReader); ok { // reuse buffer with nested multiReaders
 			n, err = subMr.writeToWithBuffer(w, buf)
 		} else {
 			n, err = copyBuffer(w, r, buf)

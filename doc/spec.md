@@ -940,14 +940,14 @@ calcShape(Shape(&r))  // explicit conversion
 Type assertions:
 
 ```go
-_, ok := s.(*Rect)    // comma-ok pattern (checks without panic)
 r := s.(*Rect)        // direct assertion
-
-// But not both; this is not supported.
-// r, ok := s.(*Rect)
+_, ok := s.(*Rect)    // comma-ok pattern (checks without panic)
+r, ok := s.(*Rect)    // both; r is nil when the assertion fails
 ```
 
-Empty interfaces (`interface{}` and `any`) are translated to `void*`.
+Unlike in Go, directly asserting `s.(*Rect)` is unsafe and does not panic.
+
+Empty interfaces (`interface{}` and `any`) are translated to `void*`. Comma-ok type assertion on `any` is not supported.
 
 Two interfaces are equal when they hold the same pointer, and an interface compares with `nil` as expected. Comparing an interface with a concrete type is not supported:
 
