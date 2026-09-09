@@ -92,7 +92,7 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 		}
 	}
 
-	args.emit(func() {
+	args.emitArg(func() {
 		switch {
 		case isMethodPtrRecv && !isCallSitePtr:
 			// Pointer receiver on a value: pass the address of the value.
@@ -106,6 +106,6 @@ func (g *Generator) emitMethodCall(w io.Writer, sel *ast.SelectorExpr, call *ast
 
 	// Pass method arguments.
 	ext, isExtern := g.methodExtern(sel)
-	g.emitCallArgs(args, call, sig, ext, isExtern)
+	args.emit(call, sig, ext, isExtern)
 	fmt.Fprint(w, ")")
 }

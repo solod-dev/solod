@@ -153,7 +153,7 @@ func (g *Generator) emitExprStmt(w io.Writer, stmt *ast.ExprStmt) {
 
 // emitGenDecl emits a general declaration (var, import, etc.).
 func (g *Generator) emitGenDecl(w io.Writer, decl *ast.GenDecl) {
-	if found, _ := parseExtern(decl.Doc); found {
+	if _, isExtern := parseExtern(decl.Doc); isExtern {
 		return
 	}
 	switch decl.Tok {

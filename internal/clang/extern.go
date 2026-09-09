@@ -10,8 +10,8 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// externInfo holds metadata parsed from a so:extern directive.
-type externInfo struct {
+// externDecl holds metadata parsed from a so:extern directive.
+type externDecl struct {
 	name    string // C name override (empty = use default)
 	nodecay bool   // skip decay for call args
 }
@@ -51,25 +51,25 @@ func (g *Generator) collectFileExterns(typesInfo *types.Info, file *ast.File) {
 	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
-			found, info := parseExtern(d.Doc)
+			extern, found := parseExtern(d.Doc)
 			if !found {
 				continue
 			}
 			for _, spec := range d.Specs {
 				switch s := spec.(type) {
 				case *ast.TypeSpec:
-					g.markExtern(typesInfo.Defs[s.Name], info)
-					g.markExternFields(typesInfo, s, info)
+					g.markExtern(typesInfo.Defs[s.Name], extern)
+					g.markExternFields(typesInfo, s, extern)
 				case *ast.ValueSpec:
 					for _, name := range s.Names {
-						g.markExtern(typesInfo.Defs[name], info)
+						g.markExtern(typesInfo.Defs[name], extern)
 					}
 				}
 			}
 		case *ast.FuncDecl:
-			found, info := parseExtern(d.Doc)
-			if d.Body == nil || found {
-				g.markExtern(typesInfo.Defs[d.Name], info)
+			extern, isExtern := parseExtern(d.Doc)
+			if isExtern || d.Body == nil {
+				g.markExtern(typesInfo.Defs[d.Name], extern)
 			}
 		}
 	}
@@ -77,9 +77,9 @@ func (g *Generator) collectFileExterns(typesInfo *types.Info, file *ast.File) {
 
 // parseExtern checks if a comment group contains the so:extern
 // directive and parses its options (name override and nodecay flag).
-func parseExtern(doc *ast.CommentGroup) (bool, externInfo) {
+func parseExtern(doc *ast.CommentGroup) (externDecl, bool) {
 	if doc == nil {
-		return false, externInfo{}
+		return externDecl{}, false
 	}
 	for _, c := range doc.List {
 		text := strings.TrimSpace(c.Text)
@@ -87,25 +87,25 @@ func parseExtern(doc *ast.CommentGroup) (bool, externInfo) {
 		if !ok {
 			continue
 		}
-		var info externInfo
+		var ext externDecl
 		fields := strings.Fields(rest)
 		if len(fields) > 0 && fields[len(fields)-1] == "nodecay" {
 			// nodecay can only be the last field.
-			info.nodecay = true
+			ext.nodecay = true
 			fields = fields[:len(fields)-1]
 		}
 		if len(fields) > 0 {
 			// Use the remaining fields as the C name override.
-			info.name = strings.Join(fields, " ")
+			ext.name = strings.Join(fields, " ")
 		}
-		return true, info
+		return ext, true
 	}
-	return false, externInfo{}
+	return externDecl{}, false
 }
 
 // funcExtern returns the extern metadata for a function call
 // if the function is marked as extern.
-func (g *Generator) funcExtern(call *ast.CallExpr) (externInfo, bool) {
+func (g *Generator) funcExtern(call *ast.CallExpr) (externDecl, bool) {
 	switch fun := call.Fun.(type) {
 	case *ast.Ident:
 		// Local package call.
@@ -120,33 +120,32 @@ func (g *Generator) funcExtern(call *ast.CallExpr) (externInfo, bool) {
 		// Function pointer field on an extern struct (e.g. acc.write(...)).
 		return g.callExternField(fun)
 	}
-	return externInfo{}, false
+	return externDecl{}, false
 }
 
 // methodExtern returns the extern metadata for a method-value selector
 // if the method is marked as extern.
-func (g *Generator) methodExtern(sel *ast.SelectorExpr) (externInfo, bool) {
+func (g *Generator) methodExtern(sel *ast.SelectorExpr) (externDecl, bool) {
 	selection, ok := g.types.Selections[sel]
 	if !ok || selection.Kind() != types.MethodVal {
-		return externInfo{}, false
+		return externDecl{}, false
 	}
 	return g.getExtern(selection.Obj())
 }
 
 // callExternField checks whether a selector targets a function pointer field
 // on an extern struct (e.g. acc.write).
-func (g *Generator) callExternField(sel *ast.SelectorExpr) (externInfo, bool) {
+func (g *Generator) callExternField(sel *ast.SelectorExpr) (externDecl, bool) {
 	selection, ok := g.types.Selections[sel]
 	if !ok || selection.Kind() != types.FieldVal {
-		return externInfo{}, false
+		return externDecl{}, false
 	}
-	info, ok := g.externs[selection.Obj()]
-	return info, ok
+	return g.getExtern(selection.Obj())
 }
 
 // markExternFields registers function pointer fields of an extern struct type,
 // so that calls like acc.write(...) can be resolved via a map lookup.
-func (g *Generator) markExternFields(typesInfo *types.Info, spec *ast.TypeSpec, info externInfo) {
+func (g *Generator) markExternFields(typesInfo *types.Info, spec *ast.TypeSpec, extern externDecl) {
 	obj := typesInfo.Defs[spec.Name]
 	if obj == nil {
 		return
@@ -155,17 +154,17 @@ func (g *Generator) markExternFields(typesInfo *types.Info, spec *ast.TypeSpec, 
 	if !ok {
 		return
 	}
-	fieldInfo := externInfo{nodecay: info.nodecay}
+	fieldExt := externDecl{nodecay: extern.nodecay}
 	for field := range st.Fields() {
 		if _, ok := field.Type().Underlying().(*types.Signature); ok {
-			g.externs[field] = fieldInfo
+			g.externs[field] = fieldExt
 		}
 	}
 }
 
 // markExtern marks a types.Object as extern.
-func (g *Generator) markExtern(obj types.Object, info externInfo) {
-	g.externs[obj] = info
+func (g *Generator) markExtern(obj types.Object, extern externDecl) {
+	g.externs[obj] = extern
 }
 
 // hasExtern reports whether a types.Object is marked as extern.
@@ -190,9 +189,9 @@ func (g *Generator) readsExtern(expr ast.Expr) bool {
 }
 
 // getExtern returns the extern metadata for a types.Object.
-func (g *Generator) getExtern(obj types.Object) (externInfo, bool) {
-	info, ok := g.externs[obj]
-	return info, ok
+func (g *Generator) getExtern(obj types.Object) (externDecl, bool) {
+	ext, ok := g.externs[obj]
+	return ext, ok
 }
 
 // cIntrinsic checks whether an expression is a c.Raw or c.Val call

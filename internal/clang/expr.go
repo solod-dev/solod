@@ -460,9 +460,9 @@ func (g *Generator) emitGenericCall(w io.Writer, n *ast.CallExpr, fun ast.Expr, 
 	for i, arg := range n.Args {
 		if sig != nil && i < sig.Params().Len() {
 			paramType := sig.Params().At(i).Type()
-			args.emit(func() { g.emitExprAsType(w, n, arg, paramType) })
+			args.emitArg(func() { g.emitExprAsType(w, n, arg, paramType) })
 		} else {
-			args.emit(func() { g.emitExpr(w, arg) })
+			args.emitArg(func() { g.emitExpr(w, arg) })
 		}
 	}
 	fmt.Fprint(w, ")")
@@ -608,8 +608,8 @@ func (g *Generator) emitSelectorExpr(w io.Writer, n *ast.SelectorExpr) {
 		if pkgName, ok := g.types.Uses[ident].(*types.PkgName); ok {
 			// Use the extern C name if the symbol has one
 			// (e.g. math.MaxInt64 → INT64_MAX).
-			if info, ok := g.getExtern(g.types.Uses[n.Sel]); ok && info.name != "" {
-				fmt.Fprint(w, info.name)
+			if ext, ok := g.getExtern(g.types.Uses[n.Sel]); ok && ext.name != "" {
+				fmt.Fprint(w, ext.name)
 				return
 			}
 			// Imported symbols are prefixed with the

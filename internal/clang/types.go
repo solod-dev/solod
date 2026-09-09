@@ -151,8 +151,8 @@ func (g *Generator) mapTypeName(node ast.Node, typ types.Type) string {
 		obj := t.Obj()
 		if obj.Pkg() != nil && obj.Pkg() != g.pkg.Types {
 			// This is a named type from another package.
-			if info, ok := g.getExtern(obj); ok && info.name != "" {
-				return info.name
+			if ext, ok := g.getExtern(obj); ok && ext.name != "" {
+				return ext.name
 			}
 			g.checkPackage(node, obj)
 			return obj.Pkg().Name() + "_" + obj.Name()
@@ -359,8 +359,8 @@ func (g *Generator) mapObjName(obj types.Object) string {
 
 // baseObjName returns the C name of a Go object before mangling.
 func (g *Generator) baseObjName(obj types.Object) string {
-	if info, ok := g.getExtern(obj); ok && info.name != "" {
-		return info.name
+	if ext, ok := g.getExtern(obj); ok && ext.name != "" {
+		return ext.name
 	}
 	if recv := methodRecvType(obj); recv != nil {
 		return g.mapObjName(recv) + "_" + obj.Name()

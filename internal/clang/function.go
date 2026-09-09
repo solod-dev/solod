@@ -110,7 +110,7 @@ func (g *Generator) emitFuncTypeSpec(w io.Writer, spec *ast.TypeSpec) {
 // Inline functions are skipped here - they are emitted into the header
 // by [Generator.emitInlineFuncDecl].
 func (g *Generator) emitFuncDecl(w io.Writer, decl *ast.FuncDecl) {
-	if decl.Body == nil || g.hasExtern(g.types.Defs[decl.Name]) {
+	if g.hasExtern(g.types.Defs[decl.Name]) {
 		return
 	}
 	if isInitFunc(decl) {
@@ -294,7 +294,7 @@ func (g *Generator) emitFuncCallArgs(w io.Writer, call *ast.CallExpr) {
 	// A generic function call emits as a macro, and
 	// [Generator.emitGenericCall] writes its arguments.
 	ext, isExtern := g.funcExtern(call)
-	g.emitCallArgs(g.callArgs(w, call, false), call, sig, ext, isExtern)
+	g.callArgs(w, call, false).emit(call, sig, ext, isExtern)
 }
 
 // emitExternVarArg emits argument i of a call to a variadic extern nodecay

@@ -107,7 +107,7 @@ func TestMakesCName(t *testing.T) {
 
 	extern := types.NewVar(token.NoPos, pkg, "errno", types.Typ[types.Int])
 	pkg.Scope().Insert(extern)
-	g.externs = map[types.Object]externInfo{extern: {}}
+	g.externs = map[types.Object]externDecl{extern: {}}
 
 	tests := []struct {
 		name string

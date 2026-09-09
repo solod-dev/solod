@@ -108,16 +108,16 @@ func (g *Generator) checkImports(file *ast.File) {
 // collectGenDecl processes a GenDecl for externs, embeds, and symbol collection.
 func (g *Generator) collectGenDecl(srcDir string, d *ast.GenDecl) {
 	// Handle so:extern declarations.
-	foundExtern, externInf := parseExtern(d.Doc)
-	if foundExtern {
+	extern, isExtern := parseExtern(d.Doc)
+	if isExtern {
 		for _, spec := range d.Specs {
 			switch s := spec.(type) {
 			case *ast.TypeSpec:
-				g.markExtern(g.types.Defs[s.Name], externInf)
-				g.markExternFields(g.types, s, externInf)
+				g.markExtern(g.types.Defs[s.Name], extern)
+				g.markExternFields(g.types, s, extern)
 			case *ast.ValueSpec:
 				for _, name := range s.Names {
-					g.markExtern(g.types.Defs[name], externInf)
+					g.markExtern(g.types.Defs[name], extern)
 				}
 			}
 		}
@@ -202,9 +202,9 @@ func (g *Generator) collectGenDecl(srcDir string, d *ast.GenDecl) {
 // collectFuncDecl processes a FuncDecl for externs and symbol collection.
 func (g *Generator) collectFuncDecl(d *ast.FuncDecl) {
 	// Handle extern functions (body-less or so:extern).
-	foundExtern, externInf := parseExtern(d.Doc)
-	if d.Body == nil || foundExtern {
-		g.markExtern(g.types.Defs[d.Name], externInf)
+	extern, isExtern := parseExtern(d.Doc)
+	if isExtern || d.Body == nil {
+		g.markExtern(g.types.Defs[d.Name], extern)
 		return
 	}
 

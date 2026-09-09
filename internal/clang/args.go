@@ -12,9 +12,11 @@ import (
 type callArgs struct {
 	g     *Generator
 	w     io.Writer
-	node  ast.Node // the position for a diagnostic
-	macro bool     // the call emits as a macro
-	count int      // the arguments written so far
+	node  ast.Node         // the position for a diagnostic
+	macro bool             // the call emits as a macro
+	count int              // the arguments written so far
+	call  *ast.CallExpr    // the call, set by emit
+	sig   *types.Signature // the callee signature, nil for a call through a value
 }
 
 // callArgs returns a writer for the arguments of a call.
@@ -24,7 +26,7 @@ func (g *Generator) callArgs(w io.Writer, node ast.Node, macro bool) *callArgs {
 }
 
 // emit writes one value argument. The write function emits the value itself.
-func (a *callArgs) emit(write func()) {
+func (a *callArgs) emitArg(write func()) {
 	a.separate()
 	if a.macro {
 		fmt.Fprint(a.w, "(")
@@ -43,7 +45,7 @@ func (a *callArgs) emitType(name string) {
 
 // emitExpr writes one value argument coerced to the parameter type.
 func (a *callArgs) emitExpr(arg ast.Expr, paramType types.Type) {
-	a.emit(func() { a.g.emitCallArg(a.w, a.node, arg, paramType) })
+	a.emitArg(func() { a.g.emitCallArg(a.w, a.node, arg, paramType) })
 }
 
 // separate writes the comma before an argument that follows another one.
@@ -54,94 +56,94 @@ func (a *callArgs) separate() {
 	a.count++
 }
 
-// emitCallArgs writes the arguments of a function or a method call. ext holds
-// the extern metadata of the callee, and isExtern reports whether the callee is
-// extern. sig is nil for a call through a value with no signature.
-func (g *Generator) emitCallArgs(args *callArgs, call *ast.CallExpr, sig *types.Signature, ext externInfo, isExtern bool) {
+// emit writes the arguments of a function or a method call.
+// sig is nil for a call through a value with no signature.
+func (a *callArgs) emit(call *ast.CallExpr, sig *types.Signature, extern externDecl, isExtern bool) {
+	a.call, a.sig = call, sig
 	if isExtern {
-		if !ext.nodecay {
+		if !extern.nodecay {
 			// Extern C function: decay args to C-compatible types.
-			g.emitDecayArgs(args, call, sig)
+			a.emitDecayArgs()
 			return
 		}
-		if sig != nil && sig.Variadic() {
+		if a.sig != nil && a.sig.Variadic() {
 			// Extern nodecay function: emit the variadic args flat.
-			g.emitExternVarArgs(args, call, sig)
+			a.emitExternVarArgs()
 			return
 		}
 	}
-	if sig != nil && sig.Variadic() && !call.Ellipsis.IsValid() {
+	if a.sig != nil && a.sig.Variadic() && !a.call.Ellipsis.IsValid() {
 		// Variadic call with individual args: pack trailing args into a slice literal.
-		g.emitVarArgs(args, call, sig)
+		a.emitVarArgs()
 		return
 	}
 	// Non-variadic call or variadic call with ellipsis: emit all args directly.
-	for i, arg := range call.Args {
-		if sig != nil && i < sig.Params().Len() {
-			args.emitExpr(arg, sig.Params().At(i).Type())
+	for i, arg := range a.call.Args {
+		if a.sig != nil && i < a.sig.Params().Len() {
+			a.emitExpr(arg, a.sig.Params().At(i).Type())
 		} else {
 			// No signature available (e.g. func literal), emit arg as-is.
-			args.emit(func() { g.emitExpr(args.w, arg) })
+			a.emitArg(func() { a.g.emitExpr(a.w, arg) })
 		}
 	}
 }
 
 // emitVarArgs packs the trailing arguments into an inline so_Slice literal.
-func (g *Generator) emitVarArgs(args *callArgs, call *ast.CallExpr, sig *types.Signature) {
+func (a *callArgs) emitVarArgs() {
 	// Emit fixed args first.
-	fixedCount := sig.Params().Len() - 1
-	for i := 0; i < fixedCount && i < len(call.Args); i++ {
-		args.emitExpr(call.Args[i], sig.Params().At(i).Type())
+	fixedCount := a.sig.Params().Len() - 1
+	for i := 0; i < fixedCount && i < len(a.call.Args); i++ {
+		a.emitExpr(a.call.Args[i], a.sig.Params().At(i).Type())
 	}
 
 	// Emit variadic args as a so_Slice literal.
-	variadicArgs := call.Args[fixedCount:]
-	elemType := sig.Params().At(fixedCount).Type().(*types.Slice).Elem()
-	cElemType := g.mapTypeName(args.node, elemType)
+	variadicArgs := a.call.Args[fixedCount:]
+	elemType := a.sig.Params().At(fixedCount).Type().(*types.Slice).Elem()
+	cElemType := a.g.mapTypeName(a.node, elemType)
 	count := len(variadicArgs)
 
 	if count == 0 {
 		// No variadic args: emit a nil slice.
-		args.emit(func() { fmt.Fprint(args.w, "(so_Slice){}") })
+		a.emitArg(func() { fmt.Fprint(a.w, "(so_Slice){}") })
 		return
 	}
 
-	args.emit(func() {
-		fmt.Fprintf(args.w, "(so_Slice){(%s[%d]){", cElemType, count)
+	a.emitArg(func() {
+		fmt.Fprintf(a.w, "(so_Slice){(%s[%d]){", cElemType, count)
 		// The slice literal already protects its elements from the
 		// preprocessor, so an element needs no parentheses of its own.
-		elems := g.callArgs(args.w, args.node, false)
+		elems := a.g.callArgs(a.w, a.node, false)
 		for _, arg := range variadicArgs {
-			elems.emit(func() { g.emitExprAsType(args.w, args.node, arg, elemType) })
+			elems.emitArg(func() { a.g.emitExprAsType(a.w, a.node, arg, elemType) })
 		}
-		fmt.Fprintf(args.w, "}, %d, %d}", count, count)
+		fmt.Fprintf(a.w, "}, %d, %d}", count, count)
 	})
 }
 
 // emitDecayArgs writes the arguments of a call to an extern C function,
 // decayed to their C-compatible types.
-func (g *Generator) emitDecayArgs(args *callArgs, call *ast.CallExpr, sig *types.Signature) {
-	if call.Ellipsis.IsValid() {
-		g.fail(call, "spreading variadic arguments to an extern function is not supported")
+func (a *callArgs) emitDecayArgs() {
+	if a.call.Ellipsis.IsValid() {
+		a.g.fail(a.call, "spreading variadic arguments to an extern function is not supported")
 	}
-	for i, arg := range call.Args {
+	for i, arg := range a.call.Args {
 		// Interface-typed parameters (e.g. Allocator) need emitExprAsType
 		// to convert nil to a zero-initialized struct instead of NULL.
-		if sig != nil && i < sig.Params().Len() && isNamedNonEmptyInterface(sig.Params().At(i).Type()) {
-			paramType := sig.Params().At(i).Type()
-			args.emit(func() { g.emitExprAsType(args.w, args.node, arg, paramType) })
+		if a.sig != nil && i < a.sig.Params().Len() && isNamedNonEmptyInterface(a.sig.Params().At(i).Type()) {
+			paramType := a.sig.Params().At(i).Type()
+			a.emitArg(func() { a.g.emitExprAsType(a.w, a.node, arg, paramType) })
 		} else {
-			args.emit(func() { g.emitCArg(args.w, arg) })
+			a.emitArg(func() { a.g.emitCArg(a.w, arg) })
 		}
 	}
 }
 
 // emitExternVarArgs writes the arguments of a call to a variadic extern nodecay function.
-func (g *Generator) emitExternVarArgs(args *callArgs, call *ast.CallExpr, sig *types.Signature) {
-	if call.Ellipsis.IsValid() {
-		g.fail(call, "spreading variadic arguments to an extern function is not supported")
+func (a *callArgs) emitExternVarArgs() {
+	if a.call.Ellipsis.IsValid() {
+		a.g.fail(a.call, "spreading variadic arguments to an extern function is not supported")
 	}
-	for i := range call.Args {
-		args.emit(func() { g.emitExternVarArg(args.w, args.node, call, sig, i) })
+	for i := range a.call.Args {
+		a.emitArg(func() { a.g.emitExternVarArg(a.w, a.node, a.call, a.sig, i) })
 	}
 }

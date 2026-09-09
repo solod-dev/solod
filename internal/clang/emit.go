@@ -100,7 +100,7 @@ type Generator struct {
 	types       *types.Info
 	state       State
 	modulePkgs  map[string]bool              // import paths of the packages inside a module
-	externs     map[types.Object]externInfo  // symbols provided by C headers
+	externs     map[types.Object]externDecl  // symbols provided by C headers
 	promoted    map[types.Object]bool        // unexported symbols forced into the header
 	implObjs    map[types.Object]bool        // symbols only the .c file declares
 	renames     map[types.Object]string      // C names changed to avoid name conflicts
@@ -123,7 +123,7 @@ func newGenerator(opts EmitOptions) *Generator {
 		pkg:        opts.Pkg,
 		types:      opts.Pkg.TypesInfo,
 		modulePkgs: make(map[string]bool),
-		externs:    make(map[types.Object]externInfo),
+		externs:    make(map[types.Object]externDecl),
 		renames:    make(map[types.Object]string),
 		fieldNames: make(map[*types.Var]string),
 		funcDirs:   make(map[*ast.FuncDecl]directives),
