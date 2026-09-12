@@ -43,6 +43,7 @@ This document lists the main changes in the Solod version in development.
   [unsafe](#unsafe) ·
   [uuid](#uuid)
 - Tooling:
+  [sobind](#sobind) ·
   [so test](#so-test) ·
   [so translate-test](#so-translate-test) ·
   [Build flags](#build-flags) ·
@@ -685,6 +686,12 @@ The package now works in freestanding mode. It imports `crypto/crand`, so `New` 
 [451b213](https://github.com/solod-dev/solod/commit/451b213cb61d91c65b56665ba6a12587471afc51)
 
 ## Tooling
+
+### sobind
+
+[sobind](https://github.com/solod-dev/sobind) generates Solod bindings from C header files. Previously, you often had to edit the results by hand. Now, sobind can generate a working API automatically.
+
+Here are some examples: [raylib](https://github.com/solod-dev/raylib), [sqlite](https://github.com/solod-dev/sqlite), [uv](https://github.com/solod-dev/uv).
 
 ### so test
 
